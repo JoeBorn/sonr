@@ -1,5 +1,11 @@
 package com.smartphonebeuro.sonr.v0;
 
+/*
+ * 
+ * This class pulls metadata from the service if available.
+ * 
+ *
+ */
 
 public abstract class ContentSource
 {

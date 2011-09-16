@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+    
+	<TextView android:layout_width="fill_parent" 
+		android:layout_height="wrap_content" 
+		android:text="TEMPORARY DEBUG SCREEN - will be a splash screen for V0.1 that launches the background service and then automatically closes after a couple seconds."
+  	/>
+  	
+  	<Button android:onClick="startListener" 
+ 		android:text="Start Listener" 
+ 		android:layout_height="wrap_content"
+    	android:layout_width="wrap_content"
+ 	/>
+    
+	<Button android:onClick="stopListener" 
+ 		android:text="Stop Listener" 
+ 		android:layout_height="wrap_content"
+    	android:layout_width="wrap_content"
+ 	/>
+ 		
+</LinearLayout>

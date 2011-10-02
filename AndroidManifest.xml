@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="com.smartphonebeuro.sonr"
       android:versionCode="22"
       android:versionName="0.22"
-      >
+      package="com.sonrlabs.sonr">
       
 
 	<uses-sdk android:minSdkVersion="4" />
@@ -11,11 +10,11 @@
 	<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
-    <application android:icon="@drawable/sonr_icon" android:label="@string/app_name" android:debuggable="true">
-        <activity android:name="com.smartphonebeuro.sonr.SONR"
+    <application android:icon="@drawable/sonr_icon" android:label="@string/app_name" android:debuggable="false">
+        <activity android:name="com.sonrlabs.sonr.SONR"
                   android:label="@string/app_name">
                   
-            <receiver android:name="com.smartphonebeuro.sonr.StopReceiver" android:enabled="true">
+            <receiver android:name="com.sonrlabs.sonr.StopReceiver" android:enabled="true">
             	<intent-filter>
                		 <action android:name="android.intent.action.DISCONNECT_DOC"></action>
             	</intent-filter>  	
@@ -32,10 +31,10 @@
         </activity>
         
         
-        <service android:name="com.smartphonebeuro.sonr.SONRClient"
+        <service android:name="com.sonrlabs.sonr.SONRClient"
           		 android:enabled="true">
-          	<activity android:name="com.smartphonebeuro.sonr.register"/>
-			<receiver android:name="com.smartphonebeuro.sonr.clientStopReceiver" android:enabled="true">
+          	<activity android:name="com.sonrlabs.sonr.register"/>
+			<receiver android:name="com.sonrlabs.sonr.clientStopReceiver" android:enabled="true">
             	<intent-filter>
                		 <action android:name="android.intent.action.DISCONNECT_DOC"></action>
             	</intent-filter>
@@ -43,11 +42,11 @@
         </service>
         
         
-        <service android:name="com.smartphonebeuro.sonr.MicSerialListener"
+        <service android:name="com.sonrlabs.sonr.MicSerialListener"
           		 android:enabled="true"/>
         
      
-		<receiver android:name="com.smartphonebeuro.sonr.SonrWidget" android:label="@string/widget_name" >
+		<receiver android:name="com.sonrlabs.sonr.SonrWidget" android:label="@string/widget_name" >
 		    <intent-filter>
 		        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
 		    </intent-filter>
@@ -64,7 +63,7 @@
 			</intent-filter>
 		</receiver>
 		
-		<service android:name="com.smartphonebeuro.sonr.ToggleSONR"/>
+		<service android:name=".ToggleSONR"/>
 	     
 	     <activity android:name=".StopSONR"/>
     </application>

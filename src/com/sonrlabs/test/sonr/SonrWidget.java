@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.sonrlabs.sonr;
+package com.sonrlabs.test.sonr;
 
-
+import org.acra.ErrorReporter;
 
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
@@ -24,20 +24,22 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-
 public class SonrWidget extends AppWidgetProvider {
 
 	private static String TAG = SonrWidget.class.getName();
-	
+
 	/**
 	 * Called when appwidget is loaded
 	 */
-	public void onUpdate( Context context, 
-			AppWidgetManager appWidgetManager, 
-			int[] appWidgetIds) {
-	
-		Log.d(TAG,"onUpdate");
-		// do all updates within a service (we can keep alive to register headset intents)
-        context.startService(new Intent(context, ToggleSONR.class));
+	public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+		try {
+			Log.d(TAG, "onUpdate");
+			// do all updates within a service (we can keep alive to register
+			// headset intents)
+			context.startService(new Intent(context, ToggleSONR.class));
+		} catch (Exception e) {
+			e.printStackTrace();
+			ErrorReporter.getInstance().handleException(e);
+		}
 	}
 }

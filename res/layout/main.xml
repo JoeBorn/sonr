@@ -6,36 +6,36 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
     
-		<LinearLayout
-	      android:orientation="vertical"
-	      android:layout_width="fill_parent"
-	      android:layout_height="wrap_content">
-	      	<CheckBox  android:id="@+id/default_player"
-				android:text="Default player"
-				android:layout_width="fill_parent"
-				android:layout_height="wrap_content"/>
-      </LinearLayout>
-      
+	<LinearLayout
+      android:orientation="vertical"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content">
+      	<CheckBox  android:id="@+id/default_player"
+			android:text="Default player"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"/>
+    </LinearLayout>
+     
 
-		<LinearLayout
-	      android:orientation="vertical"
-	      android:layout_width="fill_parent"
-	      android:layout_height="wrap_content"
-	      android:gravity="top">      
-		    <ListView 
-		        android:id="@android:id/list"
-		        android:drawSelectorOnTop="false"
-		        android:layout_width="fill_parent"
-		        android:layout_height="wrap_content" />  
-		    <TextView android:id="@android:id/empty"
-		        android:layout_width="fill_parent"
-		        android:layout_height="wrap_content"
-		        android:paddingLeft="20dip"
-		        android:paddingTop="5dip"
-		        android:text="@string/empty_list_msg"
-		        android:gravity="center"
-		        android:textAppearance="?android:attr/textAppearanceMedium" />
-		</LinearLayout>
+	<LinearLayout
+      android:orientation="vertical"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:gravity="top">      
+	    <ListView 
+	        android:id="@android:id/list"
+	        android:drawSelectorOnTop="false"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content" android:layout_weight="1"/>  
+	    <TextView android:id="@android:id/empty"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:paddingLeft="20dip"
+	        android:paddingTop="5dip"
+	        android:text="@string/empty_list_msg"
+	        android:gravity="center"
+	        android:textAppearance="?android:attr/textAppearanceMedium" />
 	</LinearLayout>
+</LinearLayout>
 	
 	

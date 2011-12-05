@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+ 	android:layout_width="fill_parent" 
+  	android:layout_height="fill_parent"
+  	android:orientation="vertical"
+  	android:weightSum="1.0" >
+  
+    
+	<TextView android:id="@+id/text_terms"
+		android:layout_width="fill_parent" 
+		android:layout_height="wrap_content"
+		android:layout_weight=".95" 
+		android:layout_margin="12dip"
+		android:scrollbars="vertical"
+		android:text="@string/t_o_s"/>
+
+		
+	<LinearLayout android:orientation="horizontal"
+  		android:layout_width="fill_parent" 
+   		android:layout_height="wrap_content"
+   		android:layout_weight=".05"
+   		android:weightSum="1.0" >
+			  
+	  	<Button android:id="@+id/disagree"
+	  		android:text="Disagree" 
+	 		android:layout_height="wrap_content"
+	    	android:layout_width="fill_parent"
+	    	android:layout_weight=".5"
+	    	android:onClick="declineTerms"/>
+	
+		<Button android:id="@+id/agree"
+			android:text="Agree"
+	 		android:layout_height="wrap_content"
+	    	android:layout_width="fill_parent"
+	    	android:layout_weight=".5"
+	    	android:onClick="acceptTerms"/>
+    	
+    </LinearLayout>	
+</LinearLayout>

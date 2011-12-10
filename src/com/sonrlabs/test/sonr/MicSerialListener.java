@@ -29,6 +29,10 @@ public class MicSerialListener
     // transmissions in a single
     // sample
 
+    public static int SIGNAL_MAX_SUM = 0;
+
+    private static long CHECK_TIME = 1150; // 1.15 seconds
+
     private AudioRecord inStream; // Serial input catcher
     private int bufferSize; // size of inStream's buffer, set by
     // AudioRecord.getMinBufferSize() in constructor
@@ -49,21 +53,20 @@ public class MicSerialListener
     private int[] movingsum2 = new int[PREAMBLE + 3 * (TRANSMISSION_LENGTH + BIT_OFFSET) + 1];
     private int[] movingbuf = new int[9];
     private int[][] sloc = new int[MicSerialListener.MAX_TRANSMISSIONS][3];
-    int[] byteInDec = new int[MicSerialListener.MAX_TRANSMISSIONS * 3];
+    private int[] byteInDec = new int[MicSerialListener.MAX_TRANSMISSIONS * 3];
 
-    public boolean switchbuffer = false;
+    private boolean switchbuffer = false;
     private boolean readnewbuf = true;
 
     private AudioProcessor myaudioprocessor = null;
 
-    public boolean found_dock = false;
-
-    public static int SIGNAL_MAX_SUM = 0;
+    private boolean found_dock = false;
 
     private long start_check = 0;
-    private static long CHECK_TIME = 1150; // 1.15 seconds
-
-    public MicSerialListener(AudioRecord theaudiorecord, int buffsize, ByteReceiver theByteReceiver) {
+    
+    int sampleloc[] = new int[3];
+    
+    MicSerialListener(AudioRecord theaudiorecord, int buffsize, ByteReceiver theByteReceiver) {
         try {
             if (inStream == null) { // screen turned sideways, dont
                 // re-initialize to null
@@ -92,8 +95,12 @@ public class MicSerialListener
             ErrorReporter.getInstance().handleException(e);
         }
     }
+    
+    boolean foundDock() {
+        return found_dock;
+    }
 
-    public void searchSignal() {
+    void searchSignal() {
         try {
             start_check = SystemClock.elapsedRealtime();
             boolean problem = false;
@@ -136,10 +143,9 @@ public class MicSerialListener
 
                 if (numSamples > 0 && myaudioprocessor != null && myaudioprocessor.isWaiting()) {
                     /* if a signal got cut off and audioprocessor is waiting */
-                    myaudioprocessor.buffer_notify();
-                    
-                    // TODO: Should be myaudioprocessor.notify();
-                    myaudioprocessor.interrupt();
+                    synchronized (myaudioprocessor) {
+                        myaudioprocessor.notify();
+                    }
                     
                     readnewbuf = true;
                 }
@@ -147,42 +153,10 @@ public class MicSerialListener
                 if (myaudioprocessor == null || numSamples > 0 && myaudioprocessor != null && !myaudioprocessor.isWaiting()
                         && !myaudioprocessor.isBusy()) {
                     /* if there are samples and not waiting */
-                    if (switchbuffer) {
-                        switchbuffer = false;
-                    } else {
-                        switchbuffer = true;
-                    }
-
+                    switchbuffer = !switchbuffer;
                     readnewbuf = true;
-
                     if (myaudioprocessor == null || !myaudioprocessor.isAlive()) {
-                        if (switchbuffer) {
-                            myaudioprocessor =
-                                    new AudioProcessor(myByteReceiver,
-                                                       numSamples,
-                                                       sample_buf1,
-                                                       sample_buf2,
-                                                       trans_buf,
-                                                       movingsum,
-                                                       movingbuf,
-                                                       sloc,
-                                                       byteInDec);
-                        } else {
-                            myaudioprocessor =
-                                    new AudioProcessor(myByteReceiver,
-                                                       numSamples,
-                                                       sample_buf2,
-                                                       sample_buf1,
-                                                       trans_buf,
-                                                       movingsum,
-                                                       movingbuf,
-                                                       sloc,
-                                                       byteInDec);
-                        }
-
-                        synchronized (this) {
-                            myaudioprocessor.start();
-                        }
+                        startNextProcessorThread();
                     } // end if thread not alive
                 } // end if samples and thread not waiting
             }
@@ -194,7 +168,35 @@ public class MicSerialListener
         // LogFile.MakeLog("LISTENER ended");
     }
 
-    int sampleloc[] = new int[3];
+    private void startNextProcessorThread() {
+        if (switchbuffer) {
+            myaudioprocessor =
+                    new AudioProcessor(myByteReceiver,
+                                       numSamples,
+                                       sample_buf1,
+                                       sample_buf2,
+                                       trans_buf,
+                                       movingsum,
+                                       movingbuf,
+                                       sloc,
+                                       byteInDec);
+        } else {
+            myaudioprocessor =
+                    new AudioProcessor(myByteReceiver,
+                                       numSamples,
+                                       sample_buf2,
+                                       sample_buf1,
+                                       trans_buf,
+                                       movingsum,
+                                       movingbuf,
+                                       sloc,
+                                       byteInDec);
+        }
+
+        synchronized (myaudioprocessor) {
+            myaudioprocessor.start();
+        }
+    }
 
     boolean AutoGainControl() {
         boolean found = false;
@@ -342,18 +344,6 @@ public class MicSerialListener
         }
         inStream = null;
         Log.d(TAG, "STOPPED");
-    }
-
-    public int round(double num) {
-        if ((int) (num + 0.5) > num) {
-            return (int) (num + 0.5);
-        } else {
-            return (int) num;
-        }
-    }
-
-    public interface ByteReceiver {
-        public void receiveByte(int receivedByte);
     }
 
     public static boolean isPhase(int sum1, int sum2, int SIG_MAX_SUM) {

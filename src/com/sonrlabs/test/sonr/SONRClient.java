@@ -15,7 +15,6 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.view.KeyEvent;
 
-import com.sonrlabs.test.sonr.MicSerialListener.ByteReceiver;
 
 public class SONRClient
         extends Service {
@@ -79,7 +78,7 @@ public class SONRClient
         while (i < 5) {
             Log.d("searching...", Integer.toString(i));
             theListener.searchSignal();
-            if (theListener.found_dock) {
+            if (theListener.foundDock()) {
                 found_dock = true;
                 break;
             }

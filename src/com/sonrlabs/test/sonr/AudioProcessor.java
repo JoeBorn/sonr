@@ -2,40 +2,32 @@ package com.sonrlabs.test.sonr;
 
 import org.acra.ErrorReporter;
 
-import com.sonrlabs.test.sonr.MicSerialListener.ByteReceiver;
 
 public class AudioProcessor
         extends Thread {
 
     // private static final String TAG = "SONR audio processor";
 
+    private static boolean PreambleIsCutOff = false;
+
+    private static int Preamble_Offset = 0;
+
     private ByteReceiver myByteReceiver;
 
-    short[] sample_buf, sample_buf2;
+    private short[] sample_buf, sample_buf2;
     private int[][] trans_buf;
     private int numSamples;
     private int[][] sampleloc;
-    int[] movingsum;
-    int[] movingbuf;
-    int[] byteInDec;
+    private int[] movingsum;
+    private int[] movingbuf;
+    private int[] byteInDec;
 
     private int samplelocsize = 0;
     private int buffer;
-    private static final int BUFFER_AVAILABLE = 1;
-
-    /* notify that another buffer is available */
-    public void buffer_notify() {
-        buffer++;
-    }
-
-    private static boolean PreambleIsCutOff = false;
-    private static int Preamble_Offset = 0;
-
     private boolean waiting = false;
-
     private boolean busy = false;
 
-    
+    private static final int BUFFER_AVAILABLE = 1;
 
     // private int SIGNAL_MAX_SUM;
 
@@ -101,19 +93,17 @@ public class AudioProcessor
                     } else {
                         /* no extra buffer, wait */
                         try {
-                            // Should be this.wait(300);
-                            /* Log.d(TAG, "WAITING"); */
-                            waiting = true;
-                            /* longest possible wait time */
-                            Thread.sleep(300);
-                            /*
-                             * should be interrupted before this
-                             */
-                        } catch (Exception e) {
-                            /* Log.d(TAG, "Received completed transmission"); */
-                            waiting = false;
+                            synchronized (this) {
+                                /* Log.d(TAG, "WAITING"); */
+                                waiting = true;
+                                /* longest possible wait time */
+                                this.wait(300);
+                                buffer++;
+                                waiting = false;
+                            }
                             /* redo */
                             i--;
+                        } catch (InterruptedException e) {
                         }
                     }
                 }

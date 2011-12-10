@@ -134,15 +134,18 @@ public class MicSerialListener
                     // Log.d("SONR audio processor", "READ BUFFER 1");
                 }
 
-                if (numSamples > 0 && myaudioprocessor != null && myaudioprocessor.IsWaiting()) {
+                if (numSamples > 0 && myaudioprocessor != null && myaudioprocessor.isWaiting()) {
                     /* if a signal got cut off and audioprocessor is waiting */
                     myaudioprocessor.buffer_notify();
+                    
+                    // TODO: Should be myaudioprocessor.notify();
                     myaudioprocessor.interrupt();
+                    
                     readnewbuf = true;
                 }
 
-                if (myaudioprocessor == null || numSamples > 0 && myaudioprocessor != null && !myaudioprocessor.IsWaiting()
-                        && !myaudioprocessor.IsBusy()) {
+                if (myaudioprocessor == null || numSamples > 0 && myaudioprocessor != null && !myaudioprocessor.isWaiting()
+                        && !myaudioprocessor.isBusy()) {
                     /* if there are samples and not waiting */
                     if (switchbuffer) {
                         switchbuffer = false;

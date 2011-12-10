@@ -31,17 +31,11 @@ public class AudioProcessor
     private static boolean PreambleIsCutOff = false;
     private static int Preamble_Offset = 0;
 
-    private boolean iswaiting = false;
+    private boolean waiting = false;
 
-    public boolean IsWaiting() {
-        return iswaiting;
-    }
+    private boolean busy = false;
 
-    private boolean isbusy = false;
-
-    public boolean IsBusy() {
-        return isbusy;
-    }
+    
 
     // private int SIGNAL_MAX_SUM;
 
@@ -67,19 +61,28 @@ public class AudioProcessor
     public void run() {
         try {
             /* Log.d(TAG, "AUDIO PROCESSOR BEGIN"); */
-            isbusy = true;
+            busy = true;
             processSample();
-            isbusy = false;
             /* Log.d(TAG, "AUDIO PROCESSOR END"); */
         } catch (Exception e) {
             e.printStackTrace();
             ErrorReporter.getInstance().handleException(e);
+        } finally {
+            busy = false;
         }
     }
 
     @Override
     public void destroy() {
 
+    }
+
+    boolean isWaiting() {
+        return waiting;
+    }
+
+    boolean isBusy() {
+        return busy;
     }
 
     private void processSample() {
@@ -98,8 +101,9 @@ public class AudioProcessor
                     } else {
                         /* no extra buffer, wait */
                         try {
+                            // Should be this.wait(300);
                             /* Log.d(TAG, "WAITING"); */
-                            iswaiting = true;
+                            waiting = true;
                             /* longest possible wait time */
                             Thread.sleep(300);
                             /*
@@ -107,7 +111,7 @@ public class AudioProcessor
                              */
                         } catch (Exception e) {
                             /* Log.d(TAG, "Received completed transmission"); */
-                            iswaiting = false;
+                            waiting = false;
                             /* redo */
                             i--;
                         }

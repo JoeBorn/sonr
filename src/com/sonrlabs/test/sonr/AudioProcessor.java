@@ -4,7 +4,7 @@ import org.acra.ErrorReporter;
 
 
 public class AudioProcessor
-        extends Thread {
+        implements Runnable {
 
     // private static final String TAG = "SONR audio processor";
 
@@ -62,11 +62,6 @@ public class AudioProcessor
         } finally {
             busy = false;
         }
-    }
-
-    @Override
-    public void destroy() {
-
     }
 
     boolean isWaiting() {

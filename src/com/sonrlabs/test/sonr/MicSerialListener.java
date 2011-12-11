@@ -1,5 +1,8 @@
 package com.sonrlabs.test.sonr;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.acra.ErrorReporter;
 
 import android.media.AudioRecord;
@@ -64,7 +67,9 @@ public class MicSerialListener
 
     private long start_check = 0;
     
-    int sampleloc[] = new int[3];
+    private int sampleloc[] = new int[3];
+    
+    private final ExecutorService executor = Executors.newFixedThreadPool(10);
     
     MicSerialListener(AudioRecord theaudiorecord, int buffsize, ByteReceiver theByteReceiver) {
         super(TAG);
@@ -156,7 +161,7 @@ public class MicSerialListener
                     /* if there are samples and not waiting */
                     switchbuffer = !switchbuffer;
                     readnewbuf = true;
-                    if (myaudioprocessor == null || !myaudioprocessor.isAlive()) {
+                    if (myaudioprocessor == null || !myaudioprocessor.isBusy()) {
                         startNextProcessorThread();
                     } // end if thread not alive
                 } // end if samples and thread not waiting
@@ -195,7 +200,7 @@ public class MicSerialListener
         }
 
         synchronized (myaudioprocessor) {
-            myaudioprocessor.start();
+            executor.execute(myaudioprocessor);
         }
     }
 
@@ -347,6 +352,7 @@ public class MicSerialListener
         Log.d(TAG, "STOPPED");
     }
 
+    
     public static boolean isPhase(int sum1, int sum2, int SIG_MAX_SUM) {
         if (Math.abs(sum1 - sum2) > SIG_MAX_SUM) {
             return true;

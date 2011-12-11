@@ -69,7 +69,7 @@ public class MicSerialListener
     
     private int sampleloc[] = new int[3];
     
-    private final ExecutorService executor = Executors.newFixedThreadPool(10);
+    private final ExecutorService executor = Executors.newFixedThreadPool(5);
     
     MicSerialListener(AudioRecord theaudiorecord, int buffsize, ByteReceiver theByteReceiver) {
         super(TAG);

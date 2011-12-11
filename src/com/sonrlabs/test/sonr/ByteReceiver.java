@@ -23,5 +23,5 @@
 package com.sonrlabs.test.sonr;
 
 public interface ByteReceiver {
-    public void receiveByte(int receivedByte);
+   public void receiveByte(int receivedByte);
 }

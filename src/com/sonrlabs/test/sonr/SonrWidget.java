@@ -25,23 +25,23 @@ import android.content.Intent;
 import android.util.Log;
 
 public class SonrWidget
-        extends AppWidgetProvider {
+      extends AppWidgetProvider {
 
-    private static String TAG = SonrWidget.class.getName();
+   private static String TAG = SonrWidget.class.getName();
 
-    /**
-     * Called when appwidget is loaded
-     */
-    @Override
-    public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-        try {
-            Log.d(TAG, "onUpdate");
-            // do all updates within a service (we can keep alive to register
-            // headset intents)
-            context.startService(new Intent(context, ToggleSONR.class));
-        } catch (Exception e) {
-            e.printStackTrace();
-            ErrorReporter.getInstance().handleException(e);
-        }
-    }
+   /**
+    * Called when appwidget is loaded
+    */
+   @Override
+   public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+      try {
+         Log.d(TAG, "onUpdate");
+         // do all updates within a service (we can keep alive to register
+         // headset intents)
+         context.startService(new Intent(context, ToggleSONR.class));
+      } catch (Exception e) {
+         e.printStackTrace();
+         ErrorReporter.getInstance().handleException(e);
+      }
+   }
 }

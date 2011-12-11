@@ -353,11 +353,7 @@ public class MicSerialListener
     }
 
     
-    public static boolean isPhase(int sum1, int sum2, int SIG_MAX_SUM) {
-        if (Math.abs(sum1 - sum2) > SIG_MAX_SUM) {
-            return true;
-        } else {
-            return false;
-        }
+    static boolean isPhase(int sum1, int sum2, int max) {
+        return Math.abs(sum1 - sum2) > max;
     }
 }

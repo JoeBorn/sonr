@@ -67,6 +67,7 @@ public class MicSerialListener
     int sampleloc[] = new int[3];
     
     MicSerialListener(AudioRecord theaudiorecord, int buffsize, ByteReceiver theByteReceiver) {
+        super(TAG);
         try {
             if (inStream == null) { // screen turned sideways, dont
                 // re-initialize to null

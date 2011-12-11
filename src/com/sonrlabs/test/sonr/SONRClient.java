@@ -87,13 +87,14 @@ public class SONRClient
     }
 
     public void StartListener() {
-        // LogFile.MakeLog("Start Listener");
-        try {
-            // if (theListener.isAlive())
-            theListener.start();
-        } catch (Exception e) {
-            e.printStackTrace();
-            ErrorReporter.getInstance().handleException(e);
+        if (!theListener.isAlive()) {
+            // LogFile.MakeLog("Start Listener");
+            try {
+                theListener.start();
+            } catch (Exception e) {
+                e.printStackTrace();
+                ErrorReporter.getInstance().handleException(e);
+            }
         }
     }
 

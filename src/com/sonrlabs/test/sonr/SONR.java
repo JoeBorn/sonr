@@ -129,13 +129,13 @@ public class SONR
          noneButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               if (!theclient.found_dock) {
-                  theclient.SearchSignal();
+               if (!theclient.foundDock()) {
+                  theclient.searchSignal();
                }
 
-               if (theclient.found_dock) {
+               if (theclient.foundDock()) {
                   Toast.makeText(getApplicationContext(), "DOCK FOUND", Toast.LENGTH_SHORT).show();
-                  theclient.StartListener();
+                  theclient.startListener();
                   SONR_ON = true;
                   MakeNotification(getApplicationContext());
 
@@ -257,16 +257,16 @@ public class SONR
             builder.create();
             builder.show();
          } else {
-            if (!theclient.found_dock) {
-               theclient.SearchSignal();
+            if (!theclient.foundDock()) {
+               theclient.searchSignal();
             }
 
-            if (theclient.found_dock) {
+            if (theclient.foundDock()) {
                Toast.makeText(getApplicationContext(), "DOCK FOUND", Toast.LENGTH_SHORT).show();
 
                // LogFile.MakeLog("DOCK FOUND");
 
-               theclient.StartListener();
+               theclient.startListener();
                final CheckBox checkBox = (CheckBox) this.findViewById(R.id.checkbox_default_player);
                Start(app_package_and_name, this, checkBox.isChecked());
             } else {

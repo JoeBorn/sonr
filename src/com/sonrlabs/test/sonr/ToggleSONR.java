@@ -99,8 +99,8 @@ public class ToggleSONR
                               new SONRClient(this, SONR.findAudioRecord(), SONR.bufferSize,
                                              (AudioManager) this.getSystemService(Context.AUDIO_SERVICE));
                         theclient.onCreate();
-                        theclient.SearchSignal();
-                        boolean found = theclient.found_dock;
+                        theclient.searchSignal();
+                        boolean found = theclient.foundDock();
                         Log.d(TAG, "made it past search signal");
                         if (found) {
                            // LogFile.MakeLog("DOCK FOUND");
@@ -113,7 +113,7 @@ public class ToggleSONR
                            }
                            if (prefs != null && prefs[0].compareTo("..") != 0) {
                               Log.d(TAG, "DEFAULT MEDIA PLAYER FOUND");
-                              theclient.StartListener();
+                              theclient.startListener();
                               SONR.Start(prefs, this, true);
                            } else {
                               Log.d(TAG, "NO DEFAULT MEDIA PLAYER");

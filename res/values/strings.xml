@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">SONR v0.42-rc2</string>
+    <string name="app_name">SONR v0.42-rc3</string>
     <string name="empty_list_msg">No Applications</string>
     <string name="widget_name">SONR</string>
 	<string name="service_name">ToggleHeadsetService</string>

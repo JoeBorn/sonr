@@ -5,7 +5,7 @@ import org.acra.ErrorReporter;
 public class AudioProcessor
       implements Runnable {
 
-   // private static final String TAG = "SONR audio processor";
+//   private static final String TAG = "SONR audio processor";
 
    private static boolean PreambleIsCutOff = false;
 
@@ -27,8 +27,6 @@ public class AudioProcessor
    private boolean busy = false;
 
    private static final int BUFFER_AVAILABLE = 1;
-
-   // private int SIGNAL_MAX_SUM;
 
    AudioProcessor(IUserActionHandler tempByteReceiver, int numsamples, short[] thesamples, short[] thesamples2, int[][] thetrans_buf,
                   int[] movsum, int[] movbuf, int[][] sloc, int[] b_in_dec) {
@@ -105,7 +103,7 @@ public class AudioProcessor
 //         if (count2 != 0) {
 //            Log.d(TAG, "CUT OFF");
       } else {
-         // nothing found
+         /* nothing found */
          return; 
       }
 
@@ -127,35 +125,38 @@ public class AudioProcessor
             }
          }
 
-         boolean isinphase = true, switchphase = true; // we start out with a
-         // phase shift
+         /* we start out with a phase shift */
+         boolean isinphase = true, switchphase = true; 
          int bitnum = 0;
          byteInDec[s] = 0;
 
          for (int i = MicSerialListener.FRAMES_PER_BIT + 1; i < MicSerialListener.TRANSMISSION_LENGTH; i++) {
             if (MicSerialListener.isPhase(movingsum[i - 1], movingsum[i], MicSerialListener.SIGNAL_MAX_SUM) && switchphase) {
                isinphase = !isinphase;
-               // already switched
+               /* already switched */
                switchphase = false; 
             }
 
             if (i % MicSerialListener.FRAMES_PER_BIT == 0) {
                if (!isinphase) {
-                  byteInDec[s] |= 0x1 << bitnum; // i/MicSerialListener.FRAMES_PER_BIT-1
+                  /* i/MicSerialListener.FRAMES_PER_BIT-1 */
+                  byteInDec[s] |= 0x1 << bitnum; 
                }
                bitnum++;
-               switchphase = true; // reached a bit, can now switch
+               /* reached a bit, can now switch */
+               switchphase = true; 
             }
          }
 
-         // Log.d(TAG, "TRANSMISSION[" + s + "]: " + "0x"+
-         // Integer.toHexString(byteInDec[s]));
+//         Log.d(TAG, "TRANSMISSION[" + s + "]: " + "0x"+ Integer.toHexString(byteInDec[s]));
 
-         // if(byteInDec[s] != 0x27 || samplelocsize < 3)
-         // Log.d(TAG, "--------------");
+//         if(byteInDec[s] != 0x27 || samplelocsize < 3) {
+//            Log.d(TAG, "--------------");
+//         }
       }
 
-      if (samplelocsize > 1) { // 2 or more
+      if (samplelocsize > 1) {
+         /* 2 or more */
          for (int i = 0; i < samplelocsize; i += 3) { 
             /*
              *  receive byte using  best two out of three.
@@ -178,13 +179,13 @@ public class AudioProcessor
          sampleloc[numfoundsamples++][0] = Preamble_Offset;
          PreambleIsCutOff = false;
          count += MicSerialListener.SAMPLE_LENGTH + MicSerialListener.END_OFFSET;
-         // Log.d(TAG, "PREAMBLE CUT OFF BEGIN");
+//         Log.d(TAG, "PREAMBLE CUT OFF BEGIN");
       } else {
          count = MicSerialListener.SAMPLE_LENGTH;
       }
 
       while (count < numSamples - 1) {
-         // /1. find where the PSK signals begin
+         /* 1. find where the PSK signals begin */
          if (Math.abs(sample_buf[count] - sample_buf[count + 1]) > MicSerialListener.THRESHOLD) {
             if (count >= MicSerialListener.SAMPLE_LENGTH && count < MicSerialListener.SAMPLE_LENGTH * 2 && numfoundsamples == 0) {
                count -= MicSerialListener.SAMPLE_LENGTH;
@@ -193,7 +194,7 @@ public class AudioProcessor
                }
             }
             if (count + MicSerialListener.PREAMBLE >= numSamples) {
-               // Log.d(TAG, "PREAMBLE CUT OFF");
+//               Log.d(TAG, "PREAMBLE CUT OFF");
                if (count + MicSerialListener.BEGIN_OFFSET <= numSamples) {
                   Preamble_Offset = 0;
                } else {
@@ -202,7 +203,7 @@ public class AudioProcessor
                PreambleIsCutOff = true;
                break;
             } else { 
-               // preamble not cut off
+               /* preamble not cut off */
                sampleloc[numfoundsamples++][0] = count + MicSerialListener.BEGIN_OFFSET;
                if (numfoundsamples >= MicSerialListener.MAX_TRANSMISSIONS) {
                   break;
@@ -245,12 +246,12 @@ public class AudioProcessor
                if (numsampleloc >= MicSerialListener.MAX_TRANSMISSIONS * 3) {
                   return;
                }
-               i += MicSerialListener.TRANSMISSION_LENGTH + MicSerialListener.BIT_OFFSET + MicSerialListener.FRAMES_PER_BIT + 1; // next
-               // transmission
+               /* next transmission */
+               i += MicSerialListener.TRANSMISSION_LENGTH + MicSerialListener.BIT_OFFSET + MicSerialListener.FRAMES_PER_BIT + 1; 
                sampleloc[numsampleloc / 3][numsampleloc % 3] = i;
                samplelocsize = ++numsampleloc;
-               i += MicSerialListener.TRANSMISSION_LENGTH + MicSerialListener.BIT_OFFSET + MicSerialListener.FRAMES_PER_BIT + 1; // next
-               // transmission
+               /* next transmission */
+               i += MicSerialListener.TRANSMISSION_LENGTH + MicSerialListener.BIT_OFFSET + MicSerialListener.FRAMES_PER_BIT + 1;
                sampleloc[numsampleloc / 3][numsampleloc % 3] = i;
                samplelocsize = ++numsampleloc;
 

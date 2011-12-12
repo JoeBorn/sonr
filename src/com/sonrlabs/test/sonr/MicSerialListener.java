@@ -52,7 +52,7 @@ public class MicSerialListener
    private boolean running;
 
    /* Received bytes are sent to myByteReciver */
-   private ByteReceiver myByteReceiver;
+   private IUserActionHandler myByteReceiver;
 
    private int numSamples;
    private short sample_buf1[], sample_buf2[]; // switch out the buffers
@@ -88,7 +88,7 @@ public class MicSerialListener
 
    private final ExecutorService executor = Executors.newFixedThreadPool(5);
 
-   MicSerialListener(AudioRecord theaudiorecord, int buffsize, ByteReceiver theByteReceiver) {
+   MicSerialListener(AudioRecord theaudiorecord, int buffsize, IUserActionHandler theByteReceiver) {
       super(TAG);
       try {
          if (inStream == null) {

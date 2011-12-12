@@ -586,11 +586,18 @@ public class SONR
                      return recorder;
                   }
                }
+            } catch (IllegalArgumentException e) {
+               /*
+                * Encoding configuration not supported by current hardware.
+                * These are expected, don't bother logging.
+                */
             } catch (Exception e) {
-               Log.e("SONR", SAMPLE_RATE + "Exception, keep trying.", e);
+               String message = "Unexpected condition while testing audio encoding.";
+               Log.e("SONR", message, e);
             }
          }
       }
+      Log.e("SONR", SAMPLE_RATE + " No usable audio encoding for this hardware.");
       return null;
    }
 }

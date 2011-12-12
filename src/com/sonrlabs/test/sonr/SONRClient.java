@@ -29,7 +29,7 @@ public class SONRClient
    public static boolean CLIENT_ON = false;
    
    private BroadcastReceiver clientStopReceiver;
-   private ByteReceiver controller;
+   private IUserActionHandler controller;
    
    private final AudioManager theAudioManager;
    private final AudioRecord theaudiorecord;
@@ -76,19 +76,12 @@ public class SONRClient
    @Override
    public void onCreate() {
       try {
-         // LogFile.MakeLog("\n\nSONRClient CREATED");
-         clientStopReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-               // Handle reciever
-               String mAction = intent.getAction();
-               if (mAction.equals(SONR.DISCONNECT_ACTION)) {
-                  onDestroy();
-               }
-            }
-         };
-         ctx.registerReceiver(clientStopReceiver, new IntentFilter(SONR.DISCONNECT_ACTION));
-         controller = new SONRByteReceiver(theAudioManager,ctx);
+         synchronized (this) {
+            // LogFile.MakeLog("\n\nSONRClient CREATED");
+            unregisterReceiver();
+            registerReceiver();
+         }
+         controller = new UserActionHandler(theAudioManager,ctx);
          singletonListener = new MicSerialListener(theaudiorecord, bufferSize, controller);
       } catch (Exception e) {
          e.printStackTrace();
@@ -107,10 +100,7 @@ public class SONRClient
       try {
          synchronized (this) {
             super.onDestroy();
-            try {
-               ctx.unregisterReceiver(clientStopReceiver);
-            } catch (Exception e) {
-            }
+            unregisterReceiver();
             if (singletonListener != null) {
                singletonListener.onDestroy();
             }
@@ -119,6 +109,32 @@ public class SONRClient
       } catch (Exception e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
+      }
+   }
+
+   private void registerReceiver() {
+      clientStopReceiver = new BroadcastReceiver() {
+         @Override
+         public void onReceive(Context context, Intent intent) {
+            // Handle reciever
+            String mAction = intent.getAction();
+            if (mAction.equals(SONR.DISCONNECT_ACTION)) {
+               onDestroy();
+            }
+         }
+      };
+      ctx.registerReceiver(clientStopReceiver, new IntentFilter(SONR.DISCONNECT_ACTION));
+   }
+
+   private void unregisterReceiver() {
+      if (clientStopReceiver != null) {
+         try {
+            ctx.unregisterReceiver(clientStopReceiver);
+         } catch (Exception e) {
+            // ignore errors here
+         } finally {
+            clientStopReceiver = null;
+         }
       }
    }
 }

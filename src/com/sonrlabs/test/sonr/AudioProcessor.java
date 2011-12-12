@@ -11,7 +11,7 @@ public class AudioProcessor
 
    private static int Preamble_Offset = 0;
 
-   private ByteReceiver myByteReceiver;
+   private IUserActionHandler actionHandler;
 
    private short[] sample_buf, sample_buf2;
    private int[][] trans_buf;
@@ -30,13 +30,13 @@ public class AudioProcessor
 
    // private int SIGNAL_MAX_SUM;
 
-   AudioProcessor(ByteReceiver tempByteReceiver, int numsamples, short[] thesamples, short[] thesamples2, int[][] thetrans_buf,
+   AudioProcessor(IUserActionHandler tempByteReceiver, int numsamples, short[] thesamples, short[] thesamples2, int[][] thetrans_buf,
                   int[] movsum, int[] movbuf, int[][] sloc, int[] b_in_dec) {
       /*
        * pass all of these values by reference so that memory is only allocated
        * once in MicSerialListener
        */
-      myByteReceiver = tempByteReceiver;
+      actionHandler = tempByteReceiver;
       numSamples = numsamples;
       sample_buf = thesamples;
       sample_buf2 = thesamples2;
@@ -158,10 +158,9 @@ public class AudioProcessor
             // best two out of
             // three
             if ((byteInDec[i] == byteInDec[i + 1] || byteInDec[i] == byteInDec[i + 2]) && byteInDec[i] != 0x27) {
-               myByteReceiver.receiveByte(byteInDec[i]); // RECEIVED THE
-               // BYTE!
+               actionHandler.processAction(byteInDec[i]);
             } else if (byteInDec[i + 1] == byteInDec[i + 2] && byteInDec[i + 1] != 0x27) {
-               myByteReceiver.receiveByte(byteInDec[i + 1]);
+               actionHandler.processAction(byteInDec[i + 1]);
             }
          }
       }

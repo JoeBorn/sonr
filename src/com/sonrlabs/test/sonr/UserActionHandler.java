@@ -32,11 +32,8 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.view.KeyEvent;
 
-/*
- * This class handles user controls from the dock buttons or remote.
- */
-class SONRByteReceiver
-      implements ByteReceiver {
+class UserActionHandler
+      implements IUserActionHandler {
    
    private static final String TAG = "SONR audio processor";
 
@@ -82,13 +79,13 @@ class SONRByteReceiver
    private int volume = -1;
    private boolean muted = false;
 
-   SONRByteReceiver(AudioManager manager, Context ctx) {
+   UserActionHandler(AudioManager manager, Context ctx) {
       this.manager = manager;
       this.context = ctx;
    }
 
    @Override
-   public void receiveByte(int receivedByte) {
+   public void processAction(int receivedByte) {
       try {
          processUserCommand(receivedByte);
       } catch (Exception e) {

@@ -102,10 +102,11 @@ public class AudioProcessor
                }
             }
          }
-         // if(count2 != 0)
-         // Log.d(TAG, "CUT OFF");
+//         if (count2 != 0) {
+//            Log.d(TAG, "CUT OFF");
       } else {
-         return; // nothing found
+         // nothing found
+         return; 
       }
 
       for (int s = 0; s < samplelocsize; s++) {
@@ -134,7 +135,8 @@ public class AudioProcessor
          for (int i = MicSerialListener.FRAMES_PER_BIT + 1; i < MicSerialListener.TRANSMISSION_LENGTH; i++) {
             if (MicSerialListener.isPhase(movingsum[i - 1], movingsum[i], MicSerialListener.SIGNAL_MAX_SUM) && switchphase) {
                isinphase = !isinphase;
-               switchphase = false; // already switched
+               // already switched
+               switchphase = false; 
             }
 
             if (i % MicSerialListener.FRAMES_PER_BIT == 0) {
@@ -154,9 +156,10 @@ public class AudioProcessor
       }
 
       if (samplelocsize > 1) { // 2 or more
-         for (int i = 0; i < samplelocsize; i += 3) { // receive byte using
-            // best two out of
-            // three
+         for (int i = 0; i < samplelocsize; i += 3) { 
+            /*
+             *  receive byte using  best two out of three.
+             */
             if ((byteInDec[i] == byteInDec[i + 1] || byteInDec[i] == byteInDec[i + 2]) && byteInDec[i] != 0x27) {
                actionHandler.processAction(byteInDec[i]);
             } else if (byteInDec[i + 1] == byteInDec[i + 2] && byteInDec[i + 1] != 0x27) {
@@ -180,7 +183,8 @@ public class AudioProcessor
          count = MicSerialListener.SAMPLE_LENGTH;
       }
 
-      while (count < numSamples - 1) { // /1. find where the PSK signals begin
+      while (count < numSamples - 1) {
+         // /1. find where the PSK signals begin
          if (Math.abs(sample_buf[count] - sample_buf[count + 1]) > MicSerialListener.THRESHOLD) {
             if (count >= MicSerialListener.SAMPLE_LENGTH && count < MicSerialListener.SAMPLE_LENGTH * 2 && numfoundsamples == 0) {
                count -= MicSerialListener.SAMPLE_LENGTH;
@@ -197,7 +201,8 @@ public class AudioProcessor
                }
                PreambleIsCutOff = true;
                break;
-            } else { // preamble not cut off
+            } else { 
+               // preamble not cut off
                sampleloc[numfoundsamples++][0] = count + MicSerialListener.BEGIN_OFFSET;
                if (numfoundsamples >= MicSerialListener.MAX_TRANSMISSIONS) {
                   break;
@@ -213,11 +218,10 @@ public class AudioProcessor
       }
 
       int numsampleloc = 0;
-      for (int n = 0; n < numfoundsamples; n++) { // //2. cycle through the
-         // found PSK locations and
-         // find the specific start
-         // points of individual
-         // transmissions
+      for (int n = 0; n < numfoundsamples; n++) {
+         /*
+          * 2. cycle through the found PSK locations and find the specific start points of individual transmissions
+          */
          arraypos = 0;
          movingsum[0] = 0;
          for (int i = sampleloc[n][0]; i < sampleloc[n][0] + 9; i++) {
@@ -250,8 +254,11 @@ public class AudioProcessor
                sampleloc[numsampleloc / 3][numsampleloc % 3] = i;
                samplelocsize = ++numsampleloc;
 
-               break; // finished with this signal, go back to search
-               // through next signal
+               /*
+                * finished with this signal, go back to search through next
+                * signal
+                */
+               break; 
 
                /*
                 * i += MicSerialListener.TRANSMISSION_LENGTH +

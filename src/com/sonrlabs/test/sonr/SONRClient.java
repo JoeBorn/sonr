@@ -136,17 +136,20 @@ public class SONRClient
          }
       };
       ctx.registerReceiver(clientStopReceiver, new IntentFilter(SONR.DISCONNECT_ACTION));
+      Log.i(getClass().getName(), "Registered broadcast receiver " + clientStopReceiver + " in context " + ctx);
    }
 
    private void unregisterReceiver() {
       if (clientStopReceiver != null) {
          try {
             ctx.unregisterReceiver(clientStopReceiver);
-         } catch (Exception e) {
-            // ignore errors here
-         } finally {
+            Log.i(getClass().getName(), "Unregistered broadcast receiver " + clientStopReceiver + " in context " + ctx);
             clientStopReceiver = null;
+         } catch (Exception e) {
+            Log.i(getClass().getName(), "Failed to unregister broadcast receiver " + clientStopReceiver + " in context " + ctx, e);
          }
+      } else {
+         Log.i(getClass().getName(), "No broadcast receiver to unregister in context " + ctx);
       }
    }
 }

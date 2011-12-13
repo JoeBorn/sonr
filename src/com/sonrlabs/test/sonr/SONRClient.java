@@ -29,7 +29,6 @@ public class SONRClient
    public static boolean CLIENT_ON = false;
    
    private BroadcastReceiver clientStopReceiver;
-   private IUserActionHandler controller;
    
    private final AudioManager theAudioManager;
    private final AudioRecord theaudiorecord;
@@ -84,14 +83,19 @@ public class SONRClient
             // LogFile.MakeLog("\n\nSONRClient CREATED");
             unregisterReceiver();
             registerReceiver();
+            IUserActionHandler controller = new UserActionHandler(theAudioManager,ctx);
+            if (singletonListener != null) {
+               singletonListener.stopRunning();
+               singletonListener.join();
+            }
+            singletonListener = new MicSerialListener(theaudiorecord, bufferSize, controller);
          }
-         controller = new UserActionHandler(theAudioManager,ctx);
-         singletonListener = new MicSerialListener(theaudiorecord, bufferSize, controller);
       } catch (Exception e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       }
    }
+   
 
    @Override
    public IBinder onBind(Intent arg0) {

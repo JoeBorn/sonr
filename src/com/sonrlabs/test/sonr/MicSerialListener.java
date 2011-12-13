@@ -86,7 +86,7 @@ public class MicSerialListener
 
    private int sampleloc[] = new int[3];
 
-   private final ExecutorService executor = Executors.newFixedThreadPool(1);
+   private static final ExecutorService executor = Executors.newFixedThreadPool(1);
 
    MicSerialListener(AudioRecord theaudiorecord, int buffsize, IUserActionHandler theByteReceiver) {
       super(TAG);
@@ -204,7 +204,9 @@ public class MicSerialListener
       }
 
       synchronized (myaudioprocessor) {
-         executor.execute(myaudioprocessor);
+         if (running) {
+            executor.execute(myaudioprocessor);
+         }
       }
    }
 

@@ -345,7 +345,7 @@ public class MicSerialListener
       }
    }
 
-   public void onDestroy() {
+   public void stopRunning() {
       running = false;
       if (inStream != null) {
          inStream.release();

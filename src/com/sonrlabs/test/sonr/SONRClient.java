@@ -75,6 +75,10 @@ public class SONRClient
 
    @Override
    public void onCreate() {
+      createListener();
+   }
+
+   void createListener() {
       try {
          synchronized (this) {
             // LogFile.MakeLog("\n\nSONRClient CREATED");
@@ -97,12 +101,16 @@ public class SONRClient
    @Override
    public void onDestroy() {
       // LogFile.MakeLog("SONRClient DESTROY\n\n");
+      destroy();
+      super.onDestroy();
+   }
+
+   void destroy() {
       try {
          synchronized (this) {
-            super.onDestroy();
             unregisterReceiver();
             if (singletonListener != null) {
-               singletonListener.onDestroy();
+               singletonListener.stopRunning();
             }
          }
          CLIENT_ON = false;
@@ -119,7 +127,7 @@ public class SONRClient
             // Handle reciever
             String mAction = intent.getAction();
             if (mAction.equals(SONR.DISCONNECT_ACTION)) {
-               onDestroy();
+               destroy();
             }
          }
       };

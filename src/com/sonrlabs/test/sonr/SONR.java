@@ -105,13 +105,13 @@ public class SONR
 
          theaudiorecord = findAudioRecord();
          theclient = new SONRClient(this, theaudiorecord, bufferSize, m_amAudioManager);
-         theclient.onCreate();
+         theclient.createListener();
 
          prefs = LoadPreferences();
          if (prefs != null && prefs != "..") {
             String[] prefar = prefs.split(",");
             if (prefar[0] != null) {
-               theclient.onDestroy();
+               theclient.destroy();
                if (theaudiorecord != null) {
                   theaudiorecord.release();
                }

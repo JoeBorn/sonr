@@ -54,7 +54,7 @@ public class DefaultAppScreen
       theclient =
             new SONRClient(this, SONR.findAudioRecord(), SONR.bufferSize,
                            (AudioManager) this.getSystemService(Context.AUDIO_SERVICE));
-      theclient.onCreate();
+      theclient.createListener();
       theclient.searchSignal();
 
       if (theclient.foundDock()) {

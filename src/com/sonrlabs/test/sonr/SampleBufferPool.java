@@ -31,10 +31,22 @@ import java.util.List;
 class SampleBufferPool {
    private final int bufferSize;
    private final List<ReusableBuffer> buffers;
+   private final int incrementSize;
 
    SampleBufferPool(int bufferSize, int poolSize) {
       this.bufferSize = bufferSize;
+      this.incrementSize = poolSize;
       this.buffers = new ArrayList<ReusableBuffer>(poolSize);
+      incrementPool();
+   }
+
+   private ReusableBuffer incrementPool() {
+      int nextIndex = buffers.size();
+      for (int i=0; i<incrementSize; i++) {
+         buffers.add(new ReusableBuffer(this.bufferSize));
+      }
+      /* Return one of the new ones. */
+      return buffers.get(nextIndex);
    }
    
    ISampleBuffer getBuffer(short[] source) {
@@ -47,10 +59,13 @@ class SampleBufferPool {
             }
          }
          if (availableBuffer == null) {
-            /* Make a new one */
-            availableBuffer = new ReusableBuffer(bufferSize);
+            /*
+             * Ran out, make a new one. Really shouldn't happen. Get the first
+             * newly added one, use the first newly added one.
+             */
+            availableBuffer = incrementPool();
             availableBuffer.check(source);
-            buffers.add(availableBuffer);
+            android.util.Log.i(getClass().getName(), "Increased buffer pool size to " + buffers.size());
          }
          return availableBuffer;
       }

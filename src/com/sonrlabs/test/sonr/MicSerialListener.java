@@ -118,7 +118,7 @@ public class MicSerialListener
             inStream = theaudiorecord;
             bufferSize = buffsize;
             if (inStream != null) {
-               bufferPool = new SampleBufferPool(bufferSize, 20);
+               bufferPool = new SampleBufferPool(bufferSize, 2);
                sample_buf1 = new short[bufferSize];
                sample_buf2 = new short[bufferSize];
 

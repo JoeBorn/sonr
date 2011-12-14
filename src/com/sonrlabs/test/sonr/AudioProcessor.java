@@ -63,9 +63,9 @@ public class AudioProcessor
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       } finally {
-         busy = false;
          sampleBuffer1.release();
          sampleBuffer2.release();
+         busy = false;
       }
    }
 

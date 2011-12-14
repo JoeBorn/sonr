@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="mediaAppsNames">
+        <item>music</item>
+        <item>pandora</item>
+        <item>winamp</item>
+        <item>audioplayer</item>
+        <item>spotify</item>
+        <item>mediaFly</item>
+        <item>audible</item>
+        <item>listen</item>
+        <item>mp3</item>
+        <item>mediaplayer</item>
+        <item>slacker</item>
+        <item>doubleTwist</item>
+        <item>rhapsody</item>
+    </string-array>
+</resources>

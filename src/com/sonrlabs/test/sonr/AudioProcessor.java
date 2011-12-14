@@ -15,29 +15,35 @@ public class AudioProcessor
 
    private short[] sample_buf, sample_buf2;
    private int[][] trans_buf;
-   private int numSamples;
    private int[][] sampleloc;
    private int[] movingsum;
    private int[] movingbuf;
    private int[] byteInDec;
 
+   private int numSamples;
    private int samplelocsize = 0;
    private int buffer;
    private boolean waiting = false;
    private boolean busy = false;
 
+   private final ISampleBuffer sampleBuffer1;
+   private final ISampleBuffer sampleBuffer2;
+
    private static final int BUFFER_AVAILABLE = 1;
 
-   AudioProcessor(IUserActionHandler tempByteReceiver, int numsamples, short[] thesamples, short[] thesamples2, int[][] thetrans_buf,
+   AudioProcessor(IUserActionHandler actionHandler, int numsamples, ISampleBuffer thesamples, ISampleBuffer thesamples2, 
+                  int[][] thetrans_buf,
                   int[] movsum, int[] movbuf, int[][] sloc, int[] b_in_dec) {
       /*
        * pass all of these values by reference so that memory is only allocated
        * once in MicSerialListener
        */
-      actionHandler = tempByteReceiver;
+      this.actionHandler = actionHandler;
+      this.sampleBuffer1 = thesamples;
+      this.sampleBuffer2 = thesamples2;
       numSamples = numsamples;
-      sample_buf = thesamples;
-      sample_buf2 = thesamples2;
+      sample_buf = thesamples.getArray();
+      sample_buf2 = thesamples2.getArray();
       trans_buf = thetrans_buf;
       buffer = 0;
       movingbuf = movbuf;
@@ -58,6 +64,8 @@ public class AudioProcessor
          ErrorReporter.getInstance().handleException(e);
       } finally {
          busy = false;
+         sampleBuffer1.release();
+         sampleBuffer2.release();
       }
    }
 

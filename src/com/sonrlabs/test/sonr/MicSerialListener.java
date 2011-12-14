@@ -51,11 +51,9 @@ public class MicSerialListener
     */
    private boolean running;
 
-   /* Received bytes are sent to myByteReciver */
-   private IUserActionHandler myByteReceiver;
+   private IUserActionHandler actionHandler;
 
    private int numSamples;
-   private short sample_buf1[], sample_buf2[]; // switch out the buffers
 
    // we want to declare AudioProcessor data here so that we don't keep making
    // new arrays and run out of memory
@@ -67,13 +65,32 @@ public class MicSerialListener
     * 
     * FIXME: Fix in a subsequent round.
     */
-   private int[][] trans_buf = new int[MAX_TRANSMISSIONS * 3][TRANSMISSION_LENGTH + BIT_OFFSET];
-   private int[] test_buf = new int[SAMPLE_LENGTH];
-   private int[] movingsum = new int[TRANSMISSION_LENGTH];
-   private int[] movingsum2 = new int[PREAMBLE + 3 * (TRANSMISSION_LENGTH + BIT_OFFSET) + 1];
-   private int[] movingbuf = new int[9];
+   
+   /*
+    * These are common, should probably be copied before passing off to
+    * AudioProcessor.
+    */
+   private short sample_buf1[];
+   private short sample_buf2[];
+   
+   /* These buffers are only used in AudioProcessor, not here. */
    private int[][] sloc = new int[MicSerialListener.MAX_TRANSMISSIONS][3];
+   private int[][] trans_buf = new int[MAX_TRANSMISSIONS * 3][TRANSMISSION_LENGTH + BIT_OFFSET];
    private int[] byteInDec = new int[MicSerialListener.MAX_TRANSMISSIONS * 3];
+   
+   
+   /* These buffers are assigned values but never accessed! */
+//   private int[] test_buf = new int[SAMPLE_LENGTH];
+//   private int[] movingsum2 = new int[PREAMBLE + 3 * (TRANSMISSION_LENGTH + BIT_OFFSET) + 1];
+   
+   /*
+    * These two are only set during AutoGainControl, which should only be
+    * happening during initial configuration after Dock connections. They are
+    * passed in to AudioProcessor.
+    */
+   private int[] movingsum = new int[TRANSMISSION_LENGTH];
+   private int[] movingbuf = new int[9];
+   
 
    private boolean switchbuffer = false;
    private boolean readnewbuf = true;
@@ -87,20 +104,21 @@ public class MicSerialListener
    private int sampleloc[] = new int[3];
 
    private static final ExecutorService executor = Executors.newFixedThreadPool(1);
+   private SampleBufferPool bufferPool;
 
    MicSerialListener(AudioRecord theaudiorecord, int buffsize, IUserActionHandler theByteReceiver) {
       super(TAG);
       try {
          if (inStream == null) {
             /* screen turned sideways, dont re-initialize to null */
-            myByteReceiver = theByteReceiver;
+            actionHandler = theByteReceiver;
 
             Log.d(TAG, "STARTED");
 
             inStream = theaudiorecord;
             bufferSize = buffsize;
-
             if (inStream != null) {
+               bufferPool = new SampleBufferPool(bufferSize, 20);
                sample_buf1 = new short[bufferSize];
                sample_buf2 = new short[bufferSize];
 
@@ -112,32 +130,6 @@ public class MicSerialListener
                // LogFile.MakeLog("Failed to initialize AudioRecord");
                Log.d(TAG, "Failed to initialize AudioRecord");
             }
-         }
-      } catch (Exception e) {
-         e.printStackTrace();
-         ErrorReporter.getInstance().handleException(e);
-      }
-   }
-
-   boolean foundDock() {
-      return found_dock;
-   }
-
-   void searchSignal() {
-      try {
-         start_check = SystemClock.elapsedRealtime();
-         boolean problem = false;
-         while (SystemClock.elapsedRealtime() - start_check < CHECK_TIME && !found_dock) {
-            numSamples = inStream.read(sample_buf1, 0, bufferSize);
-            if (numSamples > 0) {
-               found_dock = AutoGainControl();
-            } else {
-               problem = true;
-            }
-         }
-         if (problem) {
-            Log.d("MicSerialListener", "Mic input was unavailable to be read");
-            ErrorReporter.getInstance().putCustomData("MicSerialListener", "Mic input was unavailable to be read");
          }
       } catch (Exception e) {
          e.printStackTrace();
@@ -164,16 +156,16 @@ public class MicSerialListener
                numSamples = inStream.read(sample_buf1, 0, bufferSize);
                // Log.d("SONR audio processor", "READ BUFFER 1");
             }
-
+   
             if (numSamples > 0 && myaudioprocessor != null && myaudioprocessor.isWaiting()) {
                /* if a signal got cut off and audioprocessor is waiting */
                synchronized (myaudioprocessor) {
                   myaudioprocessor.notify();
                }
-
+   
                readnewbuf = true;
             }
-
+   
             if (myaudioprocessor == null || numSamples > 0 && myaudioprocessor != null && !myaudioprocessor.isWaiting()
                   && !myaudioprocessor.isBusy()) {
                /* if there are samples and not waiting */
@@ -192,16 +184,54 @@ public class MicSerialListener
       // LogFile.MakeLog("LISTENER ended");
    }
 
-   private void startNextProcessorThread() {
-      if (switchbuffer) {
-         myaudioprocessor =
-               new AudioProcessor(myByteReceiver, numSamples, sample_buf1, sample_buf2, trans_buf, movingsum, movingbuf, sloc,
-                                  byteInDec);
-      } else {
-         myaudioprocessor =
-               new AudioProcessor(myByteReceiver, numSamples, sample_buf2, sample_buf1, trans_buf, movingsum, movingbuf, sloc,
-                                  byteInDec);
+   boolean foundDock() {
+      return found_dock;
+   }
+
+   void searchSignal() {
+      try {
+         start_check = SystemClock.elapsedRealtime();
+         boolean problem = false;
+         while (SystemClock.elapsedRealtime() - start_check < CHECK_TIME && !found_dock) {
+            numSamples = inStream.read(sample_buf1, 0, bufferSize);
+            if (numSamples > 0) {
+               found_dock = autoGainControl();
+            } else {
+               problem = true;
+            }
+         }
+         if (problem) {
+            Log.d("MicSerialListener", "Mic input was unavailable to be read");
+            ErrorReporter.getInstance().putCustomData("MicSerialListener", "Mic input was unavailable to be read");
+         }
+      } catch (Exception e) {
+         e.printStackTrace();
+         ErrorReporter.getInstance().handleException(e);
       }
+   }
+
+   void stopRunning() {
+      running = false;
+      if (inStream != null) {
+         inStream.release();
+      }
+      inStream = null;
+      Log.d(TAG, "STOPPED");
+   }
+
+   private void startNextProcessorThread() {
+      ISampleBuffer samples1;
+      ISampleBuffer samples2;
+      if (switchbuffer) {
+         samples1 = bufferPool.getBuffer(sample_buf1);
+         samples2 = bufferPool.getBuffer(sample_buf2);
+      } else {
+         samples1 = bufferPool.getBuffer(sample_buf2);
+         samples2 = bufferPool.getBuffer(sample_buf1);
+      }
+      myaudioprocessor =
+            new AudioProcessor(actionHandler, numSamples, samples1, samples2, trans_buf, movingsum, movingbuf, sloc,
+                               byteInDec);
 
       synchronized (myaudioprocessor) {
          if (running) {
@@ -210,7 +240,7 @@ public class MicSerialListener
       }
    }
 
-   boolean AutoGainControl() {
+   private boolean autoGainControl() {
       boolean found = false;
       int startpos = SAMPLE_LENGTH;
       int arraypos = 0;
@@ -252,8 +282,8 @@ public class MicSerialListener
                SIGNAL_MAX_SUM = temp;
             }
 
-            test_buf[i - startpos - 9] = sample_buf1[i];
-            movingsum2[i - startpos - 9] = movingsum[0];
+//            test_buf[i - startpos - 9] = sample_buf1[i];
+//            movingsum2[i - startpos - 9] = movingsum[0];
             movingsum[0] = movingsum[1];
          }
 
@@ -345,15 +375,6 @@ public class MicSerialListener
 
          movingsum[0] = movingsum[1];
       }
-   }
-
-   public void stopRunning() {
-      running = false;
-      if (inStream != null) {
-         inStream.release();
-      }
-      inStream = null;
-      Log.d(TAG, "STOPPED");
    }
 
    static boolean isPhase(int sum1, int sum2, int max) {

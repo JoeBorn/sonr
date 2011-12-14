@@ -1,5 +1,6 @@
 package com.sonrlabs.test.sonr;
 
+import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -230,8 +231,11 @@ public class MicSerialListener
          samples2 = bufferPool.getBuffer(sample_buf1);
       }
       myaudioprocessor =
-            new AudioProcessor(actionHandler, numSamples, samples1, samples2, trans_buf, movingsum, movingbuf, sloc,
-                               byteInDec);
+            new AudioProcessor(actionHandler, numSamples, samples1, samples2, trans_buf, movingsum, movingbuf, sloc, byteInDec);
+      
+      // clear local sample buffers
+      Arrays.fill(sample_buf1, 0, bufferSize, (short) 0);
+      Arrays.fill(sample_buf2, 0, bufferSize, (short) 0);
 
       synchronized (myaudioprocessor) {
          if (running) {

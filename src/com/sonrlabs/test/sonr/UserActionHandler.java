@@ -265,9 +265,13 @@ class UserActionHandler
             // Toast.LENGTH_SHORT).show();
             // LogFile.MakeLog("RECEIVED SEARCH");
             break;
+            
+         case 0:
+            Log.d(TAG, "ZERO");
+            break;
+            
          default:
-            Log.d(TAG, "default");
-            Log.d(TAG, "RECEIVED " + receivedByte);
+            Log.d(TAG, "UNKNOWN action code " + receivedByte);
             // LogFile.MakeLog("RECEIVED " + receivedByte);
             break;
       }

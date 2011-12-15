@@ -5,7 +5,7 @@ import org.acra.ErrorReporter;
 public class AudioProcessor
       implements IAudioProcessor {
 
-//   private static final String TAG = "SONR audio processor";
+   private static final String TAG = "SONR audio processor";
 
    private static final int BUFFER_AVAILABLE = 1;
    
@@ -87,21 +87,21 @@ public class AudioProcessor
                trans_buf[j][i] = sample_buf2[count2++];
             } else {
                /* no extra buffer, wait */
-               try {
-                  synchronized (lock) {
-                     /* Log.d(TAG, "WAITING"); */
-                     waiting = true;
-                     /* longest possible wait time */
-                     lock.wait(300);
+               synchronized (lock) {
+                  /* Log.d(TAG, "WAITING"); */
+                  waiting = true;
+                  while (waiting) {
+                     try {
+                        /* longest possible wait time */
+                        lock.wait(300);
+                        waiting = false;
+                        /* redo */
+                        i--;
+                        buffer++;
+                     } catch (InterruptedException e) {
+                        android.util.Log.w(TAG, "Wait interrupted");
+                     }
                   }
-               } catch (InterruptedException e) {
-                  // same as notify
-               } finally {
-                  /* redo */
-                  i--;
-                  buffer++;
-                  waiting = false;
-                  
                }
             }
          }

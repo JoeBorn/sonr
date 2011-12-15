@@ -36,6 +36,8 @@ public class MicSerialListener
 
    private static long CHECK_TIME = 1150; // 1.15 seconds
 
+   private static final ExecutorService executor = Executors.newFixedThreadPool(1);
+
    // Serial input catcher
    private AudioRecord inStream;
 
@@ -55,56 +57,46 @@ public class MicSerialListener
 
    private int numSamples;
 
-   // we want to declare AudioProcessor data here so that we don't keep making
-   // new arrays and run out of memory
-   //
-
    /*
-    * NB: Author erroneously believes Java is like C. This adds a lot of
-    * complexity for no good reason.
-    * 
-    * FIXME: Fix in a subsequent round.
-    */
-   
-   /*
-    * These are common, should probably be copied before passing off to
-    * AudioProcessor.
+    * Right now these are only used by this class. Previously they were shared
+    * with AudioProcessor, but that introduced false-positive artifacts. For now
+    * we copy them into pooled buffers and pass those to AudioProcessor. This
+    * can lead to false negatives (missed clicks) due to incomplete samples.
     */
    private short sample_buf1[];
    private short sample_buf2[];
    
-   /* These buffers are only used in AudioProcessor, not here. */
-   private int[][] sloc = new int[MicSerialListener.MAX_TRANSMISSIONS][3];
-   private int[][] trans_buf = new int[MAX_TRANSMISSIONS * 3][TRANSMISSION_LENGTH + BIT_OFFSET];
-   private int[] byteInDec = new int[MicSerialListener.MAX_TRANSMISSIONS * 3];
+   /*
+    * These buffers are only used in AudioProcessor, not here. They're created
+    * here because we only want a single copy, not a copy per AudioProcessor
+    */
+   final int[][] sloc = new int[MicSerialListener.MAX_TRANSMISSIONS][3];
+   final int[][] trans_buf = new int[MAX_TRANSMISSIONS * 3][TRANSMISSION_LENGTH + BIT_OFFSET];
+   final int[] byteInDec = new int[MicSerialListener.MAX_TRANSMISSIONS * 3];
    
    
-   /* These buffers are assigned values but never accessed! */
+   /* These buffers are assigned values but never accessed! Disable them for now */
 //   private int[] test_buf = new int[SAMPLE_LENGTH];
 //   private int[] movingsum2 = new int[PREAMBLE + 3 * (TRANSMISSION_LENGTH + BIT_OFFSET) + 1];
    
    /*
     * These two are only set during AutoGainControl, which should only be
     * happening during initial configuration after Dock connections. They are
-    * passed in to AudioProcessor.
+    * shared with the AudioProcessor.
     */
-   private int[] movingsum = new int[TRANSMISSION_LENGTH];
-   private int[] movingbuf = new int[9];
+   final int[] movingsum = new int[TRANSMISSION_LENGTH];
+   final int[] movingbuf = new int[9];
    
+   private int sampleloc[] = new int[3];
 
    private boolean switchbuffer = false;
    private boolean readnewbuf = true;
-
-   private AudioProcessor myaudioprocessor = null;
-
+   private IAudioProcessor myaudioprocessor = new NullAudioProcessor();
    private boolean found_dock = false;
-
    private long start_check = 0;
 
-   private int sampleloc[] = new int[3];
-
-   private static final ExecutorService executor = Executors.newFixedThreadPool(1);
    private SampleBufferPool bufferPool;
+   private final Object waitLock = "Wait for more";
 
    MicSerialListener(AudioRecord theaudiorecord, int buffsize, IUserActionHandler theByteReceiver) {
       super(TAG);
@@ -143,38 +135,34 @@ public class MicSerialListener
       try {
          while (running) {
             // Log.d("SONR audio processor", "NEW RECORDING");
-            if (switchbuffer && readnewbuf) {
-               /*
-                * this is so that the buffer doesn't get overwritten while audio
-                * processor is working
-                */
-               numSamples = inStream.read(sample_buf2, 0, bufferSize);
+            if (readnewbuf) {
+               short[] buf = switchbuffer ? sample_buf2 : sample_buf1;
+               numSamples = inStream.read(buf, 0, bufferSize);
                readnewbuf = false;
-               // Log.d("SONR audio processor", "READ BUFFER 2");
-            } else if (!switchbuffer && readnewbuf) {
-               readnewbuf = false;
-               numSamples = inStream.read(sample_buf1, 0, bufferSize);
-               // Log.d("SONR audio processor", "READ BUFFER 1");
             }
-   
-            if (numSamples > 0 && myaudioprocessor != null && myaudioprocessor.isWaiting()) {
-               /* if a signal got cut off and audioprocessor is waiting */
-               synchronized (myaudioprocessor) {
-                  myaudioprocessor.notify();
+            
+            if (numSamples > 0) {
+               if (myaudioprocessor.isWaiting()) {
+                  /*
+                   * Signal got cut off and audioprocessor is waiting.
+                   * 
+                   * FIXME This no longer works, since we're not sharing
+                   * buffers! To do this properly we'd need to populate the
+                   * audio processor's buffer and then notify.
+                   */
+                  synchronized (waitLock) {
+                     waitLock.notify();
+                  }
+                  readnewbuf = true;
                }
-   
-               readnewbuf = true;
-            }
-   
-            if (myaudioprocessor == null || numSamples > 0 && myaudioprocessor != null && !myaudioprocessor.isWaiting()
-                  && !myaudioprocessor.isBusy()) {
-               /* if there are samples and not waiting */
-               switchbuffer = !switchbuffer;
-               readnewbuf = true;
-               if (myaudioprocessor == null || !myaudioprocessor.isBusy()) {
+               
+               if (!myaudioprocessor.isWaiting() && !myaudioprocessor.isBusy()) {
+                  /* if there are samples and not waiting */
+                  switchbuffer = !switchbuffer;
+                  readnewbuf = true;
                   startNextProcessorThread();
-               } // end if thread not alive
-            } // end if samples and thread not waiting
+               }
+            }
          }
       } catch (Exception e) {
          e.printStackTrace();
@@ -182,6 +170,13 @@ public class MicSerialListener
       }
       Log.d("MicSerialListener", "LISTENER ENDED");
       // LogFile.MakeLog("LISTENER ended");
+   }
+
+   /**
+    * @param i
+    */
+   void processAction(int actionCode) {
+      actionHandler.processAction(actionCode);
    }
 
    boolean foundDock() {
@@ -229,13 +224,10 @@ public class MicSerialListener
          samples1 = bufferPool.getBuffer(sample_buf2);
          samples2 = bufferPool.getBuffer(sample_buf1);
       }
-      myaudioprocessor =
-            new AudioProcessor(actionHandler, numSamples, samples1, samples2, trans_buf, movingsum, movingbuf, sloc, byteInDec);
+      myaudioprocessor = new AudioProcessor(this, waitLock, numSamples, samples1, samples2);
 
-      synchronized (myaudioprocessor) {
-         if (running) {
-            executor.execute(myaudioprocessor);
-         }
+      if (running) {
+         executor.execute(myaudioprocessor);
       }
    }
 

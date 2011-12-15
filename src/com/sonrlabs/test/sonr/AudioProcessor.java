@@ -3,53 +3,48 @@ package com.sonrlabs.test.sonr;
 import org.acra.ErrorReporter;
 
 public class AudioProcessor
-      implements Runnable {
+      implements IAudioProcessor {
 
 //   private static final String TAG = "SONR audio processor";
 
+   private static final int BUFFER_AVAILABLE = 1;
+   
    private static boolean PreambleIsCutOff = false;
-
    private static int Preamble_Offset = 0;
 
-   private IUserActionHandler actionHandler;
-
-   private short[] sample_buf, sample_buf2;
-   private int[][] trans_buf;
-   private int[][] sampleloc;
-   private int[] movingsum;
-   private int[] movingbuf;
-   private int[] byteInDec;
-
-   private int numSamples;
+   private final ISampleBuffer sampleBuffer1;
+   private final ISampleBuffer sampleBuffer2;
+   private final short[] sample_buf, sample_buf2;
+   private final int[][] trans_buf;
+   private final int[][] sampleloc;
+   private final int[] movingsum;
+   private final int[] movingbuf;
+   private final int[] byteInDec;
+   private final int numSamples;
+   private final MicSerialListener listener;
+   private final Object lock;
+   
    private int samplelocsize = 0;
    private int buffer;
    private boolean waiting = false;
    private boolean busy = false;
 
-   private final ISampleBuffer sampleBuffer1;
-   private final ISampleBuffer sampleBuffer2;
 
-   private static final int BUFFER_AVAILABLE = 1;
 
-   AudioProcessor(IUserActionHandler actionHandler, int numsamples, ISampleBuffer thesamples, ISampleBuffer thesamples2, 
-                  int[][] thetrans_buf,
-                  int[] movsum, int[] movbuf, int[][] sloc, int[] b_in_dec) {
-      /*
-       * pass all of these values by reference so that memory is only allocated
-       * once in MicSerialListener
-       */
-      this.actionHandler = actionHandler;
+   AudioProcessor(MicSerialListener listener, Object lock, int numsamples, ISampleBuffer thesamples, ISampleBuffer thesamples2) {
+      this.listener = listener;
+      this.lock = lock;
       this.sampleBuffer1 = thesamples;
       this.sampleBuffer2 = thesamples2;
       numSamples = numsamples;
       sample_buf = thesamples.getArray();
       sample_buf2 = thesamples2.getArray();
-      trans_buf = thetrans_buf;
+      trans_buf = listener.trans_buf;
       buffer = 0;
-      movingbuf = movbuf;
-      movingsum = movsum;
-      sampleloc = sloc;
-      byteInDec = b_in_dec;
+      movingbuf = listener.movingbuf;
+      movingsum = listener.movingsum;
+      sampleloc = listener.sloc;
+      byteInDec = listener.byteInDec;
    }
 
    @Override
@@ -57,7 +52,10 @@ public class AudioProcessor
       try {
          /* Log.d(TAG, "AUDIO PROCESSOR BEGIN"); */
          busy = true;
-         processSample();
+         findSample();
+         if (samplelocsize > 0) {
+            processSample();
+         }
          /* Log.d(TAG, "AUDIO PROCESSOR END"); */
       } catch (Exception e) {
          e.printStackTrace();
@@ -69,51 +67,47 @@ public class AudioProcessor
       }
    }
 
-   boolean isWaiting() {
+   public boolean isWaiting() {
       return waiting;
    }
 
-   boolean isBusy() {
+   public boolean isBusy() {
       return busy;
    }
 
    private void processSample() {
-      findSample();
-
-      if (samplelocsize > 0) {
-         /* copy transmission down because the buffer could get overwritten */
-         int count2 = 0;
-         for (int j = 0; j < samplelocsize; j++) {
-            for (int i = 0; i < MicSerialListener.TRANSMISSION_LENGTH; i++) {
-               if (sampleloc[j / 3][j % 3] + i < numSamples) {
-                  trans_buf[j][i] = sample_buf[sampleloc[j / 3][j % 3] + i];
-               } else if (buffer >= BUFFER_AVAILABLE && count2 < numSamples) {
-                  /* circular "queue" */
-                  trans_buf[j][i] = sample_buf2[count2++];
-               } else {
-                  /* no extra buffer, wait */
-                  try {
-                     synchronized (this) {
-                        /* Log.d(TAG, "WAITING"); */
-                        waiting = true;
-                        /* longest possible wait time */
-                        this.wait(300);
-                        buffer++;
-                        waiting = false;
-                     }
-                     /* redo */
-                     i--;
-                  } catch (InterruptedException e) {
+      /* copy transmission down because the buffer could get overwritten */
+      int count2 = 0;
+      for (int j = 0; j < samplelocsize; j++) {
+         for (int i = 0; i < MicSerialListener.TRANSMISSION_LENGTH; i++) {
+            if (sampleloc[j / 3][j % 3] + i < numSamples) {
+               trans_buf[j][i] = sample_buf[sampleloc[j / 3][j % 3] + i];
+            } else if (buffer >= BUFFER_AVAILABLE && count2 < numSamples) {
+               /* circular "queue" */
+               trans_buf[j][i] = sample_buf2[count2++];
+            } else {
+               /* no extra buffer, wait */
+               try {
+                  synchronized (lock) {
+                     /* Log.d(TAG, "WAITING"); */
+                     waiting = true;
+                     /* longest possible wait time */
+                     lock.wait(300);
                   }
+               } catch (InterruptedException e) {
+                  // same as notify
+               } finally {
+                  /* redo */
+                  i--;
+                  buffer++;
+                  waiting = false;
+                  
                }
             }
          }
+      }
 //         if (count2 != 0) {
 //            Log.d(TAG, "CUT OFF");
-      } else {
-         /* nothing found */
-         return; 
-      }
 
       for (int s = 0; s < samplelocsize; s++) {
          int arraypos = 0;
@@ -170,9 +164,9 @@ public class AudioProcessor
              *  receive byte using  best two out of three.
              */
             if ((byteInDec[i] == byteInDec[i + 1] || byteInDec[i] == byteInDec[i + 2]) && byteInDec[i] != 0x27) {
-               actionHandler.processAction(byteInDec[i]);
+               listener.processAction(byteInDec[i]);
             } else if (byteInDec[i + 1] == byteInDec[i + 2] && byteInDec[i + 1] != 0x27) {
-               actionHandler.processAction(byteInDec[i + 1]);
+               listener.processAction(byteInDec[i + 1]);
             }
          }
       }

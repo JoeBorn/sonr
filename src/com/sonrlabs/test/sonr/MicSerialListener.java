@@ -130,8 +130,10 @@ public class MicSerialListener
    }
 
    @Override
-   public void run() { // thread reads in from mic and dispatches an audio
-      // processor to process the data
+   /*
+    * Reads in from mic and dispatches an audio rocessor to process the data
+    */
+   public void run() {
       try {
          while (running) {
             // Log.d("SONR audio processor", "NEW RECORDING");
@@ -146,9 +148,13 @@ public class MicSerialListener
                   /*
                    * Signal got cut off and audioprocessor is waiting.
                    * 
-                   * FIXME This no longer works, since we're not sharing
-                   * buffers! To do this properly we'd need to populate the
-                   * audio processor's buffer and then notify.
+                   * This logic makes no sense as this thread is not
+                   * sufficiently in sync with the other one. For now we should
+                   * never get here, since the AudioProcessor should never be
+                   * waiting.
+                   * 
+                   * The price of this is false negatives, i.e., missing
+                   * signals.  Not great but better than the alternative.
                    */
                   synchronized (waitLock) {
                      waitLock.notify();

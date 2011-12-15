@@ -5,7 +5,7 @@ import org.acra.ErrorReporter;
 public class AudioProcessor
       implements IAudioProcessor {
 
-   private static final String TAG = "SONR audio processor";
+//   private static final String TAG = "SONR audio processor";
 
    private static final int BUFFER_AVAILABLE = 1;
    
@@ -22,6 +22,8 @@ public class AudioProcessor
    private final int[] byteInDec;
    private final int numSamples;
    private final MicSerialListener listener;
+   
+   @SuppressWarnings("unused") // for now
    private final Object lock;
    
    private int samplelocsize = 0;
@@ -85,24 +87,30 @@ public class AudioProcessor
             } else if (buffer >= BUFFER_AVAILABLE && count2 < numSamples) {
                /* circular "queue" */
                trans_buf[j][i] = sample_buf2[count2++];
-            } else {
-               /* no extra buffer, wait */
-               synchronized (lock) {
-                  /* Log.d(TAG, "WAITING"); */
-                  waiting = true;
-                  while (waiting) {
-                     try {
-                        /* longest possible wait time */
-                        lock.wait(300);
-                        waiting = false;
-                        /* redo */
-                        i--;
-                        buffer++;
-                     } catch (InterruptedException e) {
-                        android.util.Log.w(TAG, "Wait interrupted");
-                     }
-                  }
-               }
+               
+               /*
+                * This logic really doesn't make any sense, we have no idea
+                * where in the data stream the other thread is. It would have
+                * to be blocked until we get here.
+                */
+//            } else {
+//               /* no extra buffer, wait */
+//               synchronized (lock) {
+//                  /* Log.d(TAG, "WAITING"); */
+//                  waiting = true;
+//                  while (waiting) {
+//                     try {
+//                        /* longest possible wait time */
+//                        lock.wait(300);
+//                        waiting = false;
+//                        /* redo */
+//                        i--;
+//                        buffer++;
+//                     } catch (InterruptedException e) {
+//                        android.util.Log.w(TAG, "Wait interrupted");
+//                     }
+//                  }
+//               }
             }
          }
       }

@@ -136,9 +136,13 @@ public class MicSerialListener
                /* if there are samples and not waiting */
                startNextProcessorThread();
             }
-            Thread.yield();
+            try {
+               Thread.sleep(100);
+            } catch (InterruptedException e) {
+               // wake up early, no big deal.
+            }
          }
-      } catch (Exception e) {
+      } catch (RuntimeException e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       }

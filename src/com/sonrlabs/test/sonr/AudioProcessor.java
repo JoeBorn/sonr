@@ -10,7 +10,7 @@ public class AudioProcessor
    private static boolean PreambleIsCutOff = false;
    private static int Preamble_Offset = 0;
 
-   private final ISampleBuffer sampleBuffer1;
+   private final ISampleBuffer sampleBuffer;
    private final short[] sample_buf;
    private final int[][] trans_buf;
    private final int[][] sampleloc;
@@ -24,7 +24,7 @@ public class AudioProcessor
 
    AudioProcessor(MicSerialListener listener, int numsamples, ISampleBuffer thesamples) {
       this.listener = listener;
-      this.sampleBuffer1 = thesamples;
+      this.sampleBuffer = thesamples;
       numSamples = numsamples;
       sample_buf = thesamples.getArray();
       trans_buf = listener.trans_buf;
@@ -47,7 +47,7 @@ public class AudioProcessor
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       } finally {
-         sampleBuffer1.release();
+         sampleBuffer.release();
       }
    }
 

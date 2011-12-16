@@ -3,18 +3,15 @@ package com.sonrlabs.test.sonr;
 import org.acra.ErrorReporter;
 
 public class AudioProcessor
-      implements IAudioProcessor {
+      implements Runnable {
 
 //   private static final String TAG = "SONR audio processor";
 
-   private static final int BUFFER_AVAILABLE = 1;
-   
    private static boolean PreambleIsCutOff = false;
    private static int Preamble_Offset = 0;
 
    private final ISampleBuffer sampleBuffer1;
-   private final ISampleBuffer sampleBuffer2;
-   private final short[] sample_buf, sample_buf2;
+   private final short[] sample_buf;
    private final int[][] trans_buf;
    private final int[][] sampleloc;
    private final int[] movingsum;
@@ -23,26 +20,14 @@ public class AudioProcessor
    private final int numSamples;
    private final MicSerialListener listener;
    
-   @SuppressWarnings("unused") // for now
-   private final Object lock;
-   
    private int samplelocsize = 0;
-   private int buffer;
-   private boolean waiting = false;
-   private boolean busy = false;
 
-
-
-   AudioProcessor(MicSerialListener listener, Object lock, int numsamples, ISampleBuffer thesamples, ISampleBuffer thesamples2) {
+   AudioProcessor(MicSerialListener listener, int numsamples, ISampleBuffer thesamples) {
       this.listener = listener;
-      this.lock = lock;
       this.sampleBuffer1 = thesamples;
-      this.sampleBuffer2 = thesamples2;
       numSamples = numsamples;
       sample_buf = thesamples.getArray();
-      sample_buf2 = thesamples2.getArray();
       trans_buf = listener.trans_buf;
-      buffer = 0;
       movingbuf = listener.movingbuf;
       movingsum = listener.movingsum;
       sampleloc = listener.sloc;
@@ -53,7 +38,6 @@ public class AudioProcessor
    public void run() {
       try {
          /* Log.d(TAG, "AUDIO PROCESSOR BEGIN"); */
-         busy = true;
          findSample();
          if (samplelocsize > 0) {
             processSample();
@@ -64,53 +48,15 @@ public class AudioProcessor
          ErrorReporter.getInstance().handleException(e);
       } finally {
          sampleBuffer1.release();
-         sampleBuffer2.release();
-         busy = false;
       }
-   }
-
-   public boolean isWaiting() {
-      return waiting;
-   }
-
-   public boolean isBusy() {
-      return busy;
    }
 
    private void processSample() {
       /* copy transmission down because the buffer could get overwritten */
-      int count2 = 0;
       for (int j = 0; j < samplelocsize; j++) {
          for (int i = 0; i < MicSerialListener.TRANSMISSION_LENGTH; i++) {
             if (sampleloc[j / 3][j % 3] + i < numSamples) {
                trans_buf[j][i] = sample_buf[sampleloc[j / 3][j % 3] + i];
-            } else if (buffer >= BUFFER_AVAILABLE && count2 < numSamples) {
-               /* circular "queue" */
-               trans_buf[j][i] = sample_buf2[count2++];
-               
-               /*
-                * This logic really doesn't make any sense, we have no idea
-                * where in the data stream the other thread is. It would have
-                * to be blocked until we get here.
-                */
-//            } else {
-//               /* no extra buffer, wait */
-//               synchronized (lock) {
-//                  /* Log.d(TAG, "WAITING"); */
-//                  waiting = true;
-//                  while (waiting) {
-//                     try {
-//                        /* longest possible wait time */
-//                        lock.wait(300);
-//                        waiting = false;
-//                        /* redo */
-//                        i--;
-//                        buffer++;
-//                     } catch (InterruptedException e) {
-//                        android.util.Log.w(TAG, "Wait interrupted");
-//                     }
-//                  }
-//               }
             }
          }
       }

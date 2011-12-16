@@ -58,13 +58,12 @@ public class MicSerialListener
    private int numSamples;
 
    /*
-    * Right now these are only used by this class. Previously they were shared
+    * Right now this is only used by this class. Previously it was shared
     * with AudioProcessor, but that introduced false-positive artifacts. For now
-    * we copy them into pooled buffers and pass those to AudioProcessor. This
+    * we copy into a pooled buffer and pass that to AudioProcessor. This
     * can lead to false negatives (missed clicks) due to incomplete samples.
     */
-   private short sample_buf1[];
-   private short sample_buf2[];
+   private short sample_buf[];
    
    /*
     * These buffers are only used in AudioProcessor, not here. They're created
@@ -89,14 +88,10 @@ public class MicSerialListener
    
    private int sampleloc[] = new int[3];
 
-   private boolean switchbuffer = false;
-   private boolean readnewbuf = true;
-   private IAudioProcessor myaudioprocessor = new NullAudioProcessor();
    private boolean found_dock = false;
    private long start_check = 0;
 
    private SampleBufferPool bufferPool;
-   private final Object waitLock = "Wait for more";
 
    MicSerialListener(AudioRecord theaudiorecord, int buffsize, IUserActionHandler theByteReceiver) {
       super(TAG);
@@ -111,8 +106,7 @@ public class MicSerialListener
             bufferSize = buffsize;
             if (inStream != null) {
                bufferPool = new SampleBufferPool(bufferSize, 2);
-               sample_buf1 = new short[bufferSize];
-               sample_buf2 = new short[bufferSize];
+               sample_buf = new short[bufferSize];
 
                // set up thread
                running = true;
@@ -137,38 +131,12 @@ public class MicSerialListener
       try {
          while (running) {
             // Log.d("SONR audio processor", "NEW RECORDING");
-            if (readnewbuf) {
-               short[] buf = switchbuffer ? sample_buf2 : sample_buf1;
-               numSamples = inStream.read(buf, 0, bufferSize);
-               readnewbuf = false;
-            }
-            
+            numSamples = inStream.read(sample_buf, 0, bufferSize);
             if (numSamples > 0) {
-               if (myaudioprocessor.isWaiting()) {
-                  /*
-                   * Signal got cut off and audioprocessor is waiting.
-                   * 
-                   * This logic makes no sense as this thread is not
-                   * sufficiently in sync with the other one. For now we should
-                   * never get here, since the AudioProcessor should never be
-                   * waiting.
-                   * 
-                   * The price of this is false negatives, i.e., missing
-                   * signals.  Not great but better than the alternative.
-                   */
-                  synchronized (waitLock) {
-                     waitLock.notify();
-                  }
-                  readnewbuf = true;
-               }
-               
-               if (!myaudioprocessor.isWaiting() && !myaudioprocessor.isBusy()) {
-                  /* if there are samples and not waiting */
-                  switchbuffer = !switchbuffer;
-                  readnewbuf = true;
-                  startNextProcessorThread();
-               }
+               /* if there are samples and not waiting */
+               startNextProcessorThread();
             }
+            Thread.yield();
          }
       } catch (Exception e) {
          e.printStackTrace();
@@ -178,9 +146,6 @@ public class MicSerialListener
       // LogFile.MakeLog("LISTENER ended");
    }
 
-   /**
-    * @param i
-    */
    void processAction(int actionCode) {
       actionHandler.processAction(actionCode);
    }
@@ -194,7 +159,7 @@ public class MicSerialListener
          start_check = SystemClock.elapsedRealtime();
          boolean problem = false;
          while (SystemClock.elapsedRealtime() - start_check < CHECK_TIME && !found_dock) {
-            numSamples = inStream.read(sample_buf1, 0, bufferSize);
+            numSamples = inStream.read(sample_buf, 0, bufferSize);
             if (numSamples > 0) {
                found_dock = autoGainControl();
             } else {
@@ -221,18 +186,10 @@ public class MicSerialListener
    }
 
    private void startNextProcessorThread() {
-      ISampleBuffer samples1;
-      ISampleBuffer samples2;
-      if (switchbuffer) {
-         samples1 = bufferPool.getBuffer(sample_buf1);
-         samples2 = bufferPool.getBuffer(sample_buf2);
-      } else {
-         samples1 = bufferPool.getBuffer(sample_buf2);
-         samples2 = bufferPool.getBuffer(sample_buf1);
-      }
-      myaudioprocessor = new AudioProcessor(this, waitLock, numSamples, samples1, samples2);
-
       if (running) {
+         ISampleBuffer samples;
+         samples = bufferPool.getBuffer(sample_buf);
+         AudioProcessor myaudioprocessor = new AudioProcessor(this, numSamples, samples);
          executor.execute(myaudioprocessor);
       }
    }
@@ -242,13 +199,13 @@ public class MicSerialListener
       int startpos = SAMPLE_LENGTH;
       int arraypos = 0;
 
-      while (startpos < numSamples - 1 && Math.abs(sample_buf1[startpos] - sample_buf1[startpos + 1]) < THRESHOLD) {
+      while (startpos < numSamples - 1 && Math.abs(sample_buf[startpos] - sample_buf[startpos + 1]) < THRESHOLD) {
          startpos++;
       }
 
       if (startpos < numSamples - 1 && startpos >= SAMPLE_LENGTH && startpos < SAMPLE_LENGTH * 2) {
          startpos -= SAMPLE_LENGTH;
-         while (Math.abs(sample_buf1[startpos] - sample_buf1[startpos + 1]) < THRESHOLD) {
+         while (Math.abs(sample_buf[startpos] - sample_buf[startpos + 1]) < THRESHOLD) {
             // && startpos < numSamples-1)
             startpos++;
          }
@@ -261,14 +218,14 @@ public class MicSerialListener
 
          movingsum[0] = 0;
          for (int i = startpos; i < startpos + 9; i++) {
-            movingbuf[i - startpos] = sample_buf1[i];
-            movingsum[0] += sample_buf1[i];
+            movingbuf[i - startpos] = sample_buf[i];
+            movingsum[0] += sample_buf[i];
          }
          SIGNAL_MAX_SUM = 0;
          for (int i = startpos + 9; i < startpos + PREAMBLE - BEGIN_OFFSET + 3 * (TRANSMISSION_LENGTH + BIT_OFFSET); i++) {
             movingsum[1] = movingsum[0] - movingbuf[arraypos];
-            movingsum[1] += sample_buf1[i];
-            movingbuf[arraypos] = sample_buf1[i];
+            movingsum[1] += sample_buf[i];
+            movingbuf[arraypos] = sample_buf[i];
             arraypos++;
             if (arraypos == 9) {
                arraypos = 0;
@@ -293,13 +250,13 @@ public class MicSerialListener
                arraypos = 0;
                movingsum[0] = 0;
                for (int i = 0; i < 9; i++) {
-                  movingbuf[i] = sample_buf1[i + sampleloc[n]];
-                  movingsum[0] += sample_buf1[i + sampleloc[n]];
+                  movingbuf[i] = sample_buf[i + sampleloc[n]];
+                  movingsum[0] += sample_buf[i + sampleloc[n]];
                }
                for (int i = 9; i < MicSerialListener.TRANSMISSION_LENGTH; i++) {
                   movingsum[i] = movingsum[i - 1] - movingbuf[arraypos];
-                  movingsum[i] += sample_buf1[i + sampleloc[n]];
-                  movingbuf[arraypos] = sample_buf1[i + sampleloc[n]];
+                  movingsum[i] += sample_buf[i + sampleloc[n]];
+                  movingbuf[arraypos] = sample_buf[i + sampleloc[n]];
                   arraypos++;
                   if (arraypos == 9) {
                      arraypos = 0;
@@ -346,14 +303,14 @@ public class MicSerialListener
       int numsampleloc = 0;
       movingsum[0] = 0;
       for (int i = startpos; i < startpos + 9; i++) {
-         movingbuf[i - startpos] = sample_buf1[i];
-         movingsum[0] += sample_buf1[i];
+         movingbuf[i - startpos] = sample_buf[i];
+         movingsum[0] += sample_buf[i];
       }
 
       for (int i = startpos + 9; i < startpos + SAMPLE_LENGTH - MicSerialListener.BIT_OFFSET; i++) {
          movingsum[1] = movingsum[0] - movingbuf[arraypos];
-         movingsum[1] += sample_buf1[i];
-         movingbuf[arraypos] = sample_buf1[i];
+         movingsum[1] += sample_buf[i];
+         movingbuf[arraypos] = sample_buf[i];
          arraypos++;
          if (arraypos == 9) {
             arraypos = 0;

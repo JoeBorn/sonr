@@ -17,10 +17,12 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import com.sonrlabs.test.sonr.common.Common;
+
 public class ToggleSONR
       extends Service {
 
-   private static String TAG = "ToggleHeadsetService";
+   private static String TAG = ToggleSONR.class.getSimpleName();
    public static final String INTENT_UPDATE_ICON = "INTENT_UPDATE_ICON";
    public static final String INTENT_USER_TOGGLE_REQUEST = "INTENT_TOGGLE_HEADSET";
 
@@ -43,11 +45,13 @@ public class ToggleSONR
    public static HeadphoneReciever headsetReceiver = null;
 
    @Override
-   public int onStartCommand(Intent intent, int flags, int startId) {
+   public void onStart(Intent intent, int startId) {
       try {
          // LogFile.MakeLog("ToggleSONR triggered");
          Log.d(TAG, "onStart");
+
          SERVICE_ON = true;
+
          if (intent.getAction() != null) {
             Log.d(TAG, "Received " + intent.getAction());
          }
@@ -69,10 +73,13 @@ public class ToggleSONR
          }
 
          if (intent.getAction() != null) {
+
             if (intent.getAction().equals(INTENT_USER_TOGGLE_REQUEST)) {
+
                Intent i = new Intent(this, SONR.class);
                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                this.startActivity(i);
+
             } else if (intent.getAction().equals(HeadphoneReciever.HEADSET_PLUG_INTENT)) {
                int state = intent.getExtras().getInt("state");
 
@@ -98,37 +105,34 @@ public class ToggleSONR
                         SONRClient theclient =
                               new SONRClient(this, SONR.findAudioRecord(), SONR.bufferSize,
                                              (AudioManager) this.getSystemService(Context.AUDIO_SERVICE));
-                        theclient.createListener();
+                        theclient.onCreate();
                         theclient.searchSignal();
                         boolean found = theclient.foundDock();
                         Log.d(TAG, "made it past search signal");
                         if (found) {
-                           // LogFile.MakeLog("DOCK FOUND");
-                           Log.d(TAG, "DOCK FOUND");
+                           // LogFile.MakeLog(SONR.DOCK_FOUND);
+                           Log.d(TAG, SONR.DOCK_FOUND);
                            SONR.SONR_ON = true;
-                           String temp = SONR.LoadPreferences();
-                           String[] prefs = null;
-                           if (temp != null) {
-                              prefs = temp.split("[:,]");
-                           }
-                           if (prefs != null && prefs[0].compareTo("..") != 0) {
+
+                           if (Common.get(this, SONR.DEFAULT_PLAYER_SELECTED, false)) {
                               Log.d(TAG, "DEFAULT MEDIA PLAYER FOUND");
                               theclient.startListener();
-                              SONR.Start(prefs, this, true);
+                              SONR.Start(this, true);
                            } else {
                               Log.d(TAG, "NO DEFAULT MEDIA PLAYER");
                               Intent i = new Intent(this, SONR.class);
                               i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                               this.startActivity(i);
                            }
+
                            updateIconON();
                         } else { // dock not found, probably headphones
                            // LogFile.MakeLog("DOCK NOT FOUND");
-                           Log.d(TAG, "DOCK NOT FOUND");
-                           theclient.destroy();
-                           return START_STICKY;
+                           Log.d(TAG, SONR.DOCK_NOT_FOUND);
+                           theclient.onDestroy();
+                           return;
                         }
-                        theclient.destroy();
+                        theclient.onDestroy();
                      } // end if sonr main screen
                   }
                } else { // end if state != 0
@@ -160,7 +164,6 @@ public class ToggleSONR
       } catch (Exception e) {
          e.printStackTrace();
       }
-      return START_STICKY;
    } // end onstart
 
    /**

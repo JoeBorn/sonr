@@ -10,30 +10,35 @@ import android.os.Bundle;
 import android.text.method.LinkMovementMethod;
 import android.text.util.Linkify;
 import android.text.util.Linkify.TransformFilter;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import com.sonrlabs.test.sonr.common.Common;
+
 public class IntroScreen
       extends Activity {
+
+   private static final String COM_SONRLABS_SONR = "com.sonrlabs.sonr";
+
+   private static Pattern pattern = Pattern.compile("terms of service and privacy policy");
+   private static TransformFilter transformFilter = new TransformFilter() {
+      @Override
+      public final String transformUrl(final Matcher match, String url) {
+         return ".TermsScreen://";
+      }
+   };
+
    @Override
    public void onCreate(Bundle savedInstanceState) {
       try {
          super.onCreate(savedInstanceState);
          setContentView(R.layout.intro);
          TextView t2 = (TextView) findViewById(R.id.intro_msg);
-         Pattern pattern = Pattern.compile("terms of service and privacy policy");
-         TransformFilter transformFilter = new TransformFilter() {
-            @Override
-            public final String transformUrl(final Matcher match, String url) {
-               return ".TermsScreen://";
-            }
-         };
-
-         Linkify.addLinks(t2, pattern, "com.sonrlabs.sonr", null, transformFilter);
-
+         Linkify.addLinks(t2, pattern, COM_SONRLABS_SONR, null, transformFilter);
          t2.setMovementMethod(LinkMovementMethod.getInstance());
       } catch (Exception e) {
-         e.printStackTrace();
+         Log.d(SONR.TAG, e.toString());
          ErrorReporter.getInstance().handleException(e);
       }
    }
@@ -44,18 +49,7 @@ public class IntroScreen
    }
 
    public void acceptTerms(View view) {
-      SONR.WritePreferences("DEFAULT, false");
+      Common.save(this, SONR.DEFAULT_PLAYER_SELECTED, false);
       finish();
-   }
-
-   @Override
-   public void onPause() {
-      super.onPause();
-      finish();
-   }
-
-   @Override
-   public void onDestroy() {
-      super.onDestroy();
    }
 }

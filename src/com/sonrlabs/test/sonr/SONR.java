@@ -2,28 +2,22 @@
 
 package com.sonrlabs.test.sonr;
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.acra.ErrorReporter;
 
-import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -35,10 +29,12 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.MediaRecorder.AudioSource;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.PowerManager;
+import android.provider.MediaStore;
 import android.util.Log;
+import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -53,19 +49,40 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.sonrlabs.test.sonr.common.Common;
+import com.sonrlabs.test.sonr.common.DialogCommon;
+
 public class SONR
       extends ListActivity {
+
+   private static final String SAMPLE_URI = "\\";
+   private static final String AUDIO_MIME_TYPE = "audio/*";
+   public static final String DOCK_NOT_FOUND = "DOCK NOT FOUND";
+   public static final String DOCK_FOUND = "DOCK FOUND";
+   public static final String DOCK_NOT_FOUND_TRY_AGAIN = "Dock not detected, check connections and try again";
+   public static final String OK_TXT = "Ok";
+   public static final String SELECT_PLAYER = "Please select a music player";
+   public static final String DEFAULT_PLAYER_SELECTED = "DEFAULT_PLAYER_SELECTED";
+   public static final String APP_PACKAGE_NAME = "APP_PACKAGE_NAME";
+   public static final String APP_FULL_NAME = "APP_FULL_NAME";
+   public static final String PLAYER_SELECTED = "PLAYER_SELECTED";
+
+   public static final String TAG = SONR.class.getSimpleName();
+
+   public static int DEBUG = 1;
+   public static int RELEASE = 0;
+   public static int MODE = DEBUG;
+
    public static final int SAMPLE_RATE = 44100; // In Hz
    public static final int SONR_ID = 1;
    private List<ApplicationInfo> infos = null;
+   private Integer currentlySelectedApplicationInfoIndex;
    private List<ResolveInfo> rinfos = null;
    private SONRClient theclient;
    public static int bufferSize = 0;
    private AudioRecord theaudiorecord = null;
    private AudioManager m_amAudioManager;
-   private String prefs;
    private boolean isRegistered = false;
-   private String[] app_package_and_name = null;
 
    public static boolean SONR_ON = false;
    public static boolean MAIN_SCREEN = false;
@@ -79,8 +96,13 @@ public class SONR
    public void onCreate(Bundle savedInstanceState) {
       try {
          super.onCreate(savedInstanceState);
+
+         Common.save(this, SONR.PLAYER_SELECTED, false);
+
          // LogFile.MakeLog("\n\nSONR CREATE");
          MAIN_SCREEN = true;
+
+         currentlySelectedApplicationInfoIndex = -1;
 
          setContentView(R.layout.music_select_main);
 
@@ -89,7 +111,7 @@ public class SONR
             isRegistered = true;
          }
 
-         infos = convert(findActivities(this), null);
+         infos = convert(this, findActivities(this));
          ListAdapter adapter = new AppInfoAdapter(this, infos);
          this.setListAdapter(adapter);
 
@@ -105,25 +127,7 @@ public class SONR
 
          theaudiorecord = findAudioRecord();
          theclient = new SONRClient(this, theaudiorecord, bufferSize, m_amAudioManager);
-         theclient.createListener();
-
-         prefs = LoadPreferences();
-         if (prefs != null && prefs != "..") {
-            String[] prefar = prefs.split(",");
-            if (prefar[0] != null) {
-               theclient.destroy();
-               if (theaudiorecord != null) {
-                  theaudiorecord.release();
-               }
-               Intent i = new Intent(this, DefaultAppScreen.class);
-               startActivity(i);
-            }
-         }
-
-         if (prefs == null) {
-            Intent i = new Intent(this, IntroScreen.class);
-            startActivity(i);
-         }
+         theclient.onCreate();
 
          final Button noneButton = (Button) findViewById(R.id.noneButton);
          noneButton.setOnClickListener(new View.OnClickListener() {
@@ -134,7 +138,7 @@ public class SONR
                }
 
                if (theclient.foundDock()) {
-                  Toast.makeText(getApplicationContext(), "DOCK FOUND", Toast.LENGTH_SHORT).show();
+                  Toast.makeText(getApplicationContext(), DOCK_FOUND, Toast.LENGTH_SHORT).show();
                   theclient.startListener();
                   SONR_ON = true;
                   MakeNotification(getApplicationContext());
@@ -148,142 +152,67 @@ public class SONR
          });
 
          final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-         this.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "SONR");
+         this.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, TAG);
          this.mWakeLock.acquire();
 
-      } catch (Exception e) {
-         e.printStackTrace();
-         ErrorReporter.getInstance().handleException(e);
-      }
-   }
-
-   public static String LoadPreferences() {
-      try {
-         FileInputStream fstream = new FileInputStream("/sdcard/SONR/pref");
-         // file format: ..
-         // DEFAULT:[true/false]
-         // if true: [package name],[class name]
-
-         DataInputStream in = new DataInputStream(fstream);
-         BufferedReader br = new BufferedReader(new InputStreamReader(in));
-
-         if (br.readLine().compareTo("..") != 0) {
-            return null;
-         }
-         String line = br.readLine();
-         String[] split = line.split("[:,]");
-         if (split[0].compareTo("DEFAULT") == 0 && split[1].compareTo("true") == 0) {
-            String temp = br.readLine();
-            fstream.close();
-            return temp;
-         }
-      } catch (Exception e) {
-         return null;
-         // e.printStackTrace();
-      }
-
-      return "..";
-   }
-
-   public static void WritePreferences(String prefs) {
-      try {
-         File sdcard = Environment.getExternalStorageDirectory();
-         File dir = new File(sdcard.getAbsolutePath() + "/SONR");
-         dir.mkdirs();
-         File file = new File(dir, "pref");
-         FileOutputStream outstream = new FileOutputStream(file);
-         outstream.write("..\n".getBytes());
-
-         String[] split = prefs.split("[:,]");
-         if (split[0].compareTo("DEFAULT") == 0 && split[1].compareTo("true") == 0) {
-            outstream.write("DEFAULT:true\n".getBytes());
-            outstream.write((split[2] + "," + split[3]).getBytes());
+         Intent intent = null;
+         if (Common.get(this, SONR.DEFAULT_PLAYER_SELECTED, false)) {
+            theclient.onDestroy();
+            if (theaudiorecord != null) {
+               theaudiorecord.release();
+            }
+            intent = new Intent(this, DefaultAppScreen.class);
          } else {
-            outstream.write("DEFAULT:false\n".getBytes());
+            intent = new Intent(this, IntroScreen.class);
          }
+         startActivity(intent);
 
-         outstream.close();
       } catch (Exception e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       }
    }
-
-   // @Override
-   // public void onResume() {
-   // }
 
    @Override
-   protected void onListItemClick(ListView l, View v, int position, long id) {
-      // super.onListItemClick(l, v, position, id);
-      for (int i = 0; i <= l.getLastVisiblePosition() - l.getFirstVisiblePosition(); i++) {
-         if (i != position) {
-            l.getChildAt(i).setBackgroundColor(0xFF444444);
-         }
-      }
-      v.setBackgroundColor(0xFF666666);
-      // v.setClickable(true);
-      // test.setColorFilter(Color.parseColor("#444444"),
-      // PorterDuff.Mode.DARKEN);
+   protected void onListItemClick(ListView listView, View clickedView, int position, long id) {
+      super.onListItemClick(listView, clickedView, position, id);
+
       ApplicationInfo ai = null;
       ai = infos.get(position);
       rinfos = findActivitiesForPackage(this, ai.packageName);
       ResolveInfo ri = rinfos.get(0);
-      Log.d("MEDIA PLAYER", ri.activityInfo.packageName);
 
-      SharedPreferences settings = getSharedPreferences(SHARED_PREFERENCES, 0);
-      SharedPreferences.Editor editor = settings.edit();
-      editor.putString("selectedMediaPlayer", ri.activityInfo.packageName);
-      editor.commit();
+      Common.save(this, SONR.APP_PACKAGE_NAME, ri.activityInfo.packageName);
+      Common.save(this, SONR.APP_FULL_NAME, ri.activityInfo.name);
+      Common.save(this, SONR.PLAYER_SELECTED, true);
 
-      app_package_and_name = new String[] {
-         ri.activityInfo.packageName,
-         ri.activityInfo.name
-      };
+      currentlySelectedApplicationInfoIndex = position;
+      listView.invalidateViews();
    }
 
    public void buttonOK(View view) {
       try {
-         if (app_package_and_name == null) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage("Please select a music player");
-            builder.setCancelable(false);
-            builder.setNeutralButton("Ok", new DialogInterface.OnClickListener() { // retry
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int id) {
-                                        }
-                                     });
-
-            builder.create();
-            builder.show();
+         if (!Common.get(this, SONR.PLAYER_SELECTED, false) && !Common.get(this, SONR.DEFAULT_PLAYER_SELECTED, false)) {
+            DialogCommon.quickPopoutDialog(this, false, SELECT_PLAYER, OK_TXT);
          } else {
             if (!theclient.foundDock()) {
                theclient.searchSignal();
             }
 
             if (theclient.foundDock()) {
-               Toast.makeText(getApplicationContext(), "DOCK FOUND", Toast.LENGTH_SHORT).show();
+               Toast.makeText(getApplicationContext(), DOCK_FOUND, Toast.LENGTH_SHORT).show();
 
                // LogFile.MakeLog("DOCK FOUND");
 
                theclient.startListener();
                final CheckBox checkBox = (CheckBox) this.findViewById(R.id.checkbox_default_player);
-               Start(app_package_and_name, this, checkBox.isChecked());
+               Start(this, checkBox.isChecked());
             } else {
-               Toast.makeText(getApplicationContext(), "DOCK NOT FOUND", Toast.LENGTH_SHORT).show();
+               Toast.makeText(getApplicationContext(), DOCK_NOT_FOUND, Toast.LENGTH_SHORT).show();
 
                // LogFile.MakeLog("DOCK NOT FOUND");
-               AlertDialog.Builder builder = new AlertDialog.Builder(this);
-               builder.setMessage("Dock not detected, check connections and try again");
-               builder.setCancelable(false);
-               builder.setNeutralButton("Ok", new DialogInterface.OnClickListener() { // retry
-                                           @Override
-                                           public void onClick(DialogInterface dialog, int id) {
-                                           }
-                                        });
 
-               builder.create();
-               builder.show();
+               DialogCommon.quickPopoutDialog(this, false, DOCK_NOT_FOUND_TRY_AGAIN, OK_TXT);
             }
          }
       } catch (Exception e) {
@@ -303,7 +232,7 @@ public class SONR
       Notification notification = new Notification(icon, tickerText, when);
       notification.flags |= Notification.FLAG_NO_CLEAR;
 
-      CharSequence contentTitle = "SONR";
+      CharSequence contentTitle = TAG;
       CharSequence contentText = "Disconnect from dock";
       Intent notificationIntent = new Intent(ctx, StopSONR.class);
       PendingIntent contentIntent = PendingIntent.getActivity(ctx, 0, notificationIntent, 0);
@@ -315,7 +244,7 @@ public class SONR
 
    @Override
    public void onBackPressed() {
-      // finish();
+      // finish(); Do Nothing?
    }
 
    @Override
@@ -358,6 +287,9 @@ public class SONR
    @Override
    public void onResume() {
       super.onResume();
+      if (m_amAudioManager == null) {
+         m_amAudioManager = (AudioManager) SONR.this.getSystemService(Context.AUDIO_SERVICE);
+      }
       m_amAudioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 1, AudioManager.FLAG_VIBRATE);
 
       // LogFile.MakeLog("SONR resumed");
@@ -379,6 +311,7 @@ public class SONR
 
    @Override
    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+      super.onActivityResult(requestCode, resultCode, data);
       if (resultCode == 0) {
          finish();
       }
@@ -410,8 +343,14 @@ public class SONR
 
    @Override
    public boolean onCreateOptionsMenu(Menu menu) {
-      this.getMenuInflater().inflate(R.menu.main, menu);
-      return true;
+      boolean showMenu = super.onCreateOptionsMenu(menu);
+      try {
+         this.getMenuInflater().inflate(R.menu.main, menu);
+      } catch (InflateException e) {
+         Log.d(TAG, "Unable to inflate menu: " + e);
+         showMenu = false;
+      }
+      return showMenu;
    }
 
    @Override
@@ -420,10 +359,10 @@ public class SONR
 
       switch (item.getItemId()) {
          case R.id.aboutMenuItem:
-            Log.d("SONR", "About clicked");
+            Log.d(TAG, "About clicked");
             break;
          case R.id.configurationMenuItem:
-            Log.d("SONR", "Configuration Clicked");
+            Log.d(TAG, "Configuration Clicked");
             Intent intent = new Intent(SONR.this, ConfigurationActivity.class);
             startActivity(intent);
             break;
@@ -434,31 +373,31 @@ public class SONR
       return true;
    }
 
-   public static List<ApplicationInfo> convert(List<ResolveInfo> infos, String app_package_and_name[]) {
+   public static List<ApplicationInfo> convert(Context c, Collection<ResolveInfo> infos) {
       final List<ApplicationInfo> result = new ArrayList<ApplicationInfo>();
 
       final Set<ApplicationInfo> apps = new HashSet<ApplicationInfo>();
-      for (ResolveInfo r : infos) {
-         if (app_package_and_name == null) {
-            if (r.activityInfo.packageName.contains("music") || r.activityInfo.packageName.contains("Music")
-                  || r.activityInfo.packageName.contains("Pandora") || r.activityInfo.packageName.contains("pandora")
-                  || r.activityInfo.packageName.contains("winamp") || r.activityInfo.packageName.contains("Winamp")
-                  || r.activityInfo.packageName.contains("audioplayer") || r.activityInfo.name.contains("music")
-                  || r.activityInfo.packageName.contains("spotify") || r.activityInfo.packageName.contains("Spotify")
-                  || r.activityInfo.packageName.contains("mediafly") || r.activityInfo.packageName.contains("MediaFly")
-                  || r.activityInfo.packageName.contains("audible") || r.activityInfo.packageName.contains("Audible")
-                  || r.activityInfo.packageName.contains("listen") || r.activityInfo.packageName.contains("Listen")
-                  || r.activityInfo.packageName.contains("mp3") || r.activityInfo.packageName.contains("MP3")
-                  || r.activityInfo.name.contains("Music") || r.activityInfo.name.contains("Pandora")
-                  || r.activityInfo.name.contains("winamp") || r.activityInfo.name.contains("Winamp")
-                  || r.activityInfo.name.contains("mediaplayer") || r.activityInfo.name.contains("Spotify")
-                  || r.activityInfo.name.contains("MediaFly") || r.activityInfo.name.contains("Audible")
-                  || r.activityInfo.name.contains("Listen") || r.activityInfo.name.contains("MP3")) {
-               apps.add(r.activityInfo.applicationInfo);
+      for (ResolveInfo resolveInfo : infos) {
+
+         if (!Common.get(c, SONR.DEFAULT_PLAYER_SELECTED, false)) {
+
+            String[] appNames = c.getResources().getStringArray(R.array.mediaAppsNames);
+
+            for (String appName : appNames) {
+               String pkgName = resolveInfo.activityInfo.packageName.toLowerCase();
+               String actvName = resolveInfo.activityInfo.name.toLowerCase();
+
+               if (pkgName.contains(appName) || actvName.contains(appName)) {
+                  apps.add(resolveInfo.activityInfo.applicationInfo);
+               }
             }
-         } else if (app_package_and_name[0].compareTo(r.activityInfo.packageName) == 0
-               && app_package_and_name[1].compareTo(r.activityInfo.name) == 0) {
-            result.add(r.activityInfo.applicationInfo);
+         } else {
+            String packageName = Common.get(c, SONR.APP_PACKAGE_NAME, Common.N_A);
+            String appName = Common.get(c, SONR.APP_FULL_NAME, Common.N_A);
+
+            if (packageName.equals(resolveInfo.activityInfo.packageName) && appName.equals(resolveInfo.activityInfo.name)) {
+               result.add(resolveInfo.activityInfo.applicationInfo);
+            }
             return result;
          }
       }
@@ -468,18 +407,37 @@ public class SONR
       return result;
    }
 
-   public static List<ResolveInfo> findActivities(Context context) {
+   public static Collection<ResolveInfo> findActivities(Context context) {
+      Map<String, ResolveInfo> finalMap = new HashMap<String, ResolveInfo>();
+
       final PackageManager packageManager = context.getPackageManager();
 
-      final Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
-      mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+      final Intent musicPlayerIntent = new Intent(MediaStore.INTENT_ACTION_MUSIC_PLAYER, null);
+      final Intent musicPlayFromSearchIntent = new Intent(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH, null);
+      final Intent mediaSearchIntent = new Intent(MediaStore.INTENT_ACTION_MEDIA_SEARCH, null);
+      final Intent viewIntent = new Intent(Intent.ACTION_VIEW, null);
+      viewIntent.setDataAndType(Uri.parse(SAMPLE_URI), AUDIO_MIME_TYPE);
 
-      final List<ResolveInfo> activities = packageManager.queryIntentActivities(mainIntent, 0);
+      final Intent allLauncherAppsIntent = new Intent(Intent.ACTION_MAIN, null);
+      allLauncherAppsIntent.addCategory(Intent.CATEGORY_LAUNCHER);
 
-      return activities;
+      List<ResolveInfo> queryResults = new ArrayList<ResolveInfo>();
+      queryResults.addAll(packageManager.queryIntentActivities(musicPlayerIntent, 0));
+      queryResults.addAll(packageManager.queryIntentActivities(musicPlayFromSearchIntent, 0));
+      queryResults.addAll(packageManager.queryIntentActivities(mediaSearchIntent, 0));
+      queryResults.addAll(packageManager.queryIntentActivities(viewIntent, 0));
+      queryResults.addAll(packageManager.queryIntentActivities(allLauncherAppsIntent, 0));
+
+      for (ResolveInfo resolveInfo : queryResults) {
+         if (!finalMap.containsKey(resolveInfo.activityInfo.packageName)) {
+            finalMap.put(resolveInfo.activityInfo.packageName, resolveInfo);
+         }
+      }
+
+      return finalMap.values();
    }
 
-   private static class AppInfoAdapter
+   private class AppInfoAdapter
          extends BaseAdapter {
       public List<ApplicationInfo> ApplicationInfos = new ArrayList<ApplicationInfo>();
       private final LayoutInflater mInflater;
@@ -495,25 +453,21 @@ public class SONR
          this.ApplicationInfos.addAll(applicationInfos);
       }
 
-      // @Override
       @Override
       public int getCount() {
          return this.ApplicationInfos.size();
       }
 
-      // @Override
       @Override
       public Object getItem(int position) {
          return ApplicationInfos.get(position);
       }
 
-      // @Override
       @Override
       public long getItemId(int position) {
          return this.ApplicationInfos.get(position).hashCode();
       }
 
-      // @Override
       @Override
       public View getView(int position, View convertView, ViewGroup parent) {
          ApplicationInfo info = this.ApplicationInfos.get(position);
@@ -530,6 +484,8 @@ public class SONR
          TextView description = (TextView) convertView.findViewById(R.id.app_size);
          description.setText(info.loadDescription(pm));
 
+         convertView.setBackgroundColor(currentlySelectedApplicationInfoIndex == position ? 0xFF666666 : 0xFF444444);
+
          return convertView;
       }
 
@@ -541,31 +497,30 @@ public class SONR
          // Handle reciever
          String mAction = intent.getAction();
 
-         if (mAction.equals(DISCONNECT_ACTION)) {
+         if (DISCONNECT_ACTION.equals(mAction)) {
             finish();
          }
       }
    };
 
-   public static void Start(String[] app_package_and_name, Context ctx, boolean defaultplayer) {
-      Intent mediaApp = new Intent();
-      mediaApp.setClassName(app_package_and_name[0], app_package_and_name[1]);
-      mediaApp.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-      if (defaultplayer) {
-         WritePreferences("DEFAULT:true," + app_package_and_name[0] + "," + app_package_and_name[1]);
-      } else {
-         WritePreferences("DEFAULT:false");
-      }
+   public static void Start(Context context, boolean defaultplayer) {
+      Common.save(context, SONR.DEFAULT_PLAYER_SELECTED, defaultplayer);
 
       SONR_ON = true;
-      MakeNotification(ctx);
-      ctx.startActivity(mediaApp);
+      MakeNotification(context);
+
+      if (Common.get(context, SONR.PLAYER_SELECTED, false)) {
+         Intent mediaApp = new Intent();
+         mediaApp.setClassName(Common.get(context, SONR.APP_PACKAGE_NAME, Common.N_A),
+                               Common.get(context, SONR.APP_FULL_NAME, Common.N_A));
+         mediaApp.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+         context.startActivity(mediaApp);
+      }
    }
 
    public static AudioRecord findAudioRecord() {
-      for (short audioFormat : new short[] {
-         AudioFormat.ENCODING_PCM_8BIT,
+      // AudioRecord.java:467 PCM_8BIT not supported at the moment
+      for (short audioFormat : new short[] { /* AudioFormat.ENCODING_PCM_8BIT, */
          AudioFormat.ENCODING_PCM_16BIT
       }) {
          for (short channelConfig : new short[] {
@@ -575,7 +530,10 @@ public class SONR
             AudioFormat.CHANNEL_IN_DEFAULT
          }) {
             try {
-               Log.d("SONR", "Attempting rate " + SAMPLE_RATE + "Hz, bits: " + audioFormat + ", channel: " + channelConfig);
+               if (MODE > 0) {
+                  Log.d(TAG, "Attempting rate " + SAMPLE_RATE + "Hz, bits: " + audioFormat + ", channel: " + channelConfig);
+               }
+
                bufferSize = 3 * AudioRecord.getMinBufferSize(SAMPLE_RATE, channelConfig, audioFormat);
 
                if (bufferSize != AudioRecord.ERROR_BAD_VALUE) {
@@ -586,18 +544,14 @@ public class SONR
                      return recorder;
                   }
                }
-            } catch (IllegalArgumentException e) {
-               /*
-                * Encoding configuration not supported by current hardware.
-                * These are expected, don't bother logging.
-                */
             } catch (Exception e) {
-               String message = "Unexpected condition while testing audio encoding.";
-               Log.e("SONR", message, e);
+               if (MODE > 0) {
+                  Log.v(TAG, "Unable to allocate for: " + SAMPLE_RATE + "Hz, bits: " + audioFormat + ", channel: " + channelConfig);
+                  Log.e(TAG, "Exception " + e);
+               }
             }
          }
       }
-      Log.e("SONR", SAMPLE_RATE + " No usable audio encoding for this hardware.");
       return null;
    }
 }

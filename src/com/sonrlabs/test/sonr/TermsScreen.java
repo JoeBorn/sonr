@@ -9,6 +9,8 @@ import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.TextView;
 
+import com.sonrlabs.test.sonr.common.Common;
+
 public class TermsScreen
       extends Activity {
    @Override
@@ -31,7 +33,7 @@ public class TermsScreen
    }
 
    public void acceptTerms(View view) {
-      SONR.WritePreferences("DEFAULT, false");
+      Common.save(this, SONR.DEFAULT_PLAYER_SELECTED, false);
       finish();
    }
 
@@ -44,10 +46,5 @@ public class TermsScreen
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       }
-   }
-
-   @Override
-   public void onDestroy() {
-      super.onDestroy();
    }
 }

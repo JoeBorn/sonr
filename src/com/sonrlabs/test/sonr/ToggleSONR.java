@@ -45,7 +45,7 @@ public class ToggleSONR
    public static HeadphoneReciever headsetReceiver = null;
 
    @Override
-   public void onStart(Intent intent, int startId) {
+   public int onStartCommand(Intent intent, int flags, int startId) {
       try {
          // LogFile.MakeLog("ToggleSONR triggered");
          Log.d(TAG, "onStart");
@@ -105,7 +105,7 @@ public class ToggleSONR
                         SONRClient theclient =
                               new SONRClient(this, SONR.findAudioRecord(), SONR.bufferSize,
                                              (AudioManager) this.getSystemService(Context.AUDIO_SERVICE));
-                        theclient.onCreate();
+                        theclient.createListener();
                         theclient.searchSignal();
                         boolean found = theclient.foundDock();
                         Log.d(TAG, "made it past search signal");
@@ -129,10 +129,10 @@ public class ToggleSONR
                         } else { // dock not found, probably headphones
                            // LogFile.MakeLog("DOCK NOT FOUND");
                            Log.d(TAG, SONR.DOCK_NOT_FOUND);
-                           theclient.onDestroy();
-                           return;
+                           theclient.destroy();
+                           return START_STICKY;
                         }
-                        theclient.onDestroy();
+                        theclient.destroy();
                      } // end if sonr main screen
                   }
                } else { // end if state != 0
@@ -164,6 +164,7 @@ public class ToggleSONR
       } catch (Exception e) {
          e.printStackTrace();
       }
+      return START_STICKY;
    } // end onstart
 
    /**

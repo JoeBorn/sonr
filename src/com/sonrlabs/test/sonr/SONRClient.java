@@ -12,33 +12,29 @@ import android.media.AudioRecord;
 import android.os.IBinder;
 import android.util.Log;
 
-/*
- * This class does not need to extend service.
- * [Then why does it?]
- */
 public class SONRClient
       extends Service {
-   // private static final String TAG = SONRClient.class.getSimpleName();
 
    /*
-    * This is a static because we can create multiple clients but we only want
-    * one listener. Possibly the creation of multiple clients is incorrect?
+    * This is a static because we can create multiple clients but we only want one listener.
+    * Possibly the creation of multiple clients is incorrect?
+    * 
     */
    private static MicSerialListener singletonListener;
-
+   
    /*
     * No idea why this is public or static, or even what it's for. Some Android
     * reflective magic?
     */
    public static boolean CLIENT_ON = false;
-
+   
    private BroadcastReceiver clientStopReceiver;
-   private IUserActionHandler controller;
-
+   
    private final AudioManager theAudioManager;
    private final AudioRecord theaudiorecord;
    private final int bufferSize;
    private final Context ctx;
+
 
    SONRClient(Context c, AudioRecord ar, int buffsize, AudioManager am) {
       theAudioManager = am;
@@ -47,7 +43,7 @@ public class SONRClient
       ctx = c;
       CLIENT_ON = true;
    }
-
+   
    boolean foundDock() {
       return singletonListener != null && singletonListener.foundDock();
    }
@@ -77,24 +73,29 @@ public class SONRClient
    }
 
    @Override
-   /*
-    * SONRClient is not created like a Android Service should be, therefore
-    * synch block applies here.
-    */
    public void onCreate() {
+      createListener();
+   }
+
+   void createListener() {
       try {
          synchronized (this) {
             // LogFile.MakeLog("\n\nSONRClient CREATED");
             unregisterReceiver();
             registerReceiver();
+            IUserActionHandler controller = new UserActionHandler(theAudioManager,ctx);
+            if (singletonListener != null) {
+               singletonListener.stopRunning();
+               singletonListener.join();
+            }
+            singletonListener = new MicSerialListener(theaudiorecord, bufferSize, controller);
          }
-         controller = new UserActionHandler(theAudioManager, ctx);
-         singletonListener = new MicSerialListener(theaudiorecord, bufferSize, controller);
       } catch (Exception e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       }
    }
+   
 
    @Override
    public IBinder onBind(Intent arg0) {
@@ -104,9 +105,13 @@ public class SONRClient
    @Override
    public void onDestroy() {
       // LogFile.MakeLog("SONRClient DESTROY\n\n");
+      destroy();
+      super.onDestroy();
+   }
+
+   void destroy() {
       try {
          synchronized (this) {
-            super.onDestroy();
             unregisterReceiver();
             if (singletonListener != null) {
                singletonListener.stopRunning();
@@ -126,22 +131,25 @@ public class SONRClient
             // Handle reciever
             String mAction = intent.getAction();
             if (mAction.equals(SONR.DISCONNECT_ACTION)) {
-               onDestroy();
+               destroy();
             }
          }
       };
       ctx.registerReceiver(clientStopReceiver, new IntentFilter(SONR.DISCONNECT_ACTION));
+      Log.i(getClass().getName(), "Registered broadcast receiver " + clientStopReceiver + " in context " + ctx);
    }
 
    private void unregisterReceiver() {
       if (clientStopReceiver != null) {
          try {
             ctx.unregisterReceiver(clientStopReceiver);
-         } catch (Exception e) {
-            // ignore errors here
-         } finally {
+            Log.i(getClass().getName(), "Unregistered broadcast receiver " + clientStopReceiver + " in context " + ctx);
             clientStopReceiver = null;
+         } catch (Exception e) {
+            Log.i(getClass().getName(), "Failed to unregister broadcast receiver " + clientStopReceiver + " in context " + ctx, e);
          }
+      } else {
+         Log.i(getClass().getName(), "No broadcast receiver to unregister in context " + ctx);
       }
    }
 }

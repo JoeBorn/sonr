@@ -109,7 +109,7 @@ public class SONRClient
             super.onDestroy();
             unregisterReceiver();
             if (singletonListener != null) {
-               singletonListener.destroy();
+               singletonListener.stopRunning();
             }
          }
          CLIENT_ON = false;

@@ -76,7 +76,7 @@ public class SONR
    public static final int SAMPLE_RATE = 44100; // In Hz
    public static final int SONR_ID = 1;
    private List<ApplicationInfo> infos = null;
-   private Integer currentlySelectedApplicationInfoIndex;
+   private int currentlySelectedApplicationInfoIndex;
    private List<ResolveInfo> rinfos = null;
    private SONRClient theclient;
    public static int bufferSize = 0;

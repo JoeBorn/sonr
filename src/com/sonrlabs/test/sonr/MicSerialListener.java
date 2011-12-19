@@ -21,16 +21,16 @@ public class MicSerialListener
    public static final int PREAMBLE = 64 * FRAMES_PER_BIT;
    public static final int SAMPLE_LENGTH = PREAMBLE + 3 * (TRANSMISSION_LENGTH + BIT_OFFSET);
    public static final int AVE_LEN = 9;
-   public static final int BEGIN_OFFSET = PREAMBLE - TRANSMISSION_LENGTH - BIT_OFFSET; // allow
-   /* phone's internal AGC to stabilize first */
-   public static final int END_OFFSET = TRANSMISSION_LENGTH + BIT_OFFSET; // allow
-   /* phone's internal AGC to stabilize first */
+
+   /* allow phone's internal AGC to stabilize first */
+   public static final int BEGIN_OFFSET = PREAMBLE - TRANSMISSION_LENGTH - BIT_OFFSET;
+   public static final int END_OFFSET = TRANSMISSION_LENGTH + BIT_OFFSET; 
 
    // beginning of a sample
    public static final int THRESHOLD = 4000;
 
    // transmissions in a single nsample
-   public static final int MAX_TRANSMISSIONS = 10; // no more than 10
+   public static final int MAX_TRANSMISSIONS = 10;
 
    public static int SIGNAL_MAX_SUM = 0;
 
@@ -282,8 +282,8 @@ public class MicSerialListener
                         triple[n] |= 0x1 << bitnum;
                      }
                      bitnum++;
-                     switchphase = true; // reached a bit, can now switch
-                     // again if phase shifts
+                     /* reached a bit, can now switch again if phase shifts */
+                     switchphase = true; 
                   }
                }
 
@@ -292,12 +292,16 @@ public class MicSerialListener
                // Integer.toHexString(byteInDec[n]));
             }
          }
-
-         if (triple[0] == 0x27 && triple[1] == 0x27 || triple[1] == 0x27 && triple[2] == 0x27 || triple[0] == 0x27
-               && triple[2] == 0x27) {
-            found = true;
+         
+         /* If at least two are 0x27, that's a match. */
+         int matchCount = 0;
+         for (int value : triple) {
+            if (value == 0x27) {
+               ++matchCount;
+            }
          }
-      }// end if found a start position
+         found = matchCount >= 2;
+      }
 
       return found;
    }
@@ -322,11 +326,11 @@ public class MicSerialListener
 
          if (isPhase(movingsum[0], movingsum[1], SIGNAL_MAX_SUM)) {
             sampleloc[numsampleloc++] = i - 5;
-            i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1; // next
-            // transmission
+            // next transmission
+            i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1; 
             sampleloc[numsampleloc++] = i;
-            i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1; // next
-            // transmission
+            // next transmission
+            i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1;
             sampleloc[numsampleloc++] = i;
             return;
          }

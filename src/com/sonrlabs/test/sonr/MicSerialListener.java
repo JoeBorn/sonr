@@ -248,7 +248,7 @@ public class MicSerialListener
          SIGNAL_MAX_SUM /= 1.375;
          findSample(startpos);
 
-         int[] byteInDec = new int[3];
+         int[] triple = new int[3];
          for (int n = 0; n < 3; n++) {
             if (sampleloc[n] != 0) {
                arraypos = 0;
@@ -279,7 +279,7 @@ public class MicSerialListener
 
                   if (i % MicSerialListener.FRAMES_PER_BIT == 0) {
                      if (!isinphase) {
-                        byteInDec[n] |= 0x1 << bitnum;
+                        triple[n] |= 0x1 << bitnum;
                      }
                      bitnum++;
                      switchphase = true; // reached a bit, can now switch
@@ -287,14 +287,14 @@ public class MicSerialListener
                   }
                }
 
-               Log.d(TAG, "TRANSMISSION[" + n + "]: " + "0x" + Integer.toHexString(byteInDec[n]));
+               Log.d(TAG, "TRANSMISSION[" + n + "]: " + "0x" + Integer.toHexString(triple[n]));
                // LogFile.MakeLog("TRANSMISSION[" + n + "]: " + "0x"+
                // Integer.toHexString(byteInDec[n]));
             }
          }
 
-         if (byteInDec[0] == 0x27 && byteInDec[1] == 0x27 || byteInDec[1] == 0x27 && byteInDec[2] == 0x27 || byteInDec[0] == 0x27
-               && byteInDec[2] == 0x27) {
+         if (triple[0] == 0x27 && triple[1] == 0x27 || triple[1] == 0x27 && triple[2] == 0x27 || triple[0] == 0x27
+               && triple[2] == 0x27) {
             found = true;
          }
       }// end if found a start position

@@ -11,6 +11,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.IBinder;
@@ -25,6 +26,8 @@ public class ToggleSONR
    private static String TAG = ToggleSONR.class.getSimpleName();
    public static final String INTENT_UPDATE_ICON = "INTENT_UPDATE_ICON";
    public static final String INTENT_USER_TOGGLE_REQUEST = "INTENT_TOGGLE_HEADSET";
+   
+   private static SharedPreferences sharedPrefs;
 
    /*
     * Constants determined from AudioSystem source
@@ -203,6 +206,12 @@ public class ToggleSONR
    public static void unroute_headset(Context ctx) {
       Log.d(TAG, "unroute headset");
       AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
+      
+      //Restore notification volume
+      sharedPrefs = ctx.getSharedPreferences(SONR.SHARED_PREFERENCES, 0);
+      int savedNotificationVolume = sharedPrefs.getInt("sharedNotificationVolume", 10);
+      manager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, savedNotificationVolume, AudioManager.FLAG_VIBRATE);
+      
       if (Build.VERSION.SDK_INT == Build.VERSION_CODES.DONUT) {
          /*
           * see AudioService.setRouting Use MODE_INVALID to force headset

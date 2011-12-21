@@ -246,7 +246,8 @@ class UserActionHandler
             break;
             
          case 0:
-            Log.d(TAG, "ZERO");
+            // consider this a no-op for now.
+//            Log.d(TAG, "ZERO");
             break;
             
          default:

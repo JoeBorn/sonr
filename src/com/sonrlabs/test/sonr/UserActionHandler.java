@@ -2,6 +2,8 @@ package com.sonrlabs.test.sonr;
 
 import org.acra.ErrorReporter;
 
+import com.sonrlabs.test.sonr.common.Common;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -277,9 +279,8 @@ class UserActionHandler
       // if(theKeyEvent == PLAY || theKeyEvent == PAUSE || theKeyEvent ==
       // FAST_FORWARD || theKeyEvent == REWIND || theKeyEvent == NEXT_TRACK ||
       // theKeyEvent == PREVIOUS_TRACK) {
-      Intent i = new Intent(Intent.ACTION_MEDIA_BUTTON);
-      SharedPreferences settings = context.getSharedPreferences(SONR.SHARED_PREFERENCES, 0);
-      String selectedMediaPlayer = settings.getString("selectedMediaPlayer", "MediaPlayerNotFound");
+      Intent i = new Intent(Intent.ACTION_MEDIA_BUTTON);     
+      String selectedMediaPlayer =  Common.get(context, SONR.APP_PACKAGE_NAME, "MEDIAPLAYERNOTFOUND");
       Log.d("BROADCAST PLAYER", selectedMediaPlayer);
       i.setPackage(selectedMediaPlayer);
    

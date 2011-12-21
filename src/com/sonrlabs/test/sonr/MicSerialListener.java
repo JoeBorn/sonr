@@ -103,7 +103,17 @@ public class MicSerialListener
                sample_buf = new short[bufferSize];
                // set up recorder thread
                inStream.startRecording();
-               searchSignal();
+               
+               /*
+                * Look for signal in a separate task.
+                * Could run this as a TimerTask instead.
+                */
+               Runnable searcher = new Runnable() {
+                  public void run() {
+                     searchSignal();
+                  }
+               };
+               Utils.runTask(searcher);
             } else {
                // LogFile.MakeLog("Failed to initialize AudioRecord");
                Log.d(TAG, "Failed to initialize AudioRecord");

@@ -9,7 +9,7 @@
 	<string name="default_player_msg">Your default app for\nyour sound dock:</string>
 	<string name="featured_title">Featured Music App: Pandora</string>
 	<string name="featured_desc">Your own FREE personalized radio. Start with the name of one of your favorite artists or songs and Pandora will create a \"station\" that plays their music and more music like it.</string>
-	<string name="home_text">This app connects your AcoustiX dock to your favorite music apps and streaming services. 
+	<string name="home_text">This app connects your Android dock to your favorite music apps and streaming services. 
 		You can control almost any music app from across the room with the AcoustiX remote control.
 		\n\nClick "OK" below to agree to our terms of service and privacy policy and to start enjoying great music.</string>
 	<string name="t_o_s">SONR End User License Agreement (EULA)

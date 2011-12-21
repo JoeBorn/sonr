@@ -3,7 +3,7 @@ package com.sonrlabs.test.sonr;
 import org.acra.ErrorReporter;
 
 public class AudioProcessor
-      implements Runnable {
+      implements Runnable, AudioConstants {
 
 //   private static final String TAG = "SONR audio processor";
 
@@ -54,7 +54,7 @@ public class AudioProcessor
    private void processSample() {
       /* copy transmission down because the buffer could get overwritten */
       for (int j = 0; j < samplelocsize; j++) {
-         for (int i = 0; i < MicSerialListener.TRANSMISSION_LENGTH; i++) {
+         for (int i = 0; i < TRANSMISSION_LENGTH; i++) {
             if (sampleloc[j / 3][j % 3] + i < numSamples) {
                trans_buf[j][i] = sample_buf[sampleloc[j / 3][j % 3] + i];
             }
@@ -71,7 +71,7 @@ public class AudioProcessor
             movingsum[0] += trans_buf[s][i];
          }
 
-         for (int i = 9; i < MicSerialListener.TRANSMISSION_LENGTH; i++) {
+         for (int i = 9; i < TRANSMISSION_LENGTH; i++) {
             movingsum[i] = movingsum[i - 1] - movingbuf[arraypos];
             movingsum[i] += trans_buf[s][i];
             movingbuf[arraypos] = trans_buf[s][i];
@@ -86,14 +86,14 @@ public class AudioProcessor
          int bitnum = 0;
          byteInDec[s] = 0;
 
-         for (int i = MicSerialListener.FRAMES_PER_BIT + 1; i < MicSerialListener.TRANSMISSION_LENGTH; i++) {
+         for (int i = FRAMES_PER_BIT + 1; i < TRANSMISSION_LENGTH; i++) {
             if (Utils.isPhase(movingsum[i - 1], movingsum[i], MicSerialListener.SIGNAL_MAX_SUM) && switchphase) {
                isinphase = !isinphase;
                /* already switched */
                switchphase = false; 
             }
 
-            if (i % MicSerialListener.FRAMES_PER_BIT == 0) {
+            if (i % FRAMES_PER_BIT == 0) {
                if (!isinphase) {
                   /* i/MicSerialListener.FRAMES_PER_BIT-1 */
                   byteInDec[s] |= 0x1 << bitnum; 
@@ -134,37 +134,37 @@ public class AudioProcessor
       if (PreambleIsCutOff) {
          sampleloc[numfoundsamples++][0] = Preamble_Offset;
          PreambleIsCutOff = false;
-         count += MicSerialListener.SAMPLE_LENGTH + MicSerialListener.END_OFFSET;
+         count += SAMPLE_LENGTH + END_OFFSET;
 //         Log.d(TAG, "PREAMBLE CUT OFF BEGIN");
       } else {
-         count = MicSerialListener.SAMPLE_LENGTH;
+         count = SAMPLE_LENGTH;
       }
 
       while (count < numSamples - 1) {
          /* 1. find where the PSK signals begin */
-         if (Math.abs(sample_buf[count] - sample_buf[count + 1]) > MicSerialListener.THRESHOLD) {
-            if (count >= MicSerialListener.SAMPLE_LENGTH && count < MicSerialListener.SAMPLE_LENGTH * 2 && numfoundsamples == 0) {
-               count -= MicSerialListener.SAMPLE_LENGTH;
-               while (Math.abs(sample_buf[count] - sample_buf[count + 1]) < MicSerialListener.THRESHOLD) {
+         if (Math.abs(sample_buf[count] - sample_buf[count + 1]) > THRESHOLD) {
+            if (count >= SAMPLE_LENGTH && count < SAMPLE_LENGTH * 2 && numfoundsamples == 0) {
+               count -= SAMPLE_LENGTH;
+               while (Math.abs(sample_buf[count] - sample_buf[count + 1]) < THRESHOLD) {
                   count++;
                }
             }
-            if (count + MicSerialListener.PREAMBLE >= numSamples) {
+            if (count + PREAMBLE >= numSamples) {
 //               Log.d(TAG, "PREAMBLE CUT OFF");
-               if (count + MicSerialListener.BEGIN_OFFSET <= numSamples) {
+               if (count + BEGIN_OFFSET <= numSamples) {
                   Preamble_Offset = 0;
                } else {
-                  Preamble_Offset = count + MicSerialListener.BEGIN_OFFSET - numSamples;
+                  Preamble_Offset = count + BEGIN_OFFSET - numSamples;
                }
                PreambleIsCutOff = true;
                break;
             } else { 
                /* preamble not cut off */
-               sampleloc[numfoundsamples++][0] = count + MicSerialListener.BEGIN_OFFSET;
-               if (numfoundsamples >= MicSerialListener.MAX_TRANSMISSIONS) {
+               sampleloc[numfoundsamples++][0] = count + BEGIN_OFFSET;
+               if (numfoundsamples >= MAX_TRANSMISSIONS) {
                   break;
                }
-               count += MicSerialListener.SAMPLE_LENGTH + MicSerialListener.END_OFFSET;
+               count += SAMPLE_LENGTH + END_OFFSET;
             }
          }
          count++;
@@ -186,7 +186,7 @@ public class AudioProcessor
             movingsum[0] += sample_buf[i];
          }
 
-         for (int i = sampleloc[n][0] + 9; i < sampleloc[n][0] + MicSerialListener.SAMPLE_LENGTH - MicSerialListener.BIT_OFFSET; i++) {
+         for (int i = sampleloc[n][0] + 9; i < sampleloc[n][0] + SAMPLE_LENGTH - BIT_OFFSET; i++) {
             movingsum[1] = movingsum[0] - movingbuf[arraypos];
             movingsum[1] += sample_buf[i];
             movingbuf[arraypos] = sample_buf[i];
@@ -199,15 +199,15 @@ public class AudioProcessor
                sampleloc[numsampleloc / 3][numsampleloc % 3] = i - 5;
 
                samplelocsize = ++numsampleloc;
-               if (numsampleloc >= MicSerialListener.MAX_TRANSMISSIONS * 3) {
+               if (numsampleloc >= MAX_TRANSMISSIONS * 3) {
                   return;
                }
                /* next transmission */
-               i += MicSerialListener.TRANSMISSION_LENGTH + MicSerialListener.BIT_OFFSET + MicSerialListener.FRAMES_PER_BIT + 1; 
+               i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1; 
                sampleloc[numsampleloc / 3][numsampleloc % 3] = i;
                samplelocsize = ++numsampleloc;
                /* next transmission */
-               i += MicSerialListener.TRANSMISSION_LENGTH + MicSerialListener.BIT_OFFSET + MicSerialListener.FRAMES_PER_BIT + 1;
+               i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1;
                sampleloc[numsampleloc / 3][numsampleloc % 3] = i;
                samplelocsize = ++numsampleloc;
 
@@ -244,8 +244,8 @@ public class AudioProcessor
          movingbuf[i - startpos] = sample_buf[i];
          movingsum[0] += sample_buf[i];
       }
-      for (int i = startpos + 9; i < startpos + MicSerialListener.PREAMBLE - MicSerialListener.BEGIN_OFFSET + 3
-            * (MicSerialListener.TRANSMISSION_LENGTH + MicSerialListener.BIT_OFFSET); i++) {
+      for (int i = startpos + 9; i < startpos + PREAMBLE - BEGIN_OFFSET + 3
+            * (TRANSMISSION_LENGTH + BIT_OFFSET); i++) {
          movingsum[1] = movingsum[0] - movingbuf[arraypos];
          movingsum[1] += sample_buf[i];
          movingbuf[arraypos] = sample_buf[i];

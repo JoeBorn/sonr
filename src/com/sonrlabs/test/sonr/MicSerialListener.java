@@ -8,31 +8,13 @@ import android.os.SystemClock;
 import android.util.Log;
 
 public class MicSerialListener
-      implements Runnable {
+      implements Runnable, AudioConstants {
    private static final String TAG = "MicSerialListener";
 
-   public static final short SERIAL_TRANSMITTER_BAUD = 2400;
-   public static final int SAMPLE_RATE = 44100; // In Hz
-   public static final int FRAMES_PER_BIT = SAMPLE_RATE / SERIAL_TRANSMITTER_BAUD;
-   public static final int TRANSMISSION_LENGTH = FRAMES_PER_BIT * 8;
-   public static final int BIT_OFFSET = MicSerialListener.FRAMES_PER_BIT * 2;
-   public static final int PREAMBLE = 64 * FRAMES_PER_BIT;
-   public static final int SAMPLE_LENGTH = PREAMBLE + 3 * (TRANSMISSION_LENGTH + BIT_OFFSET);
-   public static final int AVE_LEN = 9;
-
-   /* allow phone's internal AGC to stabilize first */
-   public static final int BEGIN_OFFSET = PREAMBLE - TRANSMISSION_LENGTH - BIT_OFFSET;
-   public static final int END_OFFSET = TRANSMISSION_LENGTH + BIT_OFFSET; 
-
-   // beginning of a sample
-   public static final int THRESHOLD = 4000;
-
-   // transmissions in a single nsample
-   public static final int MAX_TRANSMISSIONS = 10;
-
-   public static int SIGNAL_MAX_SUM = 0;
-
-   private static long CHECK_TIME = 1150; // 1.15 seconds
+   private static final long CHECK_TIME = 1150; // 1.15 seconds
+   
+   /* Not final!  This can be set in AudioProcessor!  Yow!!*/
+   static int SIGNAL_MAX_SUM = 0;
 
    // Serial input catcher
    private AudioRecord inStream;
@@ -44,7 +26,7 @@ public class MicSerialListener
    private int bufferSize;
 
    /*
-    * condition for run() loop - constructor sets it to true, stopDriver() sets
+    * condition for run() loop - constructor sets it to true, stopRunning() sets
     * to false
     */
    private boolean running;
@@ -65,9 +47,9 @@ public class MicSerialListener
     * These buffers are only used in AudioProcessor, not here. They're created
     * here because we only want a single copy, not a copy per AudioProcessor
     */
-   final int[][] sloc = new int[MicSerialListener.MAX_TRANSMISSIONS][3];
+   final int[][] sloc = new int[MAX_TRANSMISSIONS][3];
    final int[][] trans_buf = new int[MAX_TRANSMISSIONS * 3][TRANSMISSION_LENGTH + BIT_OFFSET];
-   final int[] byteInDec = new int[MicSerialListener.MAX_TRANSMISSIONS * 3];
+   final int[] byteInDec = new int[MAX_TRANSMISSIONS * 3];
    
    
    /* These buffers are assigned values but never accessed! Disable them for now */
@@ -83,11 +65,8 @@ public class MicSerialListener
    final int[] movingbuf = new int[9];
    
    private int sampleloc[] = new int[3];
-
    private boolean found_dock = false;
-
    private SampleBufferPool bufferPool;
-
    private final Object searchLock = new Object();
 
    MicSerialListener(AudioRecord theaudiorecord, int buffsize, IUserActionHandler theByteReceiver) {
@@ -278,7 +257,7 @@ public class MicSerialListener
                   movingbuf[i] = sample_buf[i + sampleloc[n]];
                   movingsum[0] += sample_buf[i + sampleloc[n]];
                }
-               for (int i = 9; i < MicSerialListener.TRANSMISSION_LENGTH; i++) {
+               for (int i = 9; i < TRANSMISSION_LENGTH; i++) {
                   movingsum[i] = movingsum[i - 1] - movingbuf[arraypos];
                   movingsum[i] += sample_buf[i + sampleloc[n]];
                   movingbuf[arraypos] = sample_buf[i + sampleloc[n]];
@@ -292,13 +271,13 @@ public class MicSerialListener
                /* we start out with a phase shift */
                int bitnum = 0;
 
-               for (int i = MicSerialListener.FRAMES_PER_BIT + 1; i < MicSerialListener.TRANSMISSION_LENGTH; i++) {
+               for (int i = FRAMES_PER_BIT + 1; i < TRANSMISSION_LENGTH; i++) {
                   if (Utils.isPhase(movingsum[i - 1], movingsum[i], SIGNAL_MAX_SUM) && switchphase) {
                      isinphase = !isinphase;
                      switchphase = false; // already switched
                   }
 
-                  if (i % MicSerialListener.FRAMES_PER_BIT == 0) {
+                  if (i % FRAMES_PER_BIT == 0) {
                      if (!isinphase) {
                         triple[n] |= 0x1 << bitnum;
                      }
@@ -336,7 +315,7 @@ public class MicSerialListener
          movingsum[0] += sample_buf[i];
       }
 
-      for (int i = startpos + 9; i < startpos + SAMPLE_LENGTH - MicSerialListener.BIT_OFFSET; i++) {
+      for (int i = startpos + 9; i < startpos + SAMPLE_LENGTH - BIT_OFFSET; i++) {
          movingsum[1] = movingsum[0] - movingbuf[arraypos];
          movingsum[1] += sample_buf[i];
          movingbuf[arraypos] = sample_buf[i];

@@ -88,6 +88,8 @@ public class MicSerialListener
 
    private SampleBufferPool bufferPool;
 
+   private final Object searchLock = new Object();
+
    MicSerialListener(AudioRecord theaudiorecord, int buffsize, IUserActionHandler theByteReceiver) {
       try {
          if (inStream == null) {
@@ -105,15 +107,22 @@ public class MicSerialListener
                inStream.startRecording();
                
                /*
-                * Look for signal in a separate task.
-                * Could run this as a TimerTask instead.
+                * This variant looks for a signal in a separate task. Not
+                * working reliably yet.
                 */
-               Runnable searcher = new Runnable() {
-                  public void run() {
-                     searchSignal();
-                  }
-               };
-               Utils.runTask(searcher);
+//               Runnable searcher = new Runnable() {
+//                  public void run() {
+//                     searchSignal();
+//                  }
+//               };
+//               Utils.runTask(searcher);
+               
+               /*
+                * This variant looks for a signal synchronously, blocking the
+                * caller's thread. Safer in general but could cause some early
+                * clicks to be missed.
+                */
+               searchSignal();
             } else {
                // LogFile.MakeLog("Failed to initialize AudioRecord");
                Log.d(TAG, "Failed to initialize AudioRecord");
@@ -167,10 +176,12 @@ public class MicSerialListener
    
    void stopRunning() {
       running = false;
-      if (inStream != null) {
-         inStream.release();
+      synchronized (searchLock) {
+         if (inStream != null) {
+            inStream.release();
+         }
+         inStream = null;
       }
-      inStream = null;
       Log.d(TAG, "STOPPED");
    }
 
@@ -179,12 +190,14 @@ public class MicSerialListener
          long startTime = SystemClock.elapsedRealtime();
          long endTime = startTime + CHECK_TIME;
          boolean problem = false;
-         while (!found_dock && SystemClock.elapsedRealtime() <= endTime) {
-            numSamples = inStream.read(sample_buf, 0, bufferSize);
-            if (numSamples > 0) {
-               found_dock = autoGainControl();
-            } else {
-               problem = true;
+         synchronized (searchLock) {
+            while (inStream != null && !found_dock && SystemClock.elapsedRealtime() <= endTime) {
+               numSamples = inStream.read(sample_buf, 0, bufferSize);
+               if (numSamples > 0) {
+                  found_dock = autoGainControl();
+               } else {
+                  problem = true;
+               }
             }
          }
          if (problem) {
@@ -199,10 +212,10 @@ public class MicSerialListener
 
    private void startNextProcessorThread() {
       if (running) {
-         ISampleBuffer samples;
-         samples = bufferPool.getBuffer(sample_buf);
-         AudioProcessor myaudioprocessor = new AudioProcessor(this, numSamples, samples);
-         Utils.runTask(myaudioprocessor);
+         ISampleBuffer samples = bufferPool.getBuffer(sample_buf, numSamples, this);
+         AudioProcessorQueue.singleton.push(samples);
+//         AudioProcessor myaudioprocessor = new AudioProcessor(samples);
+//         Utils.runTask(myaudioprocessor);
       }
    }
 

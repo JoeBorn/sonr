@@ -21,13 +21,13 @@ class SampleBufferPool {
    private ReusableBuffer incrementPool() {
       int nextIndex = buffers.size();
       for (int i=0; i<incrementSize; i++) {
-         buffers.add(new ReusableBuffer(this.bufferSize));
+         buffers.add(new ReusableBuffer());
       }
       /* Return one of the new ones. */
       return buffers.get(nextIndex);
    }
    
-   ISampleBuffer getBuffer(short[] source) {
+   ISampleBuffer getBuffer(short[] source, int numberOfSamples, MicSerialListener listener) {
       synchronized (buffers) {
          ReusableBuffer availableBuffer = null;
          for (ReusableBuffer buffer : buffers) {
@@ -45,17 +45,21 @@ class SampleBufferPool {
             availableBuffer.check(source);
             android.util.Log.i(getClass().getName(), "Increased buffer pool size to " + buffers.size());
          }
+         availableBuffer.numberOfSamples = numberOfSamples;
+         availableBuffer.listener = listener;
          return availableBuffer;
       }
    }
    
    
-   private static class ReusableBuffer
+   private class ReusableBuffer
          implements ISampleBuffer {
       private boolean available = true;
+      private int numberOfSamples;
+      private MicSerialListener listener;
       private final short[] array;
       
-      ReusableBuffer(int bufferSize) {
+      ReusableBuffer() {
          array = new short[bufferSize];
       }
       
@@ -67,9 +71,17 @@ class SampleBufferPool {
          return array;
       }
 
+      public int getNumberOfSamples() {
+         return numberOfSamples;
+      }
+
+      public MicSerialListener getListener() {
+         return listener;
+      }
+
       synchronized private boolean check(short[] source) {
          if (available) {
-            System.arraycopy(source, 0, array, 0, source.length);
+            System.arraycopy(source, 0, array, 0, bufferSize);
             available = false;
             return true;
          }

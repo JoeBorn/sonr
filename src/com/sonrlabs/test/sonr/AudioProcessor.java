@@ -22,10 +22,10 @@ public class AudioProcessor
    
    private int samplelocsize = 0;
 
-   AudioProcessor(MicSerialListener listener, int numsamples, ISampleBuffer thesamples) {
-      this.listener = listener;
+   AudioProcessor(ISampleBuffer thesamples) {
+      this.listener = thesamples.getListener();
       this.sampleBuffer = thesamples;
-      numSamples = numsamples;
+      numSamples = thesamples.getNumberOfSamples();
       sample_buf = thesamples.getArray();
       trans_buf = listener.trans_buf;
       movingbuf = listener.movingbuf;

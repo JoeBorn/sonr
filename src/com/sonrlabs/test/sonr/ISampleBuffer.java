@@ -10,6 +10,10 @@ interface ISampleBuffer {
     */
    public void release();
    
+   public int getNumberOfSamples();
+   
+   public MicSerialListener getListener();
+   
    /**
     * @return the underlying array.
     */

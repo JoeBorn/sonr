@@ -102,9 +102,7 @@ public class MicSerialListener
             if (inStream != null) {
                bufferPool = new SampleBufferPool(bufferSize, 2);
                sample_buf = new short[bufferSize];
-
-               // set up thread
-               running = true;
+               // set up recorder thread
                inStream.startRecording();
             } else {
                // LogFile.MakeLog("Failed to initialize AudioRecord");
@@ -122,6 +120,7 @@ public class MicSerialListener
     * Reads in from mic and dispatches an audio rocessor to process the data
     */
    public void run() {
+      running = true;
       try {
          while (running) {
             // Log.d("SONR audio processor", "NEW RECORDING");

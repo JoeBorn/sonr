@@ -20,8 +20,6 @@ import com.sonrlabs.test.sonr.common.DialogCommon;
 public class DefaultAppScreen
       extends Activity {
 
-   private SONRClient theclient;
-
    @Override
    public void onCreate(Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
@@ -48,9 +46,8 @@ public class DefaultAppScreen
          startService(i);
       }
 
-      theclient =
-            new SONRClient(this, SONR.findAudioRecord(), SONR.bufferSize,
-                           (AudioManager) this.getSystemService(Context.AUDIO_SERVICE));
+      SONRClient theclient = new SONRClient(this, SONR.findAudioRecord(), SONR.bufferSize,
+            (AudioManager) this.getSystemService(Context.AUDIO_SERVICE));
       theclient.onCreate();
       theclient.searchSignal();
 

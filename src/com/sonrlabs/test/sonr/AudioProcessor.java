@@ -129,7 +129,7 @@ public class AudioProcessor
 
    private void findSample() {
       int count = 0;
-      int arraypos = 0;
+      int arraypos;
       int numfoundsamples = 0;
 
       if (PreambleIsCutOff) {

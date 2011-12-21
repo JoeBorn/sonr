@@ -330,7 +330,7 @@ public class MicSerialListener
             sampleloc[numsampleloc++] = i;
             // next transmission
             i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1;
-            sampleloc[numsampleloc++] = i;
+            sampleloc[numsampleloc] = i;
             return;
          }
 

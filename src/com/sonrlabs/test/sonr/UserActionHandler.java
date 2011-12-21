@@ -117,7 +117,7 @@ class UserActionHandler
          case PREVIOUS_TRACK:
             if (lastBackTime < SystemClock.elapsedRealtime() - BACK_TIME) {
                key = KeyEvent.KEYCODE_MEDIA_PREVIOUS;
-               lastSkipTime = SystemClock.elapsedRealtime();
+               lastBackTime = SystemClock.elapsedRealtime();
                Log.d(TAG, "PREVIOUS_TRACK");
                // Toast.makeText(getApplicationContext(),
                // "PREVIOUS TRACK", Toast.LENGTH_SHORT).show();

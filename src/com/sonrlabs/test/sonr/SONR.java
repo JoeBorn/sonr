@@ -70,14 +70,13 @@ public class SONR
    public static final String TAG = SONR.class.getSimpleName();
 
    public static int DEBUG = 1;
-   public static int RELEASE = 0;
+//   public static int RELEASE = 0;
    public static int MODE = DEBUG;
 
    public static final int SAMPLE_RATE = 44100; // In Hz
    public static final int SONR_ID = 1;
    private List<ApplicationInfo> infos = null;
    private int currentlySelectedApplicationInfoIndex;
-   private List<ResolveInfo> rinfos = null;
    private SONRClient theclient;
    public static int bufferSize = 0;
    private AudioRecord theaudiorecord = null;
@@ -89,7 +88,6 @@ public class SONR
    public static final String DISCONNECT_ACTION = "android.intent.action.DISCONNECT_DOCK";
    public static final String SHARED_PREFERENCES = "SONRSharedPreferences";
 
-   private SharedPreferences sharedPreferences;
    protected PowerManager.WakeLock mWakeLock;
 
    @Override
@@ -117,7 +115,7 @@ public class SONR
 
          m_amAudioManager = (AudioManager) SONR.this.getSystemService(Context.AUDIO_SERVICE);
          int savedNotificationVolume = m_amAudioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION);
-         sharedPreferences = getSharedPreferences(SONR.SHARED_PREFERENCES, 0);
+         SharedPreferences sharedPreferences = getSharedPreferences(SONR.SHARED_PREFERENCES, 0);
          sharedPreferences.edit().putInt("savedNotificationVolume", savedNotificationVolume).commit();
 
          if (!ToggleSONR.SERVICE_ON) {
@@ -155,7 +153,7 @@ public class SONR
          this.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, TAG);
          this.mWakeLock.acquire();
 
-         Intent intent = null;
+         Intent intent;
          if (Common.get(this, SONR.DEFAULT_PLAYER_SELECTED, false)) {
             theclient.onDestroy();
             if (theaudiorecord != null) {
@@ -177,9 +175,9 @@ public class SONR
    protected void onListItemClick(ListView listView, View clickedView, int position, long id) {
       super.onListItemClick(listView, clickedView, position, id);
 
-      ApplicationInfo ai = null;
+      ApplicationInfo ai;
       ai = infos.get(position);
-      rinfos = findActivitiesForPackage(this, ai.packageName);
+      List<ResolveInfo> rinfos = findActivitiesForPackage(this, ai.packageName);
       ResolveInfo ri = rinfos.get(0);
 
       Common.save(this, SONR.APP_PACKAGE_NAME, ri.activityInfo.packageName);
@@ -254,7 +252,8 @@ public class SONR
          try {
             this.unregisterReceiver(StopReceiver);
             isRegistered = false;
-         } catch (Exception e) {
+         } catch (RuntimeException e) {
+            // log something?
          }
          super.onDestroy();
          if (theaudiorecord != null) {
@@ -328,10 +327,8 @@ public class SONR
 
       if (apps != null) {
          // Find all activities that match the packageName
-         int count = apps.size();
-         for (int i = 0; i < count; i++) {
-            final ResolveInfo info = apps.get(i);
-            final ActivityInfo activityInfo = info.activityInfo;
+         for (ResolveInfo info : apps) {
+            ActivityInfo activityInfo = info.activityInfo;
             if (packageName.equals(activityInfo.packageName)) {
                matches.add(info);
             }

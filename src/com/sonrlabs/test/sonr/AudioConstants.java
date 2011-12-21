@@ -17,7 +17,6 @@ public interface AudioConstants {
    public static final int BIT_OFFSET = FRAMES_PER_BIT * 2;
    public static final int PREAMBLE = 64 * FRAMES_PER_BIT;
    public static final int SAMPLE_LENGTH = PREAMBLE + 3 * (TRANSMISSION_LENGTH + BIT_OFFSET);
-   public static final int AVE_LEN = 9;
    /* allow phone's internal AGC to stabilize first */
    public static final int BEGIN_OFFSET = PREAMBLE - TRANSMISSION_LENGTH - BIT_OFFSET;
    public static final int END_OFFSET = TRANSMISSION_LENGTH + BIT_OFFSET;

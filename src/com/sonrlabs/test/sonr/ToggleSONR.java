@@ -24,14 +24,12 @@ public class ToggleSONR
       extends Service {
 
    private static String TAG = ToggleSONR.class.getSimpleName();
-   public static final String INTENT_UPDATE_ICON = "INTENT_UPDATE_ICON";
+//   public static final String INTENT_UPDATE_ICON = "INTENT_UPDATE_ICON";
    public static final String INTENT_USER_TOGGLE_REQUEST = "INTENT_TOGGLE_HEADSET";
-   
-   private static SharedPreferences sharedPrefs;
 
    /*
-    * Constants determined from AudioSystem source
-    */
+   * Constants determined from AudioSystem source
+   */
    public static final int DEVICE_IN_WIRED_HEADSET = 0x400000;
    public static final int DEVICE_OUT_EARPIECE = 0x1;
    public static final int DEVICE_OUT_WIRED_HEADSET = 0x4;
@@ -208,7 +206,7 @@ public class ToggleSONR
       AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
       
       //Restore notification volume
-      sharedPrefs = ctx.getSharedPreferences(SONR.SHARED_PREFERENCES, 0);
+      SharedPreferences sharedPrefs = ctx.getSharedPreferences(SONR.SHARED_PREFERENCES, 0);
       int savedNotificationVolume = sharedPrefs.getInt("sharedNotificationVolume", 10);
       manager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, savedNotificationVolume, AudioManager.FLAG_VIBRATE);
       
@@ -229,36 +227,36 @@ public class ToggleSONR
     * Toggles the current headset setting. If currently routed headset, routes
     * to speaker. If currently routed to speaker routes to headset
     */
-   public static void toggleHeadset(Context ctx) {
-      AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
-      Log.d(TAG, "toggleHeadset");
-      if (isRoutingHeadset(ctx)) {
-         Log.d(TAG, "route to earpiece");
-         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.DONUT) {
-            /*
-             * see AudioService.setRouting Use MODE_INVALID to force headset
-             * routing change
-             */
-            manager.setRouting(AudioManager.MODE_INVALID, 0, AudioManager.ROUTE_HEADSET);
-         } else {
-            setDeviceConnectionState(DEVICE_IN_WIRED_HEADSET, DEVICE_STATE_UNAVAILABLE, "");
-            setDeviceConnectionState(DEVICE_OUT_WIRED_HEADSET, DEVICE_STATE_UNAVAILABLE, "");
-            setDeviceConnectionState(DEVICE_OUT_EARPIECE, DEVICE_STATE_AVAILABLE, "");
-         }
-      } else {
-         Log.d(TAG, "route to headset");
-         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.DONUT) {
-            /*
-             * see AudioService.setRouting Use MODE_INVALID to force headset
-             * routing change
-             */
-            manager.setRouting(AudioManager.MODE_INVALID, AudioManager.ROUTE_HEADSET, AudioManager.ROUTE_HEADSET);
-         } else {
-            setDeviceConnectionState(DEVICE_IN_WIRED_HEADSET, DEVICE_STATE_AVAILABLE, "");
-            setDeviceConnectionState(DEVICE_OUT_WIRED_HEADSET, DEVICE_STATE_AVAILABLE, "");
-         }
-      }
-   }
+//   public static void toggleHeadset(Context ctx) {
+//      AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
+//      Log.d(TAG, "toggleHeadset");
+//      if (isRoutingHeadset(ctx)) {
+//         Log.d(TAG, "route to earpiece");
+//         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.DONUT) {
+//            /*
+//             * see AudioService.setRouting Use MODE_INVALID to force headset
+//             * routing change
+//             */
+//            manager.setRouting(AudioManager.MODE_INVALID, 0, AudioManager.ROUTE_HEADSET);
+//         } else {
+//            setDeviceConnectionState(DEVICE_IN_WIRED_HEADSET, DEVICE_STATE_UNAVAILABLE, "");
+//            setDeviceConnectionState(DEVICE_OUT_WIRED_HEADSET, DEVICE_STATE_UNAVAILABLE, "");
+//            setDeviceConnectionState(DEVICE_OUT_EARPIECE, DEVICE_STATE_AVAILABLE, "");
+//         }
+//      } else {
+//         Log.d(TAG, "route to headset");
+//         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.DONUT) {
+//            /*
+//             * see AudioService.setRouting Use MODE_INVALID to force headset
+//             * routing change
+//             */
+//            manager.setRouting(AudioManager.MODE_INVALID, AudioManager.ROUTE_HEADSET, AudioManager.ROUTE_HEADSET);
+//         } else {
+//            setDeviceConnectionState(DEVICE_IN_WIRED_HEADSET, DEVICE_STATE_AVAILABLE, "");
+//            setDeviceConnectionState(DEVICE_OUT_WIRED_HEADSET, DEVICE_STATE_AVAILABLE, "");
+//         }
+//      }
+//   }
 
    /**
     * Checks whether we are currently routing to headset
@@ -322,23 +320,23 @@ public class ToggleSONR
       manager.updateAppWidget(thisWidget, view);
    }
 
-   public void updateIconOFF() {
-      RemoteViews view = new RemoteViews(this.getPackageName(), R.layout.toggle_apwidget);
-      view.setImageViewResource(R.id.Icon, R.drawable.sonr_off);
-
-      // Create an Intent to launch toggle headset
-      Intent toggleIntent = new Intent(this, ToggleSONR.class);
-      toggleIntent.setAction(INTENT_USER_TOGGLE_REQUEST);
-      PendingIntent pendingIntent = PendingIntent.getService(this, 0, toggleIntent, 0);
-
-      // Get the layout for the App Widget and attach an on-click listener to
-      // the icon
-      view.setOnClickPendingIntent(R.id.Icon, pendingIntent);
-
-      ComponentName thisWidget = new ComponentName(this, SonrWidget.class);
-      AppWidgetManager manager = AppWidgetManager.getInstance(this);
-      manager.updateAppWidget(thisWidget, view);
-   }
+//   public void updateIconOFF() {
+//      RemoteViews view = new RemoteViews(this.getPackageName(), R.layout.toggle_apwidget);
+//      view.setImageViewResource(R.id.Icon, R.drawable.sonr_off);
+//
+//      // Create an Intent to launch toggle headset
+//      Intent toggleIntent = new Intent(this, ToggleSONR.class);
+//      toggleIntent.setAction(INTENT_USER_TOGGLE_REQUEST);
+//      PendingIntent pendingIntent = PendingIntent.getService(this, 0, toggleIntent, 0);
+//
+//      // Get the layout for the App Widget and attach an on-click listener to
+//      // the icon
+//      view.setOnClickPendingIntent(R.id.Icon, pendingIntent);
+//
+//      ComponentName thisWidget = new ComponentName(this, SonrWidget.class);
+//      AppWidgetManager manager = AppWidgetManager.getInstance(this);
+//      manager.updateAppWidget(thisWidget, view);
+//   }
 
    public void updateIcon() {
       Log.d(TAG, "updateIcon");

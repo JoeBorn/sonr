@@ -1,6 +1,5 @@
 package com.sonrlabs.test.sonr;
 
-
 import org.acra.ErrorReporter;
 
 import android.media.AudioRecord;
@@ -12,8 +11,8 @@ public class MicSerialListener
    private static final String TAG = "MicSerialListener";
 
    private static final long CHECK_TIME = 1150; // 1.15 seconds
-   
-   /* Not final!  This can be set in AudioProcessor!  Yow!!*/
+
+   /* Not final! This can be set in AudioProcessor! Yow!! */
    static int SIGNAL_MAX_SUM = 0;
 
    // Serial input catcher
@@ -36,13 +35,13 @@ public class MicSerialListener
    private int numSamples;
 
    /*
-    * Right now this is only used by this class. Previously it was shared
-    * with AudioProcessor, but that introduced false-positive artifacts. For now
-    * we copy into a pooled buffer and pass that to AudioProcessor. This
-    * can lead to false negatives (missed clicks) due to incomplete samples.
+    * Right now this is only used by this class. Previously it was shared with
+    * AudioProcessor, but that introduced false-positive artifacts. For now we
+    * copy into a pooled buffer and pass that to AudioProcessor. This can lead
+    * to false negatives (missed clicks) due to incomplete samples.
     */
    private short sample_buf[];
-   
+
    /*
     * These buffers are only used in AudioProcessor, not here. They're created
     * here because we only want a single copy, not a copy per AudioProcessor
@@ -50,12 +49,12 @@ public class MicSerialListener
    final int[][] sloc = new int[MAX_TRANSMISSIONS][3];
    final int[][] trans_buf = new int[MAX_TRANSMISSIONS * 3][TRANSMISSION_LENGTH + BIT_OFFSET];
    final int[] byteInDec = new int[MAX_TRANSMISSIONS * 3];
-   
-   
+
    /* These buffers are assigned values but never accessed! Disable them for now */
-//   private int[] test_buf = new int[SAMPLE_LENGTH];
-//   private int[] movingsum2 = new int[PREAMBLE + 3 * (TRANSMISSION_LENGTH + BIT_OFFSET) + 1];
-   
+   // private int[] test_buf = new int[SAMPLE_LENGTH];
+   // private int[] movingsum2 = new int[PREAMBLE + 3 * (TRANSMISSION_LENGTH +
+   // BIT_OFFSET) + 1];
+
    /*
     * These two are only set during AutoGainControl, which should only be
     * happening during initial configuration after Dock connections. They are
@@ -63,7 +62,7 @@ public class MicSerialListener
     */
    final int[] movingsum = new int[TRANSMISSION_LENGTH];
    final int[] movingbuf = new int[9];
-   
+
    private int sampleloc[] = new int[3];
    private boolean found_dock = false;
    private SampleBufferPool bufferPool;
@@ -84,18 +83,18 @@ public class MicSerialListener
                sample_buf = new short[bufferSize];
                // set up recorder thread
                inStream.startRecording();
-               
+
                /*
                 * This variant looks for a signal in a separate task. Not
                 * working reliably yet.
                 */
-//               Runnable searcher = new Runnable() {
-//                  public void run() {
-//                     searchSignal();
-//                  }
-//               };
-//               Utils.runTask(searcher);
-               
+               // Runnable searcher = new Runnable() {
+               // public void run() {
+               // searchSignal();
+               // }
+               // };
+               // Utils.runTask(searcher);
+
                /*
                 * This variant looks for a signal synchronously, blocking the
                 * caller's thread. Safer in general but could cause some early
@@ -152,7 +151,7 @@ public class MicSerialListener
    boolean isAlive() {
       return running;
    }
-   
+
    void stopRunning() {
       running = false;
       synchronized (searchLock) {
@@ -193,8 +192,8 @@ public class MicSerialListener
       if (running) {
          ISampleBuffer samples = bufferPool.getBuffer(sample_buf, numSamples, this);
          AudioProcessorQueue.singleton.push(samples);
-//         AudioProcessor myaudioprocessor = new AudioProcessor(samples);
-//         Utils.runTask(myaudioprocessor);
+         // AudioProcessor myaudioprocessor = new AudioProcessor(samples);
+         // Utils.runTask(myaudioprocessor);
       }
    }
 
@@ -240,8 +239,8 @@ public class MicSerialListener
                SIGNAL_MAX_SUM = temp;
             }
 
-//            test_buf[i - startpos - 9] = sample_buf1[i];
-//            movingsum2[i - startpos - 9] = movingsum[0];
+            // test_buf[i - startpos - 9] = sample_buf1[i];
+            // movingsum2[i - startpos - 9] = movingsum[0];
             movingsum[0] = movingsum[1];
          }
 
@@ -283,7 +282,7 @@ public class MicSerialListener
                      }
                      bitnum++;
                      /* reached a bit, can now switch again if phase shifts */
-                     switchphase = true; 
+                     switchphase = true;
                   }
                }
 
@@ -292,7 +291,7 @@ public class MicSerialListener
                // Integer.toHexString(byteInDec[n]));
             }
          }
-         
+
          /* If at least two are 0x27, that's a match. */
          int matchCount = 0;
          for (int value : triple) {
@@ -327,7 +326,7 @@ public class MicSerialListener
          if (Utils.isPhase(movingsum[0], movingsum[1], SIGNAL_MAX_SUM)) {
             sampleloc[numsampleloc++] = i - 5;
             // next transmission
-            i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1; 
+            i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1;
             sampleloc[numsampleloc++] = i;
             // next transmission
             i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1;

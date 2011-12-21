@@ -5,7 +5,7 @@ import org.acra.ErrorReporter;
 public class AudioProcessor
       implements Runnable, AudioConstants {
 
-//   private static final String TAG = "SONR audio processor";
+   // private static final String TAG = "SONR audio processor";
 
    private static boolean PreambleIsCutOff = false;
    private static int Preamble_Offset = 0;
@@ -19,7 +19,7 @@ public class AudioProcessor
    private final int[] byteInDec;
    private final int numSamples;
    private final MicSerialListener listener;
-   
+
    private int samplelocsize = 0;
 
    AudioProcessor(ISampleBuffer thesamples) {
@@ -60,8 +60,8 @@ public class AudioProcessor
             }
          }
       }
-//         if (count2 != 0) {
-//            Log.d(TAG, "CUT OFF");
+      // if (count2 != 0) {
+      // Log.d(TAG, "CUT OFF");
 
       for (int s = 0; s < samplelocsize; s++) {
          int arraypos = 0;
@@ -82,7 +82,7 @@ public class AudioProcessor
          }
 
          /* we start out with a phase shift */
-         boolean isinphase = true, switchphase = true; 
+         boolean isinphase = true, switchphase = true;
          int bitnum = 0;
          byteInDec[s] = 0;
 
@@ -90,32 +90,33 @@ public class AudioProcessor
             if (Utils.isPhase(movingsum[i - 1], movingsum[i], MicSerialListener.SIGNAL_MAX_SUM) && switchphase) {
                isinphase = !isinphase;
                /* already switched */
-               switchphase = false; 
+               switchphase = false;
             }
 
             if (i % FRAMES_PER_BIT == 0) {
                if (!isinphase) {
                   /* i/MicSerialListener.FRAMES_PER_BIT-1 */
-                  byteInDec[s] |= 0x1 << bitnum; 
+                  byteInDec[s] |= 0x1 << bitnum;
                }
                bitnum++;
                /* reached a bit, can now switch */
-               switchphase = true; 
+               switchphase = true;
             }
          }
 
-//         Log.d(TAG, "TRANSMISSION[" + s + "]: " + "0x"+ Integer.toHexString(byteInDec[s]));
+         // Log.d(TAG, "TRANSMISSION[" + s + "]: " + "0x"+
+         // Integer.toHexString(byteInDec[s]));
 
-//         if(byteInDec[s] != 0x27 || samplelocsize < 3) {
-//            Log.d(TAG, "--------------");
-//         }
+         // if(byteInDec[s] != 0x27 || samplelocsize < 3) {
+         // Log.d(TAG, "--------------");
+         // }
       }
 
       if (samplelocsize > 1) {
          /* 2 or more */
-         for (int i = 0; i < samplelocsize; i += 3) { 
+         for (int i = 0; i < samplelocsize; i += 3) {
             /*
-             *  receive byte using  best two out of three.
+             * receive byte using best two out of three.
              */
             if ((byteInDec[i] == byteInDec[i + 1] || byteInDec[i] == byteInDec[i + 2]) && byteInDec[i] != 0x27) {
                listener.processAction(byteInDec[i]);
@@ -135,7 +136,7 @@ public class AudioProcessor
          sampleloc[numfoundsamples++][0] = Preamble_Offset;
          PreambleIsCutOff = false;
          count += SAMPLE_LENGTH + END_OFFSET;
-//         Log.d(TAG, "PREAMBLE CUT OFF BEGIN");
+         // Log.d(TAG, "PREAMBLE CUT OFF BEGIN");
       } else {
          count = SAMPLE_LENGTH;
       }
@@ -150,7 +151,7 @@ public class AudioProcessor
                }
             }
             if (count + PREAMBLE >= numSamples) {
-//               Log.d(TAG, "PREAMBLE CUT OFF");
+               // Log.d(TAG, "PREAMBLE CUT OFF");
                if (count + BEGIN_OFFSET <= numSamples) {
                   Preamble_Offset = 0;
                } else {
@@ -158,7 +159,7 @@ public class AudioProcessor
                }
                PreambleIsCutOff = true;
                break;
-            } else { 
+            } else {
                /* preamble not cut off */
                sampleloc[numfoundsamples++][0] = count + BEGIN_OFFSET;
                if (numfoundsamples >= MAX_TRANSMISSIONS) {
@@ -177,7 +178,8 @@ public class AudioProcessor
       int numsampleloc = 0;
       for (int n = 0; n < numfoundsamples; n++) {
          /*
-          * 2. cycle through the found PSK locations and find the specific start points of individual transmissions
+          * 2. cycle through the found PSK locations and find the specific start
+          * points of individual transmissions
           */
          arraypos = 0;
          movingsum[0] = 0;
@@ -203,7 +205,7 @@ public class AudioProcessor
                   return;
                }
                /* next transmission */
-               i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1; 
+               i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1;
                sampleloc[numsampleloc / 3][numsampleloc % 3] = i;
                samplelocsize = ++numsampleloc;
                /* next transmission */
@@ -215,7 +217,7 @@ public class AudioProcessor
                 * finished with this signal, go back to search through next
                 * signal
                 */
-               break; 
+               break;
 
                /*
                 * i += MicSerialListener.TRANSMISSION_LENGTH +
@@ -244,8 +246,7 @@ public class AudioProcessor
          movingbuf[i - startpos] = sample_buf[i];
          movingsum[0] += sample_buf[i];
       }
-      for (int i = startpos + 9; i < startpos + PREAMBLE - BEGIN_OFFSET + 3
-            * (TRANSMISSION_LENGTH + BIT_OFFSET); i++) {
+      for (int i = startpos + 9; i < startpos + PREAMBLE - BEGIN_OFFSET + 3 * (TRANSMISSION_LENGTH + BIT_OFFSET); i++) {
          movingsum[1] = movingsum[0] - movingbuf[arraypos];
          movingsum[1] += sample_buf[i];
          movingbuf[arraypos] = sample_buf[i];

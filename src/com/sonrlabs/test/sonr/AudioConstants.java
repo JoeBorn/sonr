@@ -6,7 +6,7 @@
 package com.sonrlabs.test.sonr;
 
 /**
- *  Just what the name says.
+ * Just what the name says.
  */
 public interface AudioConstants {
 

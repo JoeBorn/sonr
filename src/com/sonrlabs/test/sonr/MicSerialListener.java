@@ -1,7 +1,5 @@
 package com.sonrlabs.test.sonr;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.acra.ErrorReporter;
 
@@ -10,7 +8,7 @@ import android.os.SystemClock;
 import android.util.Log;
 
 public class MicSerialListener
-      extends Thread {
+      implements Runnable {
    private static final String TAG = "MicSerialListener";
 
    public static final short SERIAL_TRANSMITTER_BAUD = 2400;
@@ -35,8 +33,6 @@ public class MicSerialListener
    public static int SIGNAL_MAX_SUM = 0;
 
    private static long CHECK_TIME = 1150; // 1.15 seconds
-
-   private static final ExecutorService executor = Executors.newFixedThreadPool(1);
 
    // Serial input catcher
    private AudioRecord inStream;
@@ -94,7 +90,6 @@ public class MicSerialListener
    private SampleBufferPool bufferPool;
 
    MicSerialListener(AudioRecord theaudiorecord, int buffsize, IUserActionHandler theByteReceiver) {
-      super(TAG);
       try {
          if (inStream == null) {
             /* screen turned sideways, dont re-initialize to null */
@@ -110,7 +105,6 @@ public class MicSerialListener
 
                // set up thread
                running = true;
-               this.setDaemon(true);
                inStream.startRecording();
             } else {
                // LogFile.MakeLog("Failed to initialize AudioRecord");
@@ -180,6 +174,10 @@ public class MicSerialListener
       }
    }
 
+   boolean isAlive() {
+      return running;
+   }
+   
    void stopRunning() {
       running = false;
       if (inStream != null) {
@@ -194,7 +192,7 @@ public class MicSerialListener
          ISampleBuffer samples;
          samples = bufferPool.getBuffer(sample_buf);
          AudioProcessor myaudioprocessor = new AudioProcessor(this, numSamples, samples);
-         executor.execute(myaudioprocessor);
+         Utils.runTask(myaudioprocessor);
       }
    }
 
@@ -272,7 +270,7 @@ public class MicSerialListener
                int bitnum = 0;
 
                for (int i = MicSerialListener.FRAMES_PER_BIT + 1; i < MicSerialListener.TRANSMISSION_LENGTH; i++) {
-                  if (isPhase(movingsum[i - 1], movingsum[i], SIGNAL_MAX_SUM) && switchphase) {
+                  if (Utils.isPhase(movingsum[i - 1], movingsum[i], SIGNAL_MAX_SUM) && switchphase) {
                      isinphase = !isinphase;
                      switchphase = false; // already switched
                   }
@@ -324,7 +322,7 @@ public class MicSerialListener
             arraypos = 0;
          }
 
-         if (isPhase(movingsum[0], movingsum[1], SIGNAL_MAX_SUM)) {
+         if (Utils.isPhase(movingsum[0], movingsum[1], SIGNAL_MAX_SUM)) {
             sampleloc[numsampleloc++] = i - 5;
             // next transmission
             i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1; 
@@ -337,9 +335,5 @@ public class MicSerialListener
 
          movingsum[0] = movingsum[1];
       }
-   }
-
-   static boolean isPhase(int sum1, int sum2, int max) {
-      return Math.abs(sum1 - sum2) > max;
    }
 }

@@ -64,7 +64,7 @@ public class SONRClient
       if (!singletonListener.isAlive()) {
          // LogFile.MakeLog("Start Listener");
          try {
-            singletonListener.start();
+            Utils.runTask(singletonListener);
          } catch (Exception e) {
             e.printStackTrace();
             ErrorReporter.getInstance().handleException(e);
@@ -86,7 +86,6 @@ public class SONRClient
             IUserActionHandler controller = new UserActionHandler(theAudioManager,ctx);
             if (singletonListener != null) {
                singletonListener.stopRunning();
-               singletonListener.join();
             }
             singletonListener = new MicSerialListener(theaudiorecord, bufferSize, controller);
          }

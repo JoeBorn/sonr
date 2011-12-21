@@ -87,7 +87,7 @@ public class AudioProcessor
          byteInDec[s] = 0;
 
          for (int i = MicSerialListener.FRAMES_PER_BIT + 1; i < MicSerialListener.TRANSMISSION_LENGTH; i++) {
-            if (MicSerialListener.isPhase(movingsum[i - 1], movingsum[i], MicSerialListener.SIGNAL_MAX_SUM) && switchphase) {
+            if (Utils.isPhase(movingsum[i - 1], movingsum[i], MicSerialListener.SIGNAL_MAX_SUM) && switchphase) {
                isinphase = !isinphase;
                /* already switched */
                switchphase = false; 
@@ -195,7 +195,7 @@ public class AudioProcessor
                arraypos = 0;
             }
 
-            if (MicSerialListener.isPhase(movingsum[0], movingsum[1], MicSerialListener.SIGNAL_MAX_SUM)) {
+            if (Utils.isPhase(movingsum[0], movingsum[1], MicSerialListener.SIGNAL_MAX_SUM)) {
                sampleloc[numsampleloc / 3][numsampleloc % 3] = i - 5;
 
                samplelocsize = ++numsampleloc;

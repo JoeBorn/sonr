@@ -52,7 +52,6 @@ public class SONRClient
       int i = 0;
       while (i < 5) {
          Log.d("searching...", Integer.toString(i));
-         singletonListener.searchSignal();
          if (singletonListener.foundDock()) {
             break;
          }

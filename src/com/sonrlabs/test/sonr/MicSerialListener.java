@@ -85,7 +85,6 @@ public class MicSerialListener
    private int sampleloc[] = new int[3];
 
    private boolean found_dock = false;
-   private long start_check = 0;
 
    private SampleBufferPool bufferPool;
 
@@ -104,6 +103,7 @@ public class MicSerialListener
                sample_buf = new short[bufferSize];
                // set up recorder thread
                inStream.startRecording();
+               searchSignal();
             } else {
                // LogFile.MakeLog("Failed to initialize AudioRecord");
                Log.d(TAG, "Failed to initialize AudioRecord");
@@ -151,11 +151,25 @@ public class MicSerialListener
       return found_dock;
    }
 
-   void searchSignal() {
+   boolean isAlive() {
+      return running;
+   }
+   
+   void stopRunning() {
+      running = false;
+      if (inStream != null) {
+         inStream.release();
+      }
+      inStream = null;
+      Log.d(TAG, "STOPPED");
+   }
+
+   private void searchSignal() {
       try {
-         start_check = SystemClock.elapsedRealtime();
+         long startTime = SystemClock.elapsedRealtime();
+         long endTime = startTime + CHECK_TIME;
          boolean problem = false;
-         while (SystemClock.elapsedRealtime() - start_check < CHECK_TIME && !found_dock) {
+         while (!found_dock && SystemClock.elapsedRealtime() <= endTime) {
             numSamples = inStream.read(sample_buf, 0, bufferSize);
             if (numSamples > 0) {
                found_dock = autoGainControl();
@@ -171,19 +185,6 @@ public class MicSerialListener
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       }
-   }
-
-   boolean isAlive() {
-      return running;
-   }
-   
-   void stopRunning() {
-      running = false;
-      if (inStream != null) {
-         inStream.release();
-      }
-      inStream = null;
-      Log.d(TAG, "STOPPED");
    }
 
    private void startNextProcessorThread() {

@@ -55,6 +55,8 @@ final class AudioProcessorQueue
    @Override
    public void run() {
       List<ISampleBuffer> pending = new ArrayList<ISampleBuffer>();
+      // Loop forever, suppress IDEA warning:
+      //noinspection InfiniteLoopStatement
       while (true) {
          synchronized (lock) {
             while (queuedBuffers.isEmpty()) {

@@ -34,13 +34,6 @@ public class MicSerialListener
 
    private int numSamples;
 
-   /*
-    * Right now this is only used by this class. Previously it was shared with
-    * AudioProcessor, but that introduced false-positive artifacts. For now we
-    * copy into a pooled buffer and pass that to AudioProcessor. This can lead
-    * to false negatives (missed clicks) due to incomplete samples.
-    */
-   private short sample_buf[];
 
    /*
     * These buffers are only used in AudioProcessor, not here. They're created
@@ -80,7 +73,6 @@ public class MicSerialListener
             bufferSize = buffsize;
             if (inStream != null) {
                bufferPool = new SampleBufferPool(bufferSize, 2);
-               sample_buf = new short[bufferSize];
                // set up recorder thread
                inStream.startRecording();
 
@@ -118,13 +110,16 @@ public class MicSerialListener
     */
    public void run() {
       running = true;
+      ISampleBuffer samples = bufferPool.getBuffer(bufferSize, this);
       try {
          while (running) {
             // Log.d("SONR audio processor", "NEW RECORDING");
-            numSamples = inStream.read(sample_buf, 0, bufferSize);
+            numSamples = inStream.read(samples.getArray(), 0, bufferSize);
             if (numSamples > 0) {
                /* if there are samples and not waiting */
-               startNextProcessorThread();
+               samples.setNumberOfSamples(numSamples);
+               queueNextSample(samples);
+               samples = bufferPool.getBuffer(bufferSize, this);
             }
             try {
                Thread.sleep(100);
@@ -164,15 +159,17 @@ public class MicSerialListener
    }
 
    private void searchSignal() {
+      ISampleBuffer buffer = bufferPool.getBuffer(bufferSize, this);
+      short[] samples = buffer.getArray();
       try {
          long startTime = SystemClock.elapsedRealtime();
          long endTime = startTime + CHECK_TIME;
          boolean problem = false;
          synchronized (searchLock) {
             while (inStream != null && !found_dock && SystemClock.elapsedRealtime() <= endTime) {
-               numSamples = inStream.read(sample_buf, 0, bufferSize);
+               numSamples = inStream.read(samples, 0, bufferSize);
                if (numSamples > 0) {
-                  found_dock = autoGainControl();
+                  found_dock = autoGainControl(samples);
                } else {
                   problem = true;
                }
@@ -185,30 +182,31 @@ public class MicSerialListener
       } catch (Exception e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
+      } finally {
+         buffer.release();
       }
    }
 
-   private void startNextProcessorThread() {
+   private void queueNextSample(ISampleBuffer samples) {
       if (running) {
-         ISampleBuffer samples = bufferPool.getBuffer(sample_buf, numSamples, this);
          AudioProcessorQueue.singleton.push(samples);
          // AudioProcessor myaudioprocessor = new AudioProcessor(samples);
          // Utils.runTask(myaudioprocessor);
       }
    }
 
-   private boolean autoGainControl() {
+   private boolean autoGainControl(short[] samples) {
       boolean found = false;
       int startpos = SAMPLE_LENGTH;
       int arraypos = 0;
 
-      while (startpos < numSamples - 1 && Math.abs(sample_buf[startpos] - sample_buf[startpos + 1]) < THRESHOLD) {
+      while (startpos < numSamples - 1 && Math.abs(samples[startpos] - samples[startpos + 1]) < THRESHOLD) {
          startpos++;
       }
 
       if (startpos < numSamples - 1 && startpos >= SAMPLE_LENGTH && startpos < SAMPLE_LENGTH * 2) {
          startpos -= SAMPLE_LENGTH;
-         while (Math.abs(sample_buf[startpos] - sample_buf[startpos + 1]) < THRESHOLD) {
+         while (Math.abs(samples[startpos] - samples[startpos + 1]) < THRESHOLD) {
             // && startpos < numSamples-1)
             startpos++;
          }
@@ -221,14 +219,14 @@ public class MicSerialListener
 
          movingsum[0] = 0;
          for (int i = startpos; i < startpos + 9; i++) {
-            movingbuf[i - startpos] = sample_buf[i];
-            movingsum[0] += sample_buf[i];
+            movingbuf[i - startpos] = samples[i];
+            movingsum[0] += samples[i];
          }
          SIGNAL_MAX_SUM = 0;
          for (int i = startpos + 9; i < startpos + PREAMBLE - BEGIN_OFFSET + 3 * (TRANSMISSION_LENGTH + BIT_OFFSET); i++) {
             movingsum[1] = movingsum[0] - movingbuf[arraypos];
-            movingsum[1] += sample_buf[i];
-            movingbuf[arraypos] = sample_buf[i];
+            movingsum[1] += samples[i];
+            movingbuf[arraypos] = samples[i];
             arraypos++;
             if (arraypos == 9) {
                arraypos = 0;
@@ -245,7 +243,7 @@ public class MicSerialListener
          }
 
          SIGNAL_MAX_SUM /= 1.375;
-         findSample(startpos);
+         findSample(startpos, samples);
 
          int[] triple = new int[3];
          for (int n = 0; n < 3; n++) {
@@ -253,13 +251,13 @@ public class MicSerialListener
                arraypos = 0;
                movingsum[0] = 0;
                for (int i = 0; i < 9; i++) {
-                  movingbuf[i] = sample_buf[i + sampleloc[n]];
-                  movingsum[0] += sample_buf[i + sampleloc[n]];
+                  movingbuf[i] = samples[i + sampleloc[n]];
+                  movingsum[0] += samples[i + sampleloc[n]];
                }
                for (int i = 9; i < TRANSMISSION_LENGTH; i++) {
                   movingsum[i] = movingsum[i - 1] - movingbuf[arraypos];
-                  movingsum[i] += sample_buf[i + sampleloc[n]];
-                  movingbuf[arraypos] = sample_buf[i + sampleloc[n]];
+                  movingsum[i] += samples[i + sampleloc[n]];
+                  movingbuf[arraypos] = samples[i + sampleloc[n]];
                   arraypos++;
                   if (arraypos == 9) {
                      arraypos = 0;
@@ -305,19 +303,19 @@ public class MicSerialListener
       return found;
    }
 
-   private void findSample(int startpos) {
+   private void findSample(int startpos, short[] samples) {
       int arraypos = 0;
       int numsampleloc = 0;
       movingsum[0] = 0;
       for (int i = startpos; i < startpos + 9; i++) {
-         movingbuf[i - startpos] = sample_buf[i];
-         movingsum[0] += sample_buf[i];
+         movingbuf[i - startpos] = samples[i];
+         movingsum[0] += samples[i];
       }
 
       for (int i = startpos + 9; i < startpos + SAMPLE_LENGTH - BIT_OFFSET; i++) {
          movingsum[1] = movingsum[0] - movingbuf[arraypos];
-         movingsum[1] += sample_buf[i];
-         movingbuf[arraypos] = sample_buf[i];
+         movingsum[1] += samples[i];
+         movingbuf[arraypos] = samples[i];
          arraypos++;
          if (arraypos == 9) {
             arraypos = 0;

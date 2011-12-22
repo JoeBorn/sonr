@@ -12,6 +12,8 @@ interface ISampleBuffer {
    
    public int getNumberOfSamples();
    
+   public void setNumberOfSamples(int numberOfSamples);
+   
    public MicSerialListener getListener();
    
    /**

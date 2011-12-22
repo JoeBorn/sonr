@@ -83,10 +83,11 @@ public class SONRClient
             unregisterReceiver();
             registerReceiver();
             IUserActionHandler controller = new UserActionHandler(theAudioManager,ctx);
+            AudioProcessorQueue.singleton.setUserActionHandler(controller);
             if (singletonListener != null) {
                singletonListener.stopRunning();
             }
-            singletonListener = new MicSerialListener(theaudiorecord, bufferSize, controller);
+            singletonListener = new MicSerialListener(theaudiorecord, bufferSize);
          }
       } catch (Exception e) {
          e.printStackTrace();

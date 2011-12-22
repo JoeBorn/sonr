@@ -10,98 +10,38 @@ public class MicSerialListener
       implements Runnable, AudioConstants {
    private static final String TAG = "MicSerialListener";
 
-   private static final long CHECK_TIME = 1150; // 1.15 seconds
+   private static final long SIGNAL_SEARCH_TIME_MILLIS = 1150; // 1.15 seconds
 
-   /* Not final! This can be set in AudioProcessor! Yow!! */
-   static int SIGNAL_MAX_SUM = 0;
-
-   // Serial input catcher
-   private AudioRecord inStream;
-
-   /*
-    * size of inStream's buffer, set by AudioRecord.getMinBufferSize() in
-    * constructor
-    */
-   private int bufferSize;
-
-   /*
-    * condition for run() loop - constructor sets it to true, stopRunning() sets
-    * to false
-    */
    private boolean running;
-
-   private IUserActionHandler actionHandler;
-
-   private int numSamples;
-
-
-   /*
-    * These buffers are only used in AudioProcessor, not here. They're created
-    * here because we only want a single copy, not a copy per AudioProcessor
-    */
-   final int[][] sloc = new int[MAX_TRANSMISSIONS][3];
-   final int[][] trans_buf = new int[MAX_TRANSMISSIONS * 3][TRANSMISSION_LENGTH + BIT_OFFSET];
-   final int[] byteInDec = new int[MAX_TRANSMISSIONS * 3];
-
-   /* These buffers are assigned values but never accessed! Disable them for now */
-   // private int[] test_buf = new int[SAMPLE_LENGTH];
-   // private int[] movingsum2 = new int[PREAMBLE + 3 * (TRANSMISSION_LENGTH +
-   // BIT_OFFSET) + 1];
-
-   /*
-    * These two are only set during AutoGainControl, which should only be
-    * happening during initial configuration after Dock connections. They are
-    * shared with the AudioProcessor.
-    */
-   final int[] movingsum = new int[TRANSMISSION_LENGTH];
-   final int[] movingbuf = new int[9];
-
-   private int sampleloc[] = new int[3];
-   private boolean found_dock = false;
-   private SampleBufferPool bufferPool;
+   private boolean foundDock;
+   private final int bufferSize;
+   private final AudioRecord inStream;
+   private final SampleBufferPool bufferPool;
+   private final SampleSupport sampleSupport = new SampleSupport();
    private final Object searchLock = new Object();
 
-   MicSerialListener(AudioRecord theaudiorecord, int buffsize, IUserActionHandler theByteReceiver) {
-      try {
-         if (inStream == null) {
-            /* screen turned sideways, dont re-initialize to null */
-            actionHandler = theByteReceiver;
-
-            Log.d(TAG, "STARTED");
-
-            inStream = theaudiorecord;
-            bufferSize = buffsize;
-            if (inStream != null) {
-               bufferPool = new SampleBufferPool(bufferSize, 2);
-               // set up recorder thread
-               inStream.startRecording();
-
-               /*
-                * This variant looks for a signal in a separate task. Not
-                * working reliably yet.
-                */
-               // Runnable searcher = new Runnable() {
-               // public void run() {
-               // searchSignal();
-               // }
-               // };
-               // Utils.runTask(searcher);
-
-               /*
-                * This variant looks for a signal synchronously, blocking the
-                * caller's thread. Safer in general but could cause some early
-                * clicks to be missed.
-                */
-               searchSignal();
-            } else {
-               // LogFile.MakeLog("Failed to initialize AudioRecord");
-               Log.d(TAG, "Failed to initialize AudioRecord");
-            }
+   MicSerialListener(AudioRecord record, int buffsize) {
+      Log.d(TAG, "STARTED");
+      inStream = record;
+      bufferSize = buffsize;
+      bufferPool = new SampleBufferPool(bufferSize, 2);
+      if (inStream != null) {
+         try {
+            // set up recorder thread
+            inStream.startRecording();
+            searchSignal();
+         } catch (RuntimeException e) {
+            e.printStackTrace();
+            ErrorReporter.getInstance().handleException(e);
          }
-      } catch (Exception e) {
-         e.printStackTrace();
-         ErrorReporter.getInstance().handleException(e);
+      } else {
+         // LogFile.MakeLog("Failed to initialize AudioRecord");
+         Log.d(TAG, "Failed to initialize AudioRecord");
       }
+   }
+   
+   SampleSupport getSampleSupport() {
+      return sampleSupport;
    }
 
    @Override
@@ -114,11 +54,11 @@ public class MicSerialListener
       try {
          while (running) {
             // Log.d("SONR audio processor", "NEW RECORDING");
-            numSamples = inStream.read(samples.getArray(), 0, bufferSize);
+            int numSamples = inStream.read(samples.getArray(), 0, bufferSize);
             if (numSamples > 0) {
                /* if there are samples and not waiting */
                samples.setNumberOfSamples(numSamples);
-               queueNextSample(samples);
+               AudioProcessorQueue.singleton.push(samples);
                samples = bufferPool.getBuffer(bufferSize, this);
             }
             try {
@@ -132,15 +72,10 @@ public class MicSerialListener
          ErrorReporter.getInstance().handleException(e);
       }
       Log.d("MicSerialListener", "LISTENER ENDED");
-      // LogFile.MakeLog("LISTENER ended");
-   }
-
-   void processAction(int actionCode) {
-      actionHandler.processAction(actionCode);
    }
 
    boolean foundDock() {
-      return found_dock;
+      return foundDock;
    }
 
    boolean isAlive() {
@@ -153,7 +88,6 @@ public class MicSerialListener
          if (inStream != null) {
             inStream.release();
          }
-         inStream = null;
       }
       Log.d(TAG, "STOPPED");
    }
@@ -163,13 +97,13 @@ public class MicSerialListener
       short[] samples = buffer.getArray();
       try {
          long startTime = SystemClock.elapsedRealtime();
-         long endTime = startTime + CHECK_TIME;
+         long endTime = startTime + SIGNAL_SEARCH_TIME_MILLIS;
          boolean problem = false;
          synchronized (searchLock) {
-            while (inStream != null && !found_dock && SystemClock.elapsedRealtime() <= endTime) {
-               numSamples = inStream.read(samples, 0, bufferSize);
+            while (inStream != null && !foundDock && SystemClock.elapsedRealtime() <= endTime) {
+               int numSamples = inStream.read(samples, 0, bufferSize);
                if (numSamples > 0) {
-                  found_dock = autoGainControl(samples);
+                  foundDock = sampleSupport.autoGainControl(samples, numSamples);
                } else {
                   problem = true;
                }
@@ -184,155 +118,6 @@ public class MicSerialListener
          ErrorReporter.getInstance().handleException(e);
       } finally {
          buffer.release();
-      }
-   }
-
-   private void queueNextSample(ISampleBuffer samples) {
-      if (running) {
-         AudioProcessorQueue.singleton.push(samples);
-         // AudioProcessor myaudioprocessor = new AudioProcessor(samples);
-         // Utils.runTask(myaudioprocessor);
-      }
-   }
-
-   private boolean autoGainControl(short[] samples) {
-      boolean found = false;
-      int startpos = SAMPLE_LENGTH;
-      int arraypos = 0;
-
-      while (startpos < numSamples - 1 && Math.abs(samples[startpos] - samples[startpos + 1]) < THRESHOLD) {
-         startpos++;
-      }
-
-      if (startpos < numSamples - 1 && startpos >= SAMPLE_LENGTH && startpos < SAMPLE_LENGTH * 2) {
-         startpos -= SAMPLE_LENGTH;
-         while (Math.abs(samples[startpos] - samples[startpos + 1]) < THRESHOLD) {
-            // && startpos < numSamples-1)
-            startpos++;
-         }
-      }
-
-      startpos += BEGIN_OFFSET;
-
-      if (startpos < numSamples - (SAMPLE_LENGTH - BEGIN_OFFSET)) {
-         Log.d(TAG, "Found a sample...");
-
-         movingsum[0] = 0;
-         for (int i = startpos; i < startpos + 9; i++) {
-            movingbuf[i - startpos] = samples[i];
-            movingsum[0] += samples[i];
-         }
-         SIGNAL_MAX_SUM = 0;
-         for (int i = startpos + 9; i < startpos + PREAMBLE - BEGIN_OFFSET + 3 * (TRANSMISSION_LENGTH + BIT_OFFSET); i++) {
-            movingsum[1] = movingsum[0] - movingbuf[arraypos];
-            movingsum[1] += samples[i];
-            movingbuf[arraypos] = samples[i];
-            arraypos++;
-            if (arraypos == 9) {
-               arraypos = 0;
-            }
-
-            int temp = Math.abs(movingsum[0] - movingsum[1]);
-            if (temp > SIGNAL_MAX_SUM) {
-               SIGNAL_MAX_SUM = temp;
-            }
-
-            // test_buf[i - startpos - 9] = sample_buf1[i];
-            // movingsum2[i - startpos - 9] = movingsum[0];
-            movingsum[0] = movingsum[1];
-         }
-
-         SIGNAL_MAX_SUM /= 1.375;
-         findSample(startpos, samples);
-
-         int[] triple = new int[3];
-         for (int n = 0; n < 3; n++) {
-            if (sampleloc[n] != 0) {
-               arraypos = 0;
-               movingsum[0] = 0;
-               for (int i = 0; i < 9; i++) {
-                  movingbuf[i] = samples[i + sampleloc[n]];
-                  movingsum[0] += samples[i + sampleloc[n]];
-               }
-               for (int i = 9; i < TRANSMISSION_LENGTH; i++) {
-                  movingsum[i] = movingsum[i - 1] - movingbuf[arraypos];
-                  movingsum[i] += samples[i + sampleloc[n]];
-                  movingbuf[arraypos] = samples[i + sampleloc[n]];
-                  arraypos++;
-                  if (arraypos == 9) {
-                     arraypos = 0;
-                  }
-               }
-
-               boolean isinphase = true, switchphase = true;
-               /* we start out with a phase shift */
-               int bitnum = 0;
-
-               for (int i = FRAMES_PER_BIT + 1; i < TRANSMISSION_LENGTH; i++) {
-                  if (Utils.isPhase(movingsum[i - 1], movingsum[i], SIGNAL_MAX_SUM) && switchphase) {
-                     isinphase = !isinphase;
-                     switchphase = false; // already switched
-                  }
-
-                  if (i % FRAMES_PER_BIT == 0) {
-                     if (!isinphase) {
-                        triple[n] |= 0x1 << bitnum;
-                     }
-                     bitnum++;
-                     /* reached a bit, can now switch again if phase shifts */
-                     switchphase = true;
-                  }
-               }
-
-               Log.d(TAG, "TRANSMISSION[" + n + "]: " + "0x" + Integer.toHexString(triple[n]));
-               // LogFile.MakeLog("TRANSMISSION[" + n + "]: " + "0x"+
-               // Integer.toHexString(byteInDec[n]));
-            }
-         }
-
-         /* If at least two are 0x27, that's a match. */
-         int matchCount = 0;
-         for (int value : triple) {
-            if (value == 0x27) {
-               ++matchCount;
-            }
-         }
-         found = matchCount >= 2;
-      }
-
-      return found;
-   }
-
-   private void findSample(int startpos, short[] samples) {
-      int arraypos = 0;
-      int numsampleloc = 0;
-      movingsum[0] = 0;
-      for (int i = startpos; i < startpos + 9; i++) {
-         movingbuf[i - startpos] = samples[i];
-         movingsum[0] += samples[i];
-      }
-
-      for (int i = startpos + 9; i < startpos + SAMPLE_LENGTH - BIT_OFFSET; i++) {
-         movingsum[1] = movingsum[0] - movingbuf[arraypos];
-         movingsum[1] += samples[i];
-         movingbuf[arraypos] = samples[i];
-         arraypos++;
-         if (arraypos == 9) {
-            arraypos = 0;
-         }
-
-         if (Utils.isPhase(movingsum[0], movingsum[1], SIGNAL_MAX_SUM)) {
-            sampleloc[numsampleloc++] = i - 5;
-            // next transmission
-            i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1;
-            sampleloc[numsampleloc++] = i;
-            // next transmission
-            i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1;
-            sampleloc[numsampleloc] = i;
-            return;
-         }
-
-         movingsum[0] = movingsum[1];
       }
    }
 }

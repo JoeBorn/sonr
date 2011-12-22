@@ -7,7 +7,7 @@ import android.os.SystemClock;
 import android.util.Log;
 
 public class MicSerialListener
-      implements Runnable, AudioConstants {
+      implements Runnable {
    private static final String TAG = "MicSerialListener";
 
    private static final long SIGNAL_SEARCH_TIME_MILLIS = 1150; // 1.15 seconds
@@ -17,7 +17,6 @@ public class MicSerialListener
    private final int bufferSize;
    private final AudioRecord inStream;
    private final SampleBufferPool bufferPool;
-   private final SampleSupport sampleSupport = new SampleSupport();
    private final Object searchLock = new Object();
 
    MicSerialListener(AudioRecord record, int buffsize) {
@@ -39,10 +38,6 @@ public class MicSerialListener
          Log.d(TAG, "Failed to initialize AudioRecord");
       }
    }
-   
-   SampleSupport getSampleSupport() {
-      return sampleSupport;
-   }
 
    @Override
    /*
@@ -50,7 +45,7 @@ public class MicSerialListener
     */
    public void run() {
       running = true;
-      ISampleBuffer samples = bufferPool.getBuffer(bufferSize, this);
+      ISampleBuffer samples = bufferPool.getBuffer(bufferSize);
       try {
          while (running) {
             // Log.d("SONR audio processor", "NEW RECORDING");
@@ -59,7 +54,7 @@ public class MicSerialListener
                /* if there are samples and not waiting */
                samples.setNumberOfSamples(numSamples);
                AudioProcessorQueue.singleton.push(samples);
-               samples = bufferPool.getBuffer(bufferSize, this);
+               samples = bufferPool.getBuffer(bufferSize);
             }
             try {
                Thread.sleep(100);
@@ -93,7 +88,7 @@ public class MicSerialListener
    }
 
    private void searchSignal() {
-      ISampleBuffer buffer = bufferPool.getBuffer(bufferSize, this);
+      ISampleBuffer buffer = bufferPool.getBuffer(bufferSize);
       short[] samples = buffer.getArray();
       try {
          long startTime = SystemClock.elapsedRealtime();
@@ -103,7 +98,7 @@ public class MicSerialListener
             while (inStream != null && !foundDock && SystemClock.elapsedRealtime() <= endTime) {
                int numSamples = inStream.read(samples, 0, bufferSize);
                if (numSamples > 0) {
-                  foundDock = sampleSupport.autoGainControl(samples, numSamples);
+                  foundDock = SampleSupport.singleton.autoGainControl(samples, numSamples);
                } else {
                   problem = true;
                }

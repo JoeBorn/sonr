@@ -14,19 +14,10 @@ import java.util.Queue;
  *  Queue requests, process them in sequence in a task.
  */
 final class AudioProcessorQueue
-      extends Thread
-      implements AudioConstants {
+      extends Thread {
    
    static final AudioProcessorQueue singleton = new AudioProcessorQueue(20);
    
-   /*
-    * These buffers are only used in AudioProcessor, not here. They're created
-    * here because we only want a single copy, not a copy per AudioProcessor
-    */
-   final int[][] sloc = new int[MAX_TRANSMISSIONS][3];
-   final int[][] trans_buf = new int[MAX_TRANSMISSIONS * 3][TRANSMISSION_LENGTH + BIT_OFFSET];
-   final int[] byteInDec = new int[MAX_TRANSMISSIONS * 3];
-
    private IUserActionHandler actionHandler;
    
    private final Queue<ISampleBuffer> queuedBuffers = new LinkedList<ISampleBuffer>();
@@ -35,7 +26,7 @@ final class AudioProcessorQueue
    
    private AudioProcessorQueue(int capacity) {
       this.capacity = capacity;
-      Utils.runTask(this);
+      start();
    }
    
    void setUserActionHandler(IUserActionHandler handler) {

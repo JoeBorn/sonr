@@ -59,8 +59,7 @@ final class AudioProcessorQueue
             queuedBuffers.clear();
          }
          for (ISampleBuffer buffer : pending) {
-            // TODO: Pool these
-            new AudioProcessor(buffer).run();
+             AudioProcessor.runAudioProcessor(buffer);
          }
          pending.clear();
       }

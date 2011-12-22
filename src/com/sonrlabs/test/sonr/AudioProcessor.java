@@ -1,32 +1,69 @@
 package com.sonrlabs.test.sonr;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.acra.ErrorReporter;
 
-public class AudioProcessor
-      implements Runnable, AudioConstants {
+import android.util.Log;
+
+class AudioProcessor
+      implements AudioConstants {
 
    // private static final String TAG = "SONR audio processor";
-
+   
+   private static final int PoolSize = 4;
+   private static List<AudioProcessor> Pool = new ArrayList<AudioProcessor>(PoolSize);
+   
+   static {
+      for (int i=0; i<PoolSize; i++) {
+         Pool.add(new AudioProcessor());
+      }
+   }
+   
+   static void runAudioProcessor(ISampleBuffer samples) {
+      AudioProcessor nextProcessor = null;
+      for (AudioProcessor processor : Pool) {
+         if (!processor.inUse) {
+            nextProcessor = processor;
+            break;
+         }
+      }
+      if (nextProcessor == null) {
+         // pool ran out
+         nextProcessor = new AudioProcessor();
+         Pool.add(nextProcessor);
+         Log.i("AudioProcessor", "Pool size is " + Pool.size());
+      }
+      
+      nextProcessor.init(samples);
+      nextProcessor.go();
+   }
+   
    private static boolean PreambleIsCutOff = false;
    private static int Preamble_Offset = 0;
 
-   private final ISampleBuffer sampleBuffer;
-   private final short[] sample_buf;
-   private final int[][] trans_buf;
-   private final int[][] sampleloc;
-   private final int[] movingsum;
-   private final int[] movingbuf;
-   private final int[] byteInDec;
-   private final int numSamples;
-   private final MicSerialListener listener;
-
+   private ISampleBuffer sampleBuffer;
+   private short[] sample_buf;
+   private int[][] trans_buf;
+   private int[][] sampleloc;
+   private int[] movingsum;
+   private int[] movingbuf;
+   private int[] byteInDec;
+   private int numSamples;
+   private MicSerialListener listener;
    private int samplelocsize = 0;
-
-   AudioProcessor(ISampleBuffer thesamples) {
-      this.listener = thesamples.getListener();
-      this.sampleBuffer = thesamples;
-      numSamples = thesamples.getNumberOfSamples();
-      sample_buf = thesamples.getArray();
+   private boolean inUse;
+   
+   private AudioProcessor() {
+   }
+   
+   private void init(ISampleBuffer samples) {
+      inUse = true;
+      this.listener = samples.getListener();
+      this.sampleBuffer = samples;
+      numSamples = samples.getNumberOfSamples();
+      sample_buf = samples.getArray();
       trans_buf = listener.trans_buf;
       movingbuf = listener.movingbuf;
       movingsum = listener.movingsum;
@@ -34,8 +71,7 @@ public class AudioProcessor
       byteInDec = listener.byteInDec;
    }
 
-   @Override
-   public void run() {
+   private void go() {
       try {
          /* Log.d(TAG, "AUDIO PROCESSOR BEGIN"); */
          findSample();
@@ -48,6 +84,7 @@ public class AudioProcessor
          ErrorReporter.getInstance().handleException(e);
       } finally {
          sampleBuffer.release();
+         inUse = false;
       }
    }
 

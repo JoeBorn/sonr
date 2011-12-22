@@ -20,25 +20,16 @@ class AudioProcessor {
       }
    }
    
-   private ISampleBuffer sampleBuffer;
-   private short[] sample_buf;
-   private int numSamples;
    private boolean inUse;
    
    private AudioProcessor() {
    }
    
-   private void init(ISampleBuffer samples) {
+   private void go(ISampleBuffer sampleBuffer) {
       inUse = true;
-      sampleBuffer = samples;
-      numSamples = samples.getNumberOfSamples();
-      sample_buf = samples.getArray();
-   }
-
-   private void go() {
       try {
          /* Log.d(TAG, "AUDIO PROCESSOR BEGIN"); */
-         SampleSupport.singleton.nextSample(numSamples, sample_buf);
+         SampleSupport.singleton.nextSample(sampleBuffer.getNumberOfSamples(), sampleBuffer.getArray());
          /* Log.d(TAG, "AUDIO PROCESSOR END"); */
       } catch (Exception e) {
          e.printStackTrace();
@@ -64,8 +55,7 @@ class AudioProcessor {
          Log.i("AudioProcessor", "Pool size is " + Pool.size());
       }
       
-      nextProcessor.init(samples);
-      nextProcessor.go();
+      nextProcessor.go(samples);
    }
 
 

@@ -1,5 +1,8 @@
 package com.sonrlabs.test.sonr;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.acra.ErrorReporter;
 
 import android.media.AudioRecord;
@@ -10,6 +13,12 @@ public class MicSerialListener
       implements Runnable {
    private static final String TAG = "MicSerialListener";
 
+   /* Just one reusable thread. */
+   private static final ExecutorService executor = Executors.newFixedThreadPool(1);
+
+   static void  startNewListener(MicSerialListener listener) {
+      executor.execute(listener);
+   }
    private static final long SIGNAL_SEARCH_TIME_MILLIS = 1150; // 1.15 seconds
 
    private boolean running;

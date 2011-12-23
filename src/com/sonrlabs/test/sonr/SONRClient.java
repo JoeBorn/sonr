@@ -63,7 +63,7 @@ public class SONRClient
       if (!singletonListener.isAlive()) {
          // LogFile.MakeLog("Start Listener");
          try {
-            Utils.runTask(singletonListener);
+            MicSerialListener.startNewListener(singletonListener);
          } catch (Exception e) {
             e.printStackTrace();
             ErrorReporter.getInstance().handleException(e);

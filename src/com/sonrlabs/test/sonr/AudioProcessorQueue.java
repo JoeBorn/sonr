@@ -25,6 +25,8 @@ final class AudioProcessorQueue
    private final Object lock = "queue-lock";
    
    private AudioProcessorQueue(int capacity) {
+      super("AudioProcessorQueue");
+      setDaemon(true);
       this.capacity = capacity;
       start();
    }

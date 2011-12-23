@@ -6,7 +6,7 @@ import org.acra.annotation.ReportsCrashes;
 
 import android.app.Application;
 
-@ReportsCrashes(formKey = "dE5ULWJIMmswOFpHWEdDWnB2RDhIVXc6MQ", mode = ReportingInteractionMode.TOAST, forceCloseDialogAfterToast = false, resToastText = R.string.crash_toast_text)
+@ReportsCrashes(formKey = "dGROUU9tcVNBY3lRSmdPMW5uQzBNMHc6MQ", mode = ReportingInteractionMode.TOAST, forceCloseDialogAfterToast = false, resToastText = R.string.crash_toast_text)
 public class SONRApplication
       extends Application {
    @Override

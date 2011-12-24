@@ -5,6 +5,7 @@ import org.acra.ReportingInteractionMode;
 import org.acra.annotation.ReportsCrashes;
 
 import android.app.Application;
+import com.sonrlabs.prod.sonr.R;
 
 @ReportsCrashes(formKey = "dE5ULWJIMmswOFpHWEdDWnB2RDhIVXc6MQ", mode = ReportingInteractionMode.TOAST, forceCloseDialogAfterToast = false, resToastText = R.string.crash_toast_text)
 public class SONRApplication

@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import com.sonrlabs.prod.sonr.R;
 import com.sonrlabs.test.sonr.common.Common;
 
 public class IntroScreen

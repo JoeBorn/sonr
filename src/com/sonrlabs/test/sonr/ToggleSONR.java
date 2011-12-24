@@ -17,6 +17,7 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import com.sonrlabs.prod.sonr.R;
 import com.sonrlabs.test.sonr.common.Common;
 
 public class ToggleSONR

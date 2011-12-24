@@ -49,6 +49,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.sonrlabs.prod.sonr.R;
 import com.sonrlabs.test.sonr.common.Common;
 import com.sonrlabs.test.sonr.common.DialogCommon;
 

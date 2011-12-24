@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="com.sonrlabs.test.sonr"
-      android:versionCode="53"
-      android:versionName="0.53">
+      package="com.sonrlabs.prod.sonr"
+      android:versionCode="48"
+      android:versionName="0.48">
 
 	<uses-sdk android:minSdkVersion="4" />
 	<uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -12,8 +12,8 @@
 	<uses-permission android:name="android.permission.INTERNET"></uses-permission>
 	<uses-permission android:name="android.permission.WAKE_LOCK" />
 
-    <application android:icon="@drawable/sonr_icon" android:label="@string/app_name" android:debuggable="true" android:name="SONRApplication">
-        <activity android:name=".SONR"
+    <application android:icon="@drawable/sonr_icon" android:label="@string/app_name" android:debuggable="true" android:name="com.sonrlabs.test.sonr.SONRApplication">
+        <activity android:name="com.sonrlabs.test.sonr.SONR"
                   android:label="@string/app_name">
                   
             <receiver android:name="com.sonrlabs.sonr.StopReceiver">
@@ -31,15 +31,15 @@
             </intent-filter>
         </activity>
         
-        <service android:name=".SONRClient">
-			<receiver android:name=".clientStopReceiver">
+        <service android:name="com.sonrlabs.test.sonr.SONRClient">
+			<receiver android:name="com.sonrlabs.test.sonr.clientStopReceiver">
             	<intent-filter>
                		 <action android:name="android.intent.action.DISCONNECT_DOC"></action>
             	</intent-filter>
         	</receiver>
         </service>
      
-		<receiver android:name=".SonrWidget" android:label="@string/widget_name" >
+		<receiver android:name="com.sonrlabs.test.sonr.SonrWidget" android:label="@string/widget_name" >
 		    <intent-filter>
 		        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
 		    </intent-filter>
@@ -47,7 +47,7 @@
 		               android:resource="@xml/toggle_appwidget_info" />
 		</receiver>
 		
-		<receiver android:name=".HeadphoneReciever">
+		<receiver android:name="com.sonrlabs.test.sonr.HeadphoneReciever">
 			<intent-filter>
 				<action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
 			</intent-filter>
@@ -64,16 +64,16 @@
 			</intent-filter>
 		</receiver>
 	     
-	    <activity android:name=".DefaultAppScreen"/>
-	    <activity android:name=".ConfigurationActivity"/>
-	    <activity android:name=".TermsScreen">
+	    <activity android:name="com.sonrlabs.test.sonr.DefaultAppScreen"/>
+	    <activity android:name="com.sonrlabs.test.sonr.ConfigurationActivity"/>
+	    <activity android:name="com.sonrlabs.test.sonr.TermsScreen">
 		    <intent-filter>
 	    		<category android:name="android.intent.category.DEFAULT" />
 	    		<action android:name="android.intent.action.VIEW" />
 	    		<data android:scheme="com.sonrlabs.sonr.TermsScreen" />  
 			</intent-filter>
 	    </activity> 
-	    <activity android:name=".IntroScreen"/>
+	    <activity android:name="com.sonrlabs.test.sonr.IntroScreen"/>
 	    <activity android:name="com.sonrlabs.test.sonr.StopSONR"/>
     </application>
 </manifest>

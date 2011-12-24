@@ -1,5 +1,6 @@
 package com.sonrlabs.test.sonr;
 
+
 /**
  * Process a user action initiated from the remote or the dock buttons,
  */

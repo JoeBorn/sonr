@@ -1,5 +1,6 @@
 package com.sonrlabs.test.sonr;
 
+
 /**
  *  Null-object pattern.
  */

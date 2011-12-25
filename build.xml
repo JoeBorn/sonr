@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="SONR" default="help">
+<project name="SONR" default="deploy">
 
     <!-- The local.properties file is created and updated by the 'android' tool.
          It contains the path to the SDK. It should *NOT* be checked into
          Version Control Systems. -->
     <loadproperties srcFile="local.properties" />
-
     <!-- The ant.properties file can be created by you. It is only edited by the
          'android' tool to add properties to it.
          This is the place to change some Ant specific build properties.
@@ -81,5 +80,11 @@
     -->
     <!-- version-tag: 1 -->
     <import file="${sdk.dir}/tools/ant/build.xml" />
+    
+   <target name="deploy" depends="release">
+      <exec executable="/bin/sh">
+         <arg value="install-sonr.sh"/>
+      </exec>
+   </target>
 
 </project>

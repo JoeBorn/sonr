@@ -14,37 +14,37 @@ import android.content.SharedPreferences;
 
 public class Common {
 
-    public static final String N_A = "N_A";
-    public static final String SHARED_PREF_NAME = "SONR";
+   public static final String N_A = "N_A";
+   public static final String SHARED_PREF_NAME = "SONR";
 
-    private Common() {
-	// utility
-    }
+   private Common() {
+      // utility
+   }
 
-    /**
-     * Converts from {@code String listOfStringBooleans = "true, false, false" } to
-     * {@code boolean[] booleanArray = { true, false, false }};
-     * 
-     * @note	mostly used for converting from database retrieved string to
-     * boolean[] used in selected options on certain Android widgets.
-     *  
-     * @param str string of form "true, false, false"
-     * 
-     */
-    public static boolean[] toBooleanArray(String str) {
-	boolean[] retArray = new boolean[2]; //TODO: temporary...
+   /**
+    * Converts from {@code String listOfStringBooleans = "true, false, false" } to
+    * {@code boolean[] booleanArray = { true, false, false }};
+    *
+    * @note	mostly used for converting from database retrieved string to
+    * boolean[] used in selected options on certain Android widgets.
+    *
+    * @param str string of form "true, false, false"
+    *
+    */
+   public static boolean[] toBooleanArray(String str) {
+      boolean[] retArray = new boolean[2]; //TODO: temporary...
 
-	//	
-	//	String opts = Arrays.toString(str);
-	//	
-	//	String[] optsInArray = opts.split(",");
-	//	retArray = new boolean[opts.length()];
-	//	
-	//	List<String> listOfStringBools = Arrays.asList(optsInArray);
-	return retArray;
-    }
+      //
+      //	String opts = Arrays.toString(str);
+      //
+      //	String[] optsInArray = opts.split(",");
+      //	retArray = new boolean[opts.length()];
+      //
+      //	List<String> listOfStringBools = Arrays.asList(optsInArray);
+      return retArray;
+   }
 
-    // ---------------------------------------------------------------------
+   // ---------------------------------------------------------------------
 
 //    public static void saveValue(Context c, RequestToken type,
 //	    String strValue) {
@@ -54,97 +54,97 @@ public class Common {
 //	editor.commit();
 //    }
 
-    /**
-     * Removes a specific value from a saved boolean array...
-     * 
-     * @param c			application context
-     * @param arrayId		array which will be used for key (corresponding to R.array.id)
-     * @param whichValue	which value to remove
-     */
-    public static void removeValue(Context c, int arrayId, int whichValue) {
-	SharedPreferences.Editor editor = c.getSharedPreferences(
-		Common.SHARED_PREF_NAME, Context.MODE_PRIVATE).edit();
-	editor.remove(String.format("%s.%s", arrayId, whichValue));
-	editor.commit();
-    }
+   /**
+    * Removes a specific value from a saved boolean array...
+    *
+    * @param c			application context
+    * @param arrayId		array which will be used for key (corresponding to R.array.id)
+    * @param whichValue	which value to remove
+    */
+   public static void removeValue(Context c, int arrayId, int whichValue) {
+      SharedPreferences.Editor editor = c.getSharedPreferences(
+            Common.SHARED_PREF_NAME, Context.MODE_PRIVATE).edit();
+      editor.remove(String.format("%s.%s", arrayId, whichValue));
+      editor.commit();
+   }
 
-    /**
-     * Retrieves a boolean array from SharedPreferences. 
-     * If a value was not in the array, false will be in its place.
-     * 
-     * Returns null if not even one boolean is found to be true.
-     * 
-     * @param c			application context
-     * @param arrayId		R.array.arrayId for easier put/get
-     * @param vals		actual array
-     */
-    public static boolean[] getValue(Context c, int arrayId) {
-	boolean[] response;
-	SharedPreferences settings = c.getSharedPreferences(
-		Common.SHARED_PREF_NAME, Context.MODE_PRIVATE);
+   /**
+    * Retrieves a boolean array from SharedPreferences.
+    * If a value was not in the array, false will be in its place.
+    *
+    * Returns null if not even one boolean is found to be true.
+    *
+    * @param c			application context
+    * @param arrayId		R.array.arrayId for easier put/get
+    * @param vals		actual array
+    */
+   public static boolean[] getValue(Context c, int arrayId) {
+      boolean[] response;
+      SharedPreferences settings = c.getSharedPreferences(
+            Common.SHARED_PREF_NAME, Context.MODE_PRIVATE);
 
-	boolean atLeastOneTrue = false;
-	boolean storedValue = false;
+      boolean atLeastOneTrue = false;
+      boolean storedValue = false;
 
-	String[] optionStrings = c.getResources().getStringArray(arrayId);
-	response = new boolean[optionStrings.length]; 
-	for (int i = 0; i < optionStrings.length; i++) {
-	    storedValue = settings.getBoolean(String.format("%s.%s", arrayId, i), false);
+      String[] optionStrings = c.getResources().getStringArray(arrayId);
+      response = new boolean[optionStrings.length];
+      for (int i = 0; i < optionStrings.length; i++) {
+         storedValue = settings.getBoolean(String.format("%s.%s", arrayId, i), false);
 
-	    if (!atLeastOneTrue && storedValue) {
-		atLeastOneTrue = true;
-	    }
+         if (!atLeastOneTrue && storedValue) {
+            atLeastOneTrue = true;
+         }
 
-	    response[i] = storedValue;    
-	}
+         response[i] = storedValue;
+      }
 
-	if (!atLeastOneTrue) {
-	    return null;
-	}
-	else {
-	    return response;
-	}
-    }
+      if (!atLeastOneTrue) {
+         return null;
+      }
+      else {
+         return response;
+      }
+   }
 
-    public static void save(Context c, String key, String value) {
-	SharedPreferences.Editor editor = c.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE).edit();
-	editor.putString(key, value);
-	editor.commit();
-    }
-    
-    public static String get(Context c, String key, String defaultValue) {
-	SharedPreferences settings = c.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
-	return settings.getString(key, defaultValue);
-    }
-    
-    public static void save(Context c, String key, boolean value) {
-	SharedPreferences.Editor editor = c.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE).edit();
-	editor.putBoolean(key, value);
-	editor.commit();
-    }
-    
-    public static boolean get(Context c, String key, boolean defaultValue) {
-	SharedPreferences settings = c.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
-	return settings.getBoolean(key, defaultValue);
-    }
-    
-    /**
-     * Stores boolean array to SharedPreferences.
-     * 
-     * @param c			application context
-     * @param arrayId		R.array.arrayId for easier put/get
-     * @param vals		actual array
-     */
-    public static void saveValue(Context c, int arrayId,
-	    boolean[] vals) {
+   public static void save(Context c, String key, String value) {
+      SharedPreferences.Editor editor = c.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE).edit();
+      editor.putString(key, value);
+      editor.commit();
+   }
 
-	SharedPreferences.Editor editor = c.getSharedPreferences(
-		Common.SHARED_PREF_NAME, Context.MODE_PRIVATE).edit();
-	for (int i = 0; i < vals.length; i++) {
-	    editor.putBoolean(String.format("%s.%s", arrayId, i), vals[i]);
-	}
-	editor.commit();
-    }
+   public static String get(Context c, String key, String defaultValue) {
+      SharedPreferences settings = c.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
+      return settings.getString(key, defaultValue);
+   }
+
+   public static void save(Context c, String key, boolean value) {
+      SharedPreferences.Editor editor = c.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE).edit();
+      editor.putBoolean(key, value);
+      editor.commit();
+   }
+
+   public static boolean get(Context c, String key, boolean defaultValue) {
+      SharedPreferences settings = c.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
+      return settings.getBoolean(key, defaultValue);
+   }
+
+   /**
+    * Stores boolean array to SharedPreferences.
+    *
+    * @param c			application context
+    * @param arrayId		R.array.arrayId for easier put/get
+    * @param vals		actual array
+    */
+   public static void saveValue(Context c, int arrayId,
+                                boolean[] vals) {
+
+      SharedPreferences.Editor editor = c.getSharedPreferences(
+            Common.SHARED_PREF_NAME, Context.MODE_PRIVATE).edit();
+      for (int i = 0; i < vals.length; i++) {
+         editor.putBoolean(String.format("%s.%s", arrayId, i), vals[i]);
+      }
+      editor.commit();
+   }
 
 //    public static void saveValue(Context c, RequestToken type,
 //	    int intValue) {
@@ -154,11 +154,11 @@ public class Common {
 //	editor.commit();
 //    }
 
-    //--------------------------------------------------------------------
+   //--------------------------------------------------------------------
 
-    public static InputStream makeGetRequestReturnInStream(String url) {
-	InputStream data = null;
-	try {
+   public static InputStream makeGetRequestReturnInStream(String url) {
+      InputStream data = null;
+      try {
 
 //	    //credit: http://stackoverflow.com/questions/2703161/apache-httpclient-4-0-ignore-ssl-certificate-errors
 //	    SSLContext sslContext = SSLContext.getInstance("TLS");
@@ -196,79 +196,79 @@ public class Common {
 
 
 //	    DefaultHttpClient client = new DefaultHttpClient(cm, params);
-	    
-	    DefaultHttpClient client = new DefaultHttpClient();
-	    HttpGet method = new HttpGet(url);
-	    HttpResponse response = client.execute(method);
-	    data = response.getEntity().getContent();
-	} catch (Exception e) {
-	    e.printStackTrace();
-	    data = new StringBasedInputReader("");
-	}
-	return data;
-    }
 
-    /**
-     * make get requests return response as string...
-     */
-    public static String makeGetRequestReturnString(String url) {
-	return generateString(makeGetRequestReturnInStream(url));
-    }
+         DefaultHttpClient client = new DefaultHttpClient();
+         HttpGet method = new HttpGet(url);
+         HttpResponse response = client.execute(method);
+         data = response.getEntity().getContent();
+      } catch (Exception e) {
+         e.printStackTrace();
+         data = new StringBasedInputReader("");
+      }
+      return data;
+   }
 
-    /**
-     * Make get request return with string
-     * @param stream
-     * @return
-     */
-    public static String generateString(InputStream stream) {
-	InputStreamReader reader = new InputStreamReader(stream);
-	BufferedReader buffer = new BufferedReader(reader);
-	StringBuilder sb = new StringBuilder();
+   /**
+    * make get requests return response as string...
+    */
+   public static String makeGetRequestReturnString(String url) {
+      return generateString(makeGetRequestReturnInStream(url));
+   }
 
-	try {
-	    String cur;
-	    while ((cur = buffer.readLine()) != null) {
-		sb.append(cur + "\n");
-	    }
-	} catch (IOException e) {
-	    e.printStackTrace();
-	}
+   /**
+    * Make get request return with string
+    * @param stream
+    * @return
+    */
+   public static String generateString(InputStream stream) {
+      InputStreamReader reader = new InputStreamReader(stream);
+      BufferedReader buffer = new BufferedReader(reader);
+      StringBuilder sb = new StringBuilder();
 
-	try {
-	    stream.close();
-	} catch (IOException e) {
-	    e.printStackTrace();
-	}
-	return sb.toString();
-    }
+      try {
+         String cur;
+         while ((cur = buffer.readLine()) != null) {
+            sb.append(cur + "\n");
+         }
+      } catch (IOException e) {
+         e.printStackTrace();
+      }
 
-    public static String nonNullString(String strToCheck,
-	    String strToReturnIfNull) {
-	if (strToCheck != null) {
-	    return strToCheck;
-	} else {
-	    return strToReturnIfNull;
-	}
-    }
+      try {
+         stream.close();
+      } catch (IOException e) {
+         e.printStackTrace();
+      }
+      return sb.toString();
+   }
 
-    private static class StringBasedInputReader extends InputStream {
+   public static String nonNullString(String strToCheck,
+                                      String strToReturnIfNull) {
+      if (strToCheck != null) {
+         return strToCheck;
+      } else {
+         return strToReturnIfNull;
+      }
+   }
 
-	private String mValue = null;
+   private static class StringBasedInputReader extends InputStream {
 
-	public StringBasedInputReader(String newValue) {
-	    mValue = newValue;
-	}
+      private String mValue = null;
 
-	@Override
-	public int read() throws IOException {
-	    return 0;
-	}
+      public StringBasedInputReader(String newValue) {
+         mValue = newValue;
+      }
 
-	@Override
-	public String toString() {
-	    return mValue;
-	}
+      @Override
+      public int read() throws IOException {
+         return 0;
+      }
 
-    }
+      @Override
+      public String toString() {
+         return mValue;
+      }
+
+   }
 
 }

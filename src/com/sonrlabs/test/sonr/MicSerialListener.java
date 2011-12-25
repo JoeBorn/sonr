@@ -11,15 +11,25 @@ import android.util.Log;
 
 public class MicSerialListener
       implements Runnable {
+   
+   /* Log id */
    private static final String TAG = "MicSerialListener";
+   
+   /* Initial size of the buffer pool  */
+   private static final int BUFFER_POOL_SIZE = 4;
+   
+   /* Max time to wait when offering a sample buffer to the queue. */
+   private static final int MAX_QUEUE_WAIT_TIME_MILLIS = 200;
 
+   /*  End Dock search after 1.15 seconds */
+   private static final long SIGNAL_SEARCH_TIME_MILLIS = 1150;
+   
    /* Just one reusable thread. */
    private static final ExecutorService executor = Executors.newFixedThreadPool(1);
 
    static void  startNewListener(MicSerialListener listener) {
       executor.execute(listener);
    }
-   private static final long SIGNAL_SEARCH_TIME_MILLIS = 1150; // 1.15 seconds
 
    private boolean running;
    private boolean foundDock;
@@ -34,7 +44,7 @@ public class MicSerialListener
       Log.d(TAG, "STARTED");
       inStream = record;
       bufferSize = buffsize;
-      bufferPool = new SampleBufferPool(bufferSize, 2);
+      bufferPool = new SampleBufferPool(bufferSize, BUFFER_POOL_SIZE);
       if (inStream != null) {
          try {
             // set up recorder thread
@@ -64,8 +74,12 @@ public class MicSerialListener
             if (numSamples > 0) {
                /* if there are samples and not waiting */
                samples.setNumberOfSamples(numSamples);
-               AudioProcessorQueue.addSamples(samples);
-               samples = bufferPool.getBuffer(bufferSize);
+               if (AudioProcessorQueue.addSamples(samples, MAX_QUEUE_WAIT_TIME_MILLIS)) {
+                  samples = bufferPool.getBuffer(bufferSize);
+               } else {
+                  // Queue full!  Drop this one.
+                  Log.e(TAG, "Dropping samples, queue full");
+               }
             }
             try {
                Thread.sleep(100);

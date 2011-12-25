@@ -6,9 +6,10 @@
 package com.sonrlabs.test.sonr;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
 import android.media.AudioManager;
@@ -25,27 +26,26 @@ final class AudioProcessorQueue
    private UserActionHandler actionHandler;
    private SampleSupport sampleSupport;
    private AudioProcessor processor = new AudioProcessor(sampleSupport);
-   private final Queue<ISampleBuffer> queuedBuffers = new LinkedList<ISampleBuffer>();
-   private final int capacity;
+   private final BlockingQueue<ISampleBuffer> queuedBuffers;
    private final Object lock = "queue-lock";
    
    private AudioProcessorQueue(int capacity) {
       super("AudioProcessorQueue");
       setDaemon(true);
-      this.capacity = capacity;
+      queuedBuffers = new ArrayBlockingQueue<ISampleBuffer>(capacity);
       start();
    }
    
-   private boolean push(ISampleBuffer buffer) {
+   private boolean push(ISampleBuffer buffer, long timeoutMillis) {
       synchronized (lock) {
-         if (queuedBuffers.size() == capacity) {
-            android.util.Log.w(getClass().getName(), "Queue capacity exceeded");
-            return false;
-         } else {
-            queuedBuffers.add(buffer);
-            lock.notify();
-            return true;
+         boolean queued = false;
+         try {
+            queued = queuedBuffers.offer(buffer, timeoutMillis, TimeUnit.MILLISECONDS);
+         } catch (InterruptedException e) {
+            // treat this as a timeout
          }
+         lock.notify();
+         return queued;
       }
    }
 
@@ -77,7 +77,7 @@ final class AudioProcessorQueue
        singleton.processor = new AudioProcessor(sampleSupport);
    }
 
-   static void addSamples(ISampleBuffer samples) {
-      singleton.push(samples);
+   static boolean addSamples(ISampleBuffer samples, long timeoutMillis) {
+      return singleton.push(samples, timeoutMillis);
    }
 }

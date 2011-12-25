@@ -1,62 +1,26 @@
 package com.sonrlabs.test.sonr;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
 import org.acra.ErrorReporter;
 
-import android.util.Log;
+final class AudioProcessor {
+   private final SampleSupport sampleSupport;
 
-class AudioProcessor {
-
-   // private static final String TAG = "SONR audio processor";
-   
-   private static final int PoolSize = 4;
-   private static List<AudioProcessor> Pool = new ArrayList<AudioProcessor>(PoolSize);
-   
-   static {
-      for (int i=0; i<PoolSize; i++) {
-         Pool.add(new AudioProcessor());
-      }
-   }
-   
-   private boolean inUse;
-   
-   private AudioProcessor() {
-   }
-   
-   private void go(ISampleBuffer sampleBuffer) {
-      inUse = true;
-      try {
-         /* Log.d(TAG, "AUDIO PROCESSOR BEGIN"); */
-         SampleSupport.singleton.nextSample(sampleBuffer.getNumberOfSamples(), sampleBuffer.getArray());
-         /* Log.d(TAG, "AUDIO PROCESSOR END"); */
-      } catch (Exception e) {
-         e.printStackTrace();
-         ErrorReporter.getInstance().handleException(e);
-      } finally {
-         sampleBuffer.release();
-         inUse = false;
-      }
+   AudioProcessor(SampleSupport sampleSupport) {
+      this.sampleSupport = sampleSupport;
    }
 
-   static void runAudioProcessor(ISampleBuffer samples) {
-      AudioProcessor nextProcessor = null;
-      for (AudioProcessor processor : Pool) {
-         if (!processor.inUse) {
-            nextProcessor = processor;
-            break;
+   void processSamples(Collection<ISampleBuffer> sampleBuffers, IUserActionHandler actionHandler) {
+      for (ISampleBuffer sampleBuffer : sampleBuffers) {
+         try {
+            sampleSupport.nextSample(sampleBuffer.getNumberOfSamples(), sampleBuffer.getArray(), actionHandler);
+         } catch (Exception e) {
+            e.printStackTrace();
+            ErrorReporter.getInstance().handleException(e);
+         } finally {
+            sampleBuffer.release();
          }
       }
-      if (nextProcessor == null) {
-         // pool ran out
-         nextProcessor = new AudioProcessor();
-         Pool.add(nextProcessor);
-         Log.i("AudioProcessor", "Pool size is " + Pool.size());
-      }
-      
-      nextProcessor.go(samples);
    }
-
-
 }

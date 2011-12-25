@@ -27,8 +27,10 @@ public class MicSerialListener
    private final AudioRecord inStream;
    private final SampleBufferPool bufferPool;
    private final Object searchLock = new Object();
+   private final SampleSupport sampleSupport;
 
-   MicSerialListener(AudioRecord record, int buffsize) {
+   MicSerialListener(AudioRecord record, int buffsize, SampleSupport sampleSupport) {
+      this.sampleSupport = sampleSupport;
       Log.d(TAG, "STARTED");
       inStream = record;
       bufferSize = buffsize;
@@ -62,7 +64,7 @@ public class MicSerialListener
             if (numSamples > 0) {
                /* if there are samples and not waiting */
                samples.setNumberOfSamples(numSamples);
-               AudioProcessorQueue.singleton.push(samples);
+               AudioProcessorQueue.addSamples(samples);
                samples = bufferPool.getBuffer(bufferSize);
             }
             try {
@@ -107,7 +109,7 @@ public class MicSerialListener
             while (inStream != null && !foundDock && SystemClock.elapsedRealtime() <= endTime) {
                int numSamples = inStream.read(samples, 0, bufferSize);
                if (numSamples > 0) {
-                  foundDock = SampleSupport.singleton.autoGainControl(samples, numSamples);
+                  foundDock = sampleSupport.autoGainControl(samples, numSamples);
                } else {
                   problem = true;
                }

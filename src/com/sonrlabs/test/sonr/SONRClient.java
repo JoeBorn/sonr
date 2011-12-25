@@ -28,12 +28,14 @@ public class SONRClient
     */
    public static boolean CLIENT_ON = false;
    
-   private BroadcastReceiver clientStopReceiver;
+   private static final SampleSupport sampleSupport = new SampleSupport();
    
+   private BroadcastReceiver clientStopReceiver;
    private final AudioManager theAudioManager;
    private final AudioRecord theaudiorecord;
    private final int bufferSize;
    private final Context ctx;
+
 
 
    SONRClient(Context c, AudioRecord ar, int buffsize, AudioManager am) {
@@ -82,12 +84,11 @@ public class SONRClient
             // LogFile.MakeLog("\n\nSONRClient CREATED");
             unregisterReceiver();
             registerReceiver();
-            IUserActionHandler controller = new UserActionHandler(theAudioManager,ctx);
-            AudioProcessorQueue.singleton.setUserActionHandler(controller);
             if (singletonListener != null) {
                singletonListener.stopRunning();
             }
-            singletonListener = new MicSerialListener(theaudiorecord, bufferSize);
+            AudioProcessorQueue.init(theAudioManager,ctx, sampleSupport);
+            singletonListener = new MicSerialListener(theaudiorecord, bufferSize, sampleSupport);
          }
       } catch (Exception e) {
          e.printStackTrace();

@@ -12,7 +12,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-public class Common {
+public final class Common {
 
    public static final String N_A = "N_A";
    public static final String SHARED_PREF_NAME = "SONR";
@@ -32,16 +32,13 @@ public class Common {
     *
     */
    public static boolean[] toBooleanArray(String str) {
-      boolean[] retArray = new boolean[2]; //TODO: temporary...
-
-      //
-      //	String opts = Arrays.toString(str);
-      //
-      //	String[] optsInArray = opts.split(",");
-      //	retArray = new boolean[opts.length()];
-      //
-      //	List<String> listOfStringBools = Arrays.asList(optsInArray);
-      return retArray;
+      String[] flagStrings = str.split(",");
+      boolean[] flags = new boolean[flagStrings.length];
+      for (int i=0; i<flagStrings.length; i++) {
+         String flagString = flagStrings[i].trim();
+         flags[i] = "true".equalsIgnoreCase(flagString);
+      }
+      return flags;
    }
 
    // ---------------------------------------------------------------------
@@ -62,8 +59,7 @@ public class Common {
     * @param whichValue	which value to remove
     */
    public static void removeValue(Context c, int arrayId, int whichValue) {
-      SharedPreferences.Editor editor = c.getSharedPreferences(
-            Common.SHARED_PREF_NAME, Context.MODE_PRIVATE).edit();
+      SharedPreferences.Editor editor = c.getSharedPreferences(Common.SHARED_PREF_NAME, Context.MODE_PRIVATE).edit();
       editor.remove(String.format("%s.%s", arrayId, whichValue));
       editor.commit();
    }
@@ -79,31 +75,19 @@ public class Common {
     * @param vals		actual array
     */
    public static boolean[] getValue(Context c, int arrayId) {
-      boolean[] response;
-      SharedPreferences settings = c.getSharedPreferences(
-            Common.SHARED_PREF_NAME, Context.MODE_PRIVATE);
-
       boolean atLeastOneTrue = false;
-      boolean storedValue = false;
 
       String[] optionStrings = c.getResources().getStringArray(arrayId);
-      response = new boolean[optionStrings.length];
+      boolean[] response = new boolean[optionStrings.length];
+      SharedPreferences settings = c.getSharedPreferences(Common.SHARED_PREF_NAME, Context.MODE_PRIVATE);
       for (int i = 0; i < optionStrings.length; i++) {
-         storedValue = settings.getBoolean(String.format("%s.%s", arrayId, i), false);
-
+         boolean storedValue = settings.getBoolean(String.format("%s.%s", arrayId, i), false);
          if (!atLeastOneTrue && storedValue) {
             atLeastOneTrue = true;
          }
-
          response[i] = storedValue;
       }
-
-      if (!atLeastOneTrue) {
-         return null;
-      }
-      else {
-         return response;
-      }
+      return atLeastOneTrue ? response : null;
    }
 
    public static void save(Context c, String key, String value) {
@@ -135,11 +119,8 @@ public class Common {
     * @param arrayId		R.array.arrayId for easier put/get
     * @param vals		actual array
     */
-   public static void saveValue(Context c, int arrayId,
-                                boolean[] vals) {
-
-      SharedPreferences.Editor editor = c.getSharedPreferences(
-            Common.SHARED_PREF_NAME, Context.MODE_PRIVATE).edit();
+   public static void saveValue(Context c, int arrayId, boolean[] vals) {
+      SharedPreferences.Editor editor = c.getSharedPreferences(Common.SHARED_PREF_NAME, Context.MODE_PRIVATE).edit();
       for (int i = 0; i < vals.length; i++) {
          editor.putBoolean(String.format("%s.%s", arrayId, i), vals[i]);
       }
@@ -157,7 +138,7 @@ public class Common {
    //--------------------------------------------------------------------
 
    public static InputStream makeGetRequestReturnInStream(String url) {
-      InputStream data = null;
+      InputStream data;
       try {
 
 //	    //credit: http://stackoverflow.com/questions/2703161/apache-httpclient-4-0-ignore-ssl-certificate-errors
@@ -221,14 +202,13 @@ public class Common {
     * @return
     */
    public static String generateString(InputStream stream) {
-      InputStreamReader reader = new InputStreamReader(stream);
-      BufferedReader buffer = new BufferedReader(reader);
+      BufferedReader buffer = new BufferedReader(new InputStreamReader(stream));
       StringBuilder sb = new StringBuilder();
 
       try {
          String cur;
          while ((cur = buffer.readLine()) != null) {
-            sb.append(cur + "\n");
+            sb.append(cur).append("\n");
          }
       } catch (IOException e) {
          e.printStackTrace();
@@ -242,8 +222,7 @@ public class Common {
       return sb.toString();
    }
 
-   public static String nonNullString(String strToCheck,
-                                      String strToReturnIfNull) {
+   public static String nonNullString(String strToCheck,  String strToReturnIfNull) {
       if (strToCheck != null) {
          return strToCheck;
       } else {

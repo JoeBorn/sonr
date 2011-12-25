@@ -286,7 +286,7 @@ final class SampleSupport {
                /* next transmission */
                i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1;
                sloc[numsampleloc / 3][numsampleloc % 3] = i;
-               samplelocsize = ++numsampleloc;
+               ++numsampleloc;
                /* next transmission */
                i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1;
                sloc[numsampleloc / 3][numsampleloc % 3] = i;

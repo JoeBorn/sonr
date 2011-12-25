@@ -180,8 +180,7 @@ public class SONR
 
    private boolean isFirstLaunch() {
       // Restore preferences
-      boolean isFirstLaunch = Common.get(this, SONR.FIRST_LAUNCH, true);
-      return isFirstLaunch;
+      return Common.get(this, SONR.FIRST_LAUNCH, true);
    }
    
    @Override

@@ -61,18 +61,22 @@ class SampleBufferPool {
          array = new short[bufferSize];
       }
       
+      @Override
       synchronized public void release() {
          available = true;
       }
       
+      @Override
       public short[] getArray() {
          return array;
       }
 
+      @Override
       public int getNumberOfSamples() {
          return numberOfSamples;
       }
       
+      @Override
       public void setNumberOfSamples(int numberOfSamples) {
          this.numberOfSamples = numberOfSamples;
       }

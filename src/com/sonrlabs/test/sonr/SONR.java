@@ -66,6 +66,7 @@ public class SONR
    public static final String APP_PACKAGE_NAME = "APP_PACKAGE_NAME";
    public static final String APP_FULL_NAME = "APP_FULL_NAME";
    public static final String PLAYER_SELECTED = "PLAYER_SELECTED";
+   public static final String FIRST_LAUNCH = "FIRST_LAUNCH";
 
    public static final String TAG = SONR.class.getSimpleName();
 
@@ -103,6 +104,13 @@ public class SONR
          currentlySelectedApplicationInfoIndex = -1;
 
          setContentView(R.layout.music_select_main);
+         
+         if (isFirstLaunch()){
+            //Show Intro screen
+            Intent intent = new Intent(this, IntroScreen.class);
+            startActivity(intent);
+            Common.save(this, SONR.FIRST_LAUNCH, false);
+         }
 
          if (!isRegistered) {
             registerReceiver(StopReceiver, new IntentFilter(DISCONNECT_ACTION));
@@ -164,13 +172,18 @@ public class SONR
             //intent = new Intent(this, IntroScreen.class);
          }
          //startActivity(intent);
-
       } catch (Exception e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       }
    }
 
+   private boolean isFirstLaunch() {
+      // Restore preferences
+      boolean isFirstLaunch = Common.get(this, SONR.FIRST_LAUNCH, true);
+      return isFirstLaunch;
+   }
+   
    @Override
    protected void onListItemClick(ListView listView, View clickedView, int position, long id) {
       super.onListItemClick(listView, clickedView, position, id);

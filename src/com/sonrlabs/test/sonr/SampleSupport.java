@@ -194,17 +194,19 @@ final class SampleSupport {
    /**
     *  This is the entry point for {@link AudioProcessor}.
     */
-   void nextSample(int numSamples, short[] sample_buf, IUserActionHandler actionHandler) {
-      int sampleLocSize = processorFindSample(numSamples, sample_buf);
+   void nextSample(ISampleBuffer buffer, IUserActionHandler actionHandler) {
+      int sampleLocSize = processorFindSample(buffer);
       if (sampleLocSize > 0) {
-         processSample(sampleLocSize, numSamples, sample_buf, actionHandler);
+         processSample(sampleLocSize, buffer, actionHandler);
       }
    }
 
-   private int processorFindSample(int numSamples, short[] sample_buf) {
+   private int processorFindSample(ISampleBuffer buffer) {
       int count = 0;
       int arraypos;
       int numfoundsamples = 0;
+      int numSamples = buffer.getNumberOfSamples();
+      short[] sample_buf = buffer.getArray();
 
       if (PreambleIsCutOff) {
          sloc[numfoundsamples++][0] = Preamble_Offset;
@@ -312,8 +314,10 @@ final class SampleSupport {
       return samplelocsize;
    }
 
-   private void processSample(int sampleLocSize, int numSamples, short[] sample_buf, IUserActionHandler actionHandler) {
+   private void processSample(int sampleLocSize, ISampleBuffer buffer, IUserActionHandler actionHandler) {
       /* copy transmission down because the buffer could get overwritten */
+      int numSamples = buffer.getNumberOfSamples();
+      short[] sample_buf = buffer.getArray();
       for (int j = 0; j < sampleLocSize; j++) {
          for (int i = 0; i < TRANSMISSION_LENGTH; i++) {
             if (sloc[j / 3][j % 3] + i < numSamples) {

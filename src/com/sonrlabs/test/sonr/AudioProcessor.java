@@ -14,8 +14,8 @@ final class AudioProcessor {
    void processSamples(Collection<ISampleBuffer> sampleBuffers, IUserActionHandler actionHandler) {
       for (ISampleBuffer sampleBuffer : sampleBuffers) {
          try {
-            sampleSupport.nextSample(sampleBuffer.getNumberOfSamples(), sampleBuffer.getArray(), actionHandler);
-         } catch (Exception e) {
+            sampleSupport.nextSample(sampleBuffer, actionHandler);
+         } catch (RuntimeException e) {
             e.printStackTrace();
             ErrorReporter.getInstance().handleException(e);
          } finally {

@@ -161,17 +161,12 @@ public class SONR
          this.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, TAG);
          this.mWakeLock.acquire();
 
-         //Intent intent;
          if (Common.get(this, SONR.DEFAULT_PLAYER_SELECTED, false)) {
             theclient.onDestroy();
             if (theaudiorecord != null) {
                theaudiorecord.release();
             }
-            //intent = new Intent(this, DefaultAppScreen.class);
-         } else {
-            //intent = new Intent(this, IntroScreen.class);
-         }
-         //startActivity(intent);
+         } 
       } catch (Exception e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);

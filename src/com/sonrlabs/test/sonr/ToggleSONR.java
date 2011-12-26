@@ -77,55 +77,55 @@ public class ToggleSONR
 
    @Override
    public int onStartCommand(Intent intent, int flags, int startId) {
-      try {
-         // LogFile.MakeLog("ToggleSONR triggered");
-         Log.d(TAG, "onStart");
-
-         SERVICE_ON = true;
-
-         String actionString = intent.getAction();
-         if (actionString != null) {
-            Log.d(TAG, "Received " + actionString);
-         }
-
-         if (headsetReceiver == null) {
-            createHeadsetReceiver();
-         }
-         HeadsetAction action = HeadsetAction.getAction(actionString);
-         switch (action) {
-            case INTENT_USER_TOGGLE_REQUEST:
-               Intent newIntent = new Intent(this, SONR.class);
-               newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-               this.startActivity(newIntent);
-               break;
-
-            case HEADSET_PLUG_INTENT:
-               handlePlugIntent(intent);
-
-               break;
-
-            case ACTION_POWER_CONNECTED:
-               /*
-                * Do nothing - but this intent should wake the service up and
-                * allow us to catch HEADSET_PLUG
-                */
-               Log.d(TAG, "Caught POWER_CONNECTED_INTENT");
-               break;
-
-            case ACTION_POWER_DISCONNECTED:
-               /*
-                * Do nothing - but this intent should wake the service up and
-                * allow us to refresh the icon if we were previously asleep
-                */
-               Log.d(TAG, "Caught POWER_DISCONNECTED_INTENT");
-               break;
-         }
-
-      } catch (Exception e) {
-         e.printStackTrace();
+      Log.d(TAG, "onStart");
+      
+      SERVICE_ON = true;
+      
+      if (headsetReceiver == null) {
+         createHeadsetReceiver();
+      }
+      
+      HeadsetAction action = HeadsetAction.getAction(intent.getAction());
+      if (action != null) {
+         handleIntentAction(intent, action);
       }
       return START_STICKY;
-   } // end onstart
+   }
+
+   private void handleIntentAction(Intent intent, HeadsetAction action) {
+      Log.d(TAG, "Received " + action.getActionString());
+      switch (action) {
+         case INTENT_USER_TOGGLE_REQUEST:
+            Intent newIntent = new Intent(this, SONR.class);
+            newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            this.startActivity(newIntent);
+            break;
+            
+         case HEADSET_PLUG_INTENT:
+            try {
+               handlePlugIntent(intent);
+            } catch (RuntimeException e) {
+               e.printStackTrace();
+            }
+            break;
+            
+         case ACTION_POWER_CONNECTED:
+            /*
+             * Do nothing - but this intent should wake the service up and
+             * allow us to catch HEADSET_PLUG
+             */
+            Log.d(TAG, "Caught POWER_CONNECTED_INTENT");
+            break;
+            
+         case ACTION_POWER_DISCONNECTED:
+            /*
+             * Do nothing - but this intent should wake the service up and
+             * allow us to refresh the icon if we were previously asleep
+             */
+            Log.d(TAG, "Caught POWER_DISCONNECTED_INTENT");
+            break;
+      }
+   }
 
    /**
     * Called when the service is destroyed (low memory conditions). We may miss

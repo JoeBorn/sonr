@@ -4,6 +4,9 @@
 #echo "pulling latest build from git..."
 #git pull origin master
 
+#remove the bin folder
+rm -rf bin
+
 #build and sign from source
 ant release
 

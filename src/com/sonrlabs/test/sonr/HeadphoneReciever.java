@@ -35,9 +35,6 @@ import android.util.Log;
 public class HeadphoneReciever
       extends BroadcastReceiver {
    private static final String TAG = HeadphoneReciever.class.getName();
-   public static final String HEADSET_PLUG_INTENT = "android.intent.action.HEADSET_PLUG";
-   public static final String ACTION_POWER_CONNECTED = "android.intent.action.ACTION_POWER_CONNECTED";
-   public static final String ACTION_POWER_DISCONNECTED = "android.intent.action.ACTION_POWER_DISCONNECTED";
 
    @Override
    public void onReceive(Context context, Intent intent) {

@@ -19,7 +19,7 @@ public class BootIntentReceiver
             Log.d(TAG, "Boot Intent Received");
             // Intent i = new Intent(context, BootIntentHandler.class);
             // context.startActivity(i);
-            if (!ToggleSONR.SERVICE_ON) {
+            if (!ToggleSONR.isServiceOn()) {
                Intent i = new Intent(context, ToggleSONR.class);
                context.startService(i);
             }

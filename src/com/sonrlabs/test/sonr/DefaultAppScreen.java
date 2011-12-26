@@ -41,7 +41,7 @@ public class DefaultAppScreen
    }
 
    public void buttonContinue(View view) {
-      if (!ToggleSONR.SERVICE_ON) {
+      if (!ToggleSONR.isServiceOn()) {
          Intent i = new Intent(this, ToggleSONR.class);
          startService(i);
       }

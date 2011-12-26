@@ -152,7 +152,7 @@ public class SONR
          SharedPreferences sharedPreferences = getSharedPreferences(SONR.SHARED_PREFERENCES, 0);
          sharedPreferences.edit().putInt("savedNotificationVolume", savedNotificationVolume).commit();
 
-         if (!ToggleSONR.SERVICE_ON) {
+         if (!ToggleSONR.isServiceOn()) {
             Intent i = new Intent(this, ToggleSONR.class);
             startService(i);
          }

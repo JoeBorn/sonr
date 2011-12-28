@@ -49,14 +49,7 @@ public class SONRClient
    }
 
    void searchSignal() {
-      int i = 0;
-      while (i < 5) {
-         Log.d("searching...", Integer.toString(i));
-         if (singletonListener.foundDock()) {
-            break;
-         }
-         i++;
-      }
+      singletonListener.searchSignal();
    }
 
    void startListener() {

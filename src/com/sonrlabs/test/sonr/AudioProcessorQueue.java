@@ -10,21 +10,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-import android.content.Context;
-import android.media.AudioManager;
-
 /**
  *  Queue requests, process them in sequence in a task.
- *  Strict static singleton thread.
  */
 final class AudioProcessorQueue
       extends Thread {
    
-   private static final AudioProcessorQueue singleton = new AudioProcessorQueue(20);
-
-   private UserActionHandler actionHandler;
-   private SampleSupport sampleSupport;
-   private AudioProcessor processor = new AudioProcessor(sampleSupport);
+   static final AudioProcessorQueue singleton = new AudioProcessorQueue(20);
+   
+   private IUserActionHandler actionHandler;
+   
    private final Queue<ISampleBuffer> queuedBuffers = new LinkedList<ISampleBuffer>();
    private final int capacity;
    private final Object lock = "queue-lock";
@@ -36,7 +31,17 @@ final class AudioProcessorQueue
       start();
    }
    
-   private boolean push(ISampleBuffer buffer) {
+   void setUserActionHandler(IUserActionHandler handler) {
+      actionHandler = handler;
+   }
+   
+   void processAction(int actionCode) {
+      if (actionHandler != null) {
+         actionHandler.processAction(actionCode);
+      }
+   }
+   
+   boolean push(ISampleBuffer buffer) {
       synchronized (lock) {
          if (queuedBuffers.size() == capacity) {
             android.util.Log.w(getClass().getName(), "Queue capacity exceeded");
@@ -66,18 +71,10 @@ final class AudioProcessorQueue
             pending.addAll(queuedBuffers);
             queuedBuffers.clear();
          }
-         processor.processSamples(pending, actionHandler);
+         for (ISampleBuffer buffer : pending) {
+             AudioProcessor.runAudioProcessor(buffer);
+         }
          pending.clear();
       }
-   }
-
-   static void init(AudioManager theAudioManager, Context ctx, SampleSupport sampleSupport) {
-       singleton.actionHandler = new UserActionHandler(theAudioManager,ctx);
-       singleton.sampleSupport = sampleSupport;
-       singleton.processor = new AudioProcessor(sampleSupport);
-   }
-
-   static void addSamples(ISampleBuffer samples) {
-      singleton.push(samples);
    }
 }

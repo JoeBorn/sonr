@@ -16,6 +16,8 @@ import android.util.Log;
  */
 final class SampleSupport {
    
+   static final SampleSupport singleton = new SampleSupport();
+   
    private static final String TAG = SampleSupport.class.getSimpleName();
    
    private static final short SERIAL_TRANSMITTER_BAUD = 2400;
@@ -45,6 +47,9 @@ final class SampleSupport {
    private final int[] byteInDec = new int[MAX_TRANSMISSIONS * 3];
    private final int[][] sloc = new int[MAX_TRANSMISSIONS][3];
 
+   
+   private SampleSupport() {
+   }
    
    /**
     * This is the entry point for {@link MicSerialListener}.
@@ -194,10 +199,10 @@ final class SampleSupport {
    /**
     *  This is the entry point for {@link AudioProcessor}.
     */
-   void nextSample(int numSamples, short[] sample_buf, IUserActionHandler actionHandler) {
+   void nextSample(int numSamples, short[] sample_buf) {
       int sampleLocSize = processorFindSample(numSamples, sample_buf);
       if (sampleLocSize > 0) {
-         processSample(sampleLocSize, numSamples, sample_buf, actionHandler);
+         processSample(sampleLocSize, numSamples, sample_buf);
       }
    }
 
@@ -312,7 +317,7 @@ final class SampleSupport {
       return samplelocsize;
    }
 
-   private void processSample(int sampleLocSize, int numSamples, short[] sample_buf, IUserActionHandler actionHandler) {
+   private void processSample(int sampleLocSize, int numSamples, short[] sample_buf) {
       /* copy transmission down because the buffer could get overwritten */
       for (int j = 0; j < sampleLocSize; j++) {
          for (int i = 0; i < TRANSMISSION_LENGTH; i++) {
@@ -380,9 +385,9 @@ final class SampleSupport {
              * receive byte using best two out of three.
              */
             if ((byteInDec[i] == byteInDec[i + 1] || byteInDec[i] == byteInDec[i + 2]) && byteInDec[i] != 0x27) {
-               actionHandler.processAction(byteInDec[i]);
+               AudioProcessorQueue.singleton.processAction(byteInDec[i]);
             } else if (byteInDec[i + 1] == byteInDec[i + 2] && byteInDec[i + 1] != 0x27) {
-               actionHandler.processAction(byteInDec[i + 1]);
+               AudioProcessorQueue.singleton.processAction(byteInDec[i + 1]);
             }
          }
       }

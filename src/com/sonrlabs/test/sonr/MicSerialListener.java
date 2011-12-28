@@ -37,11 +37,11 @@ public class MicSerialListener
          try {
             // set up recorder thread
             inStream.startRecording();
-            searchSignal();
          } catch (RuntimeException e) {
             e.printStackTrace();
             ErrorReporter.getInstance().handleException(e);
          }
+         searchSignal();
       } else {
          // LogFile.MakeLog("Failed to initialize AudioRecord");
          Log.d(TAG, "Failed to initialize AudioRecord");
@@ -96,7 +96,7 @@ public class MicSerialListener
       Log.d(TAG, "STOPPED");
    }
 
-   private void searchSignal() {
+   void searchSignal() {
       ISampleBuffer buffer = bufferPool.getBuffer(bufferSize);
       short[] samples = buffer.getArray();
       try {

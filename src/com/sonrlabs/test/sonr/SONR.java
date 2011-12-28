@@ -55,67 +55,41 @@ import com.sonrlabs.test.sonr.common.DialogCommon;
 public class SONR
       extends ListActivity {
 
-   private static final String TAG = SONR.class.getSimpleName();
    private static final String SAMPLE_URI = "\\";
    private static final String AUDIO_MIME_TYPE = "audio/*";
-   private static int DEBUG = 1;
-//   private static int RELEASE = 0;
-   private static int MODE = DEBUG;
-   
-   private static final int SAMPLE_RATE = 44100; // In Hz
-   
-   private static final short[] formats = {
-      AudioFormat.ENCODING_PCM_16BIT
-   };
-   
-   private static final short[] channels = {
-      AudioFormat.CHANNEL_CONFIGURATION_MONO,
-      AudioFormat.CHANNEL_IN_MONO,
-      AudioFormat.CHANNEL_CONFIGURATION_DEFAULT,
-      AudioFormat.CHANNEL_IN_DEFAULT
-   };
-   
-   static final String DOCK_NOT_FOUND = "DOCK NOT FOUND";
-   static final String DOCK_FOUND = "DOCK FOUND";
-   static final String DOCK_NOT_FOUND_TRY_AGAIN = "Dock not detected, check connections and try again";
-   static final String OK_TXT = "Ok";
-   static final String SELECT_PLAYER = "Please select a music player";
-   static final String DEFAULT_PLAYER_SELECTED = "DEFAULT_PLAYER_SELECTED";
-   static final String APP_PACKAGE_NAME = "APP_PACKAGE_NAME";
-   static final String APP_FULL_NAME = "APP_FULL_NAME";
-   static final String PLAYER_SELECTED = "PLAYER_SELECTED";
-   static final String FIRST_LAUNCH = "FIRST_LAUNCH";
+   public static final String DOCK_NOT_FOUND = "DOCK NOT FOUND";
+   public static final String DOCK_FOUND = "DOCK FOUND";
+   public static final String DOCK_NOT_FOUND_TRY_AGAIN = "Dock not detected, check connections and try again";
+   public static final String OK_TXT = "Ok";
+   public static final String SELECT_PLAYER = "Please select a music player";
+   public static final String DEFAULT_PLAYER_SELECTED = "DEFAULT_PLAYER_SELECTED";
+   public static final String APP_PACKAGE_NAME = "APP_PACKAGE_NAME";
+   public static final String APP_FULL_NAME = "APP_FULL_NAME";
+   public static final String PLAYER_SELECTED = "PLAYER_SELECTED";
+   public static final String FIRST_LAUNCH = "FIRST_LAUNCH";
 
-   static final int SONR_ID = 1;
-   static int bufferSize = 0;
+   public static final String TAG = SONR.class.getSimpleName();
 
-   static boolean SONR_ON = false;
-   static boolean MAIN_SCREEN = false;
-   static final String DISCONNECT_ACTION = "android.intent.action.DISCONNECT_DOCK";
-   static final String SHARED_PREFERENCES = "SONRSharedPreferences";
+   public static int DEBUG = 1;
+//   public static int RELEASE = 0;
+   public static int MODE = DEBUG;
 
-
+   public static final int SAMPLE_RATE = 44100; // In Hz
+   public static final int SONR_ID = 1;
    private List<ApplicationInfo> infos = null;
    private int currentlySelectedApplicationInfoIndex;
    private SONRClient theclient;
+   public static int bufferSize = 0;
    private AudioRecord theaudiorecord = null;
    private AudioManager m_amAudioManager;
-
    private boolean isRegistered = false;
 
-   private PowerManager.WakeLock mWakeLock;
+   public static boolean SONR_ON = false;
+   public static boolean MAIN_SCREEN = false;
+   public static final String DISCONNECT_ACTION = "android.intent.action.DISCONNECT_DOCK";
+   public static final String SHARED_PREFERENCES = "SONRSharedPreferences";
 
-   private final BroadcastReceiver StopReceiver = new BroadcastReceiver() {
-      @Override
-      public void onReceive(Context context, Intent intent) {
-         // Handle reciever
-         String mAction = intent.getAction();
-   
-         if (DISCONNECT_ACTION.equals(mAction)) {
-            finish();
-         }
-      }
-   };
+   protected PowerManager.WakeLock mWakeLock;
 
    @Override
    public void onCreate(Bundle savedInstanceState) {
@@ -130,7 +104,7 @@ public class SONR
          currentlySelectedApplicationInfoIndex = -1;
 
          setContentView(R.layout.music_select_main);
-
+         
          if (isFirstLaunch()){
             //Show Intro screen
             Intent intent = new Intent(this, IntroScreen.class);
@@ -173,7 +147,7 @@ public class SONR
                   Toast.makeText(getApplicationContext(), DOCK_FOUND, Toast.LENGTH_SHORT).show();
                   theclient.startListener();
                   SONR_ON = true;
-                  connectNotify(getApplicationContext());
+                  MakeNotification(getApplicationContext());
 
                   Intent startMain = new Intent(Intent.ACTION_MAIN);
                   startMain.addCategory(Intent.CATEGORY_HOME);
@@ -192,13 +166,18 @@ public class SONR
             if (theaudiorecord != null) {
                theaudiorecord.release();
             }
-         }
+         } 
       } catch (Exception e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       }
    }
 
+   private boolean isFirstLaunch() {
+      // Restore preferences
+      return Common.get(this, SONR.FIRST_LAUNCH, true);
+   }
+   
    @Override
    protected void onListItemClick(ListView listView, View clickedView, int position, long id) {
       super.onListItemClick(listView, clickedView, position, id);
@@ -216,7 +195,6 @@ public class SONR
       listView.invalidateViews();
    }
 
-   /** Who uses this? */
    public void buttonOK(View view) {
       try {
          if (!Common.get(this, SONR.PLAYER_SELECTED, false) && !Common.get(this, SONR.DEFAULT_PLAYER_SELECTED, false)) {
@@ -246,6 +224,27 @@ public class SONR
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       }
+   }
+
+   private static void MakeNotification(Context ctx) {
+      String ns = Context.NOTIFICATION_SERVICE;
+      NotificationManager mNotificationManager = (NotificationManager) ctx.getSystemService(ns);
+
+      int icon = R.drawable.sonr_icon;
+      CharSequence tickerText = "SONR Connected";
+      long when = System.currentTimeMillis();
+
+      Notification notification = new Notification(icon, tickerText, when);
+      notification.flags |= Notification.FLAG_NO_CLEAR;
+
+      CharSequence contentTitle = TAG;
+      CharSequence contentText = "Disconnect from dock";
+      Intent notificationIntent = new Intent(ctx, StopSONR.class);
+      PendingIntent contentIntent = PendingIntent.getActivity(ctx, 0, notificationIntent, 0);
+
+      notification.setLatestEventInfo(ctx, contentTitle, contentText, contentIntent);
+
+      mNotificationManager.notify(SONR_ID, notification);
    }
 
    @Override
@@ -324,6 +323,28 @@ public class SONR
       }
    }
 
+   private static List<ResolveInfo> findActivitiesForPackage(Context context, String packageName) {
+      final PackageManager packageManager = context.getPackageManager();
+
+      final Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
+      mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+
+      final List<ResolveInfo> apps = packageManager.queryIntentActivities(mainIntent, 0);
+      final List<ResolveInfo> matches = new ArrayList<ResolveInfo>();
+
+      if (apps != null) {
+         // Find all activities that match the packageName
+         for (ResolveInfo info : apps) {
+            ActivityInfo activityInfo = info.activityInfo;
+            if (packageName.equals(activityInfo.packageName)) {
+               matches.add(info);
+            }
+         }
+      }
+
+      return matches;
+   }
+
    @Override
    public boolean onCreateOptionsMenu(Menu menu) {
       boolean showMenu = super.onCreateOptionsMenu(menu);
@@ -356,34 +377,7 @@ public class SONR
       return true;
    }
 
-   private boolean isFirstLaunch() {
-      // Restore preferences
-      return Common.get(this, SONR.FIRST_LAUNCH, true);
-   }
-
-   private List<ResolveInfo> findActivitiesForPackage(Context context, String packageName) {
-      final PackageManager packageManager = context.getPackageManager();
-   
-      final Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
-      mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-   
-      final List<ResolveInfo> apps = packageManager.queryIntentActivities(mainIntent, 0);
-      final List<ResolveInfo> matches = new ArrayList<ResolveInfo>();
-   
-      if (apps != null) {
-         // Find all activities that match the packageName
-         for (ResolveInfo info : apps) {
-            ActivityInfo activityInfo = info.activityInfo;
-            if (packageName.equals(activityInfo.packageName)) {
-               matches.add(info);
-            }
-         }
-      }
-   
-      return matches;
-   }
-
-   static List<ApplicationInfo> convert(Context c, Collection<ResolveInfo> infos) {
+   public static List<ApplicationInfo> convert(Context c, Collection<ResolveInfo> infos) {
       final List<ApplicationInfo> result = new ArrayList<ApplicationInfo>();
 
       final Set<ApplicationInfo> apps = new HashSet<ApplicationInfo>();
@@ -417,28 +411,7 @@ public class SONR
       return result;
    }
 
-   private static void connectNotify(Context ctx) {
-      String ns = Context.NOTIFICATION_SERVICE;
-      NotificationManager mNotificationManager = (NotificationManager) ctx.getSystemService(ns);
-   
-      int icon = R.drawable.sonr_icon;
-      CharSequence tickerText = "SONR Connected";
-      long when = System.currentTimeMillis();
-   
-      Notification notification = new Notification(icon, tickerText, when);
-      notification.flags |= Notification.FLAG_NO_CLEAR;
-   
-      CharSequence contentTitle = TAG;
-      CharSequence contentText = "Disconnect from dock";
-      Intent notificationIntent = new Intent(ctx, StopSONR.class);
-      PendingIntent contentIntent = PendingIntent.getActivity(ctx, 0, notificationIntent, 0);
-   
-      notification.setLatestEventInfo(ctx, contentTitle, contentText, contentIntent);
-   
-      mNotificationManager.notify(SONR_ID, notification);
-   }
-
-   static Collection<ResolveInfo> findActivities(Context context) {
+   public static Collection<ResolveInfo> findActivities(Context context) {
       Map<String, ResolveInfo> finalMap = new HashMap<String, ResolveInfo>();
 
       final PackageManager packageManager = context.getPackageManager();
@@ -467,57 +440,11 @@ public class SONR
 
       return finalMap.values();
    }
-  
-   static AudioRecord findAudioRecord() {
-      // AudioRecord.java:467 PCM_8BIT not supported at the moment
-      for (short audioFormat : formats) {
-         for (short channelConfig : channels) {
-            try {
-               if (MODE > 0) {
-                  Log.d(TAG, "Attempting rate " + SAMPLE_RATE + "Hz, bits: " + audioFormat + ", channel: " + channelConfig);
-               }
-   
-               bufferSize = 3 * AudioRecord.getMinBufferSize(SAMPLE_RATE, channelConfig, audioFormat);
-   
-               if (bufferSize != AudioRecord.ERROR_BAD_VALUE) {
-                  // check if we can instantiate and have a success
-                  AudioRecord recorder = new AudioRecord(AudioSource.DEFAULT, SAMPLE_RATE, channelConfig, audioFormat, bufferSize);
-   
-                  if (recorder.getState() == AudioRecord.STATE_INITIALIZED) {
-                     return recorder;
-                  }
-               }
-            } catch (RuntimeException e) {
-               if (MODE > 0) {
-                  Log.v(TAG, "Unable to allocate for: " + SAMPLE_RATE + "Hz, bits: " + audioFormat + ", channel: " + channelConfig);
-                  Log.e(TAG, "Exception " + e);
-               }
-            }
-         }
-      }
-      return null;
-   }
-
-   static void Start(Context context, boolean defaultplayer) {
-      Common.save(context, SONR.DEFAULT_PLAYER_SELECTED, defaultplayer);
-   
-      SONR_ON = true;
-      connectNotify(context);
-   
-      if (Common.get(context, SONR.PLAYER_SELECTED, false)) {
-         Intent mediaApp = new Intent();
-         mediaApp.setClassName(Common.get(context, SONR.APP_PACKAGE_NAME, Common.N_A),
-                               Common.get(context, SONR.APP_FULL_NAME, Common.N_A));
-         mediaApp.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-         context.startActivity(mediaApp);
-      }
-   }
 
    private class AppInfoAdapter
          extends BaseAdapter {
       public List<ApplicationInfo> ApplicationInfos = new ArrayList<ApplicationInfo>();
       private final LayoutInflater mInflater;
-
       private final PackageManager pm;
 
       public AppInfoAdapter(Context c) {
@@ -566,5 +493,69 @@ public class SONR
          return convertView;
       }
 
+   }
+
+   private final BroadcastReceiver StopReceiver = new BroadcastReceiver() {
+      @Override
+      public void onReceive(Context context, Intent intent) {
+         // Handle reciever
+         String mAction = intent.getAction();
+
+         if (DISCONNECT_ACTION.equals(mAction)) {
+            finish();
+         }
+      }
+   };
+
+   public static void Start(Context context, boolean defaultplayer) {
+      Common.save(context, SONR.DEFAULT_PLAYER_SELECTED, defaultplayer);
+
+      SONR_ON = true;
+      MakeNotification(context);
+
+      if (Common.get(context, SONR.PLAYER_SELECTED, false)) {
+         Intent mediaApp = new Intent();
+         mediaApp.setClassName(Common.get(context, SONR.APP_PACKAGE_NAME, Common.N_A),
+                               Common.get(context, SONR.APP_FULL_NAME, Common.N_A));
+         mediaApp.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+         context.startActivity(mediaApp);
+      }
+   }
+
+   public static AudioRecord findAudioRecord() {
+      // AudioRecord.java:467 PCM_8BIT not supported at the moment
+      for (short audioFormat : new short[] { /* AudioFormat.ENCODING_PCM_8BIT, */
+         AudioFormat.ENCODING_PCM_16BIT
+      }) {
+         for (short channelConfig : new short[] {
+            AudioFormat.CHANNEL_CONFIGURATION_MONO,
+            AudioFormat.CHANNEL_IN_MONO,
+            AudioFormat.CHANNEL_CONFIGURATION_DEFAULT,
+            AudioFormat.CHANNEL_IN_DEFAULT
+         }) {
+            try {
+               if (MODE > 0) {
+                  Log.d(TAG, "Attempting rate " + SAMPLE_RATE + "Hz, bits: " + audioFormat + ", channel: " + channelConfig);
+               }
+
+               bufferSize = 3 * AudioRecord.getMinBufferSize(SAMPLE_RATE, channelConfig, audioFormat);
+
+               if (bufferSize != AudioRecord.ERROR_BAD_VALUE) {
+                  // check if we can instantiate and have a success
+                  AudioRecord recorder = new AudioRecord(AudioSource.DEFAULT, SAMPLE_RATE, channelConfig, audioFormat, bufferSize);
+
+                  if (recorder.getState() == AudioRecord.STATE_INITIALIZED) {
+                     return recorder;
+                  }
+               }
+            } catch (Exception e) {
+               if (MODE > 0) {
+                  Log.v(TAG, "Unable to allocate for: " + SAMPLE_RATE + "Hz, bits: " + audioFormat + ", channel: " + channelConfig);
+                  Log.e(TAG, "Exception " + e);
+               }
+            }
+         }
+      }
+      return null;
    }
 }

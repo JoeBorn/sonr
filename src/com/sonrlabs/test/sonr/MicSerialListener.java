@@ -62,8 +62,13 @@ public class MicSerialListener
             if (numSamples > 0) {
                /* if there are samples and not waiting */
                samples.setNumberOfSamples(numSamples);
-               AudioProcessorQueue.singleton.push(samples);
-               samples = bufferPool.getBuffer(bufferSize);
+               if (AudioProcessorQueue.singleton.push(samples)) {
+                  /*
+                   * Grab a new buffer from the pool if the current buffer was
+                   * successfully queued. Otherwise reuse it.
+                   */
+                  samples = bufferPool.getBuffer(bufferSize);
+               }
             }
             try {
                Thread.sleep(100);

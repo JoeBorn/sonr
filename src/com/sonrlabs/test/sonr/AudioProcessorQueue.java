@@ -74,6 +74,11 @@ final class AudioProcessorQueue
          for (ISampleBuffer buffer : pending) {
              AudioProcessor.runAudioProcessor(buffer);
          }
+         /*
+          * Yield here so we don't starve other threads. This can lead to
+          * delayed reponse to remote-control operations, don't use this unless
+          * we really have to.
+          */
          pending.clear();
       }
    }

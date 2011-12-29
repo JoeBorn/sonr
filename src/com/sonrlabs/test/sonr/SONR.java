@@ -302,7 +302,14 @@ public class SONR
          m_amAudioManager = (AudioManager) SONR.this.getSystemService(Context.AUDIO_SERVICE);
       }
       m_amAudioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 1, AudioManager.FLAG_VIBRATE);
-
+      
+      if(theaudiorecord == null)
+      {
+         theaudiorecord = findAudioRecord();
+         theclient = new SONRClient(this, theaudiorecord, bufferSize, m_amAudioManager);
+         theclient.onCreate();
+      }
+         
       // LogFile.MakeLog("SONR resumed");
       // if(!isRegistered) {
       // registerReceiver(StopReceiver, new IntentFilter(DISCONNECT_ACTION));

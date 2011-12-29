@@ -18,6 +18,7 @@ final class AudioProcessorQueue
    
    static final AudioProcessorQueue singleton = new AudioProcessorQueue(20);
    
+   private final AudioProcessor processor = new AudioProcessor();
    private IUserActionHandler actionHandler;
    
    private final Queue<ISampleBuffer> queuedBuffers = new LinkedList<ISampleBuffer>();
@@ -72,7 +73,7 @@ final class AudioProcessorQueue
             queuedBuffers.clear();
          }
          for (ISampleBuffer buffer : pending) {
-             AudioProcessor.runAudioProcessor(buffer);
+             processor.nextSample(buffer);
          }
          /*
           * Yield here so we don't starve other threads. This can lead to

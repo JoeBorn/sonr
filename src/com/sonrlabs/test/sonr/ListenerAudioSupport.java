@@ -8,27 +8,19 @@ package com.sonrlabs.test.sonr;
 import android.util.Log;
 
 /**
- * Sampling support.
- * 
- * Two sets of methods for now, one used by {@link MicSerialListener} the other
- * used by {@link AudioProcessor}. They should share code at some point.
+ * Messy signal processing used by {@link MicSerialListener} to find
+ * and sync up with the dock.
  * 
  */
 final class ListenerAudioSupport
       implements AudioSupportConstants {
    
-   static final ListenerAudioSupport singleton = new ListenerAudioSupport();
-   
    private static final String TAG = ListenerAudioSupport.class.getSimpleName();
-   
    
    private int SIGNAL_MAX_SUM = 0;
    private final int[] movingsum = new int[TRANSMISSION_LENGTH];
    private final int[] movingbuf = new int[9];
 
-   
-   private ListenerAudioSupport() {
-   }
    
    /**
     * This is the entry point for {@link MicSerialListener}.

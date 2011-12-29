@@ -6,17 +6,13 @@
 package com.sonrlabs.test.sonr;
 
 /**
- * Sampling support.
- * 
- * Two sets of methods for now, one used by {@link MicSerialListener} the other
- * used by {@link AudioProcessor}. They should share code at some point.
+ * Messy audio signal processing used by {@link AudioProcessor} to detect user
+ * signals from the remote.
  * 
  */
-final class SampleSupport
+final class AudioProcessorSupport
       implements AudioSupportConstants {
-   
-   static final SampleSupport singleton = new SampleSupport();
-   
+
    private boolean preambleIsCutOff = false;
    private int preambleOffset = 0;
    private int signalMaxSum = 0;
@@ -26,13 +22,15 @@ final class SampleSupport
    private final int[][] trans_buf = new int[MAX_TRANSMISSIONS * 3][TRANSMISSION_LENGTH + BIT_OFFSET];
    private final int[] byteInDec = new int[MAX_TRANSMISSIONS * 3];
    private final int[][] sloc = new int[MAX_TRANSMISSIONS][3];
-
-   
-   private SampleSupport() {
-   }
    
    /**
-    *  This is the entry point for {@link AudioProcessor}.
+    * This is the entry point for {@link AudioProcessor}. It looks for a
+    * user-initiated signal (from the remote control) and processes it if it
+    * finds one.
+    * 
+    * FIXME: This will occasionally 'detect' a signal when there wasn't one.
+    * 
+    * TODO: Find out when and why that happens,
     */
    void nextSample(int numSamples, short[] sample_buf) {
       int sampleLocSize = processorFindSample(numSamples, sample_buf);

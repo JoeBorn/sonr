@@ -13,8 +13,17 @@ public class MicSerialListener
       implements Runnable {
    private static final String TAG = "MicSerialListener";
 
-   /* Just one reusable thread. */
+   /*
+    * Just one reusable thread since we only start a new one after killing the
+    * existing one.
+    */
    private static final ExecutorService executor = Executors.newFixedThreadPool(1);
+   
+   /*
+    * One instance shared by each listener, only one of which is active at any
+    * given time.  Is this safe?
+    */
+   private static final ListenerAudioSupport support = new ListenerAudioSupport();
 
    static void  startNewListener(MicSerialListener listener) {
       executor.execute(listener);
@@ -112,7 +121,7 @@ public class MicSerialListener
             while (inStream != null && !foundDock && SystemClock.elapsedRealtime() <= endTime) {
                int numSamples = inStream.read(samples, 0, bufferSize);
                if (numSamples > 0) {
-                  foundDock = ListenerAudioSupport.singleton.autoGainControl(samples, numSamples);
+                  foundDock = support.autoGainControl(samples, numSamples);
                } else {
                   problem = true;
                }

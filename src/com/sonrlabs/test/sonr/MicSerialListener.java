@@ -112,7 +112,7 @@ public class MicSerialListener
             while (inStream != null && !foundDock && SystemClock.elapsedRealtime() <= endTime) {
                int numSamples = inStream.read(samples, 0, bufferSize);
                if (numSamples > 0) {
-                  foundDock = SampleSupport.singleton.autoGainControl(samples, numSamples);
+                  foundDock = ListenerAudioSupport.singleton.autoGainControl(samples, numSamples);
                } else {
                   problem = true;
                }

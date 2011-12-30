@@ -67,10 +67,10 @@ public class MicSerialListener
       try {
          while (running) {
             // Log.d("SONR audio processor", "NEW RECORDING");
-            int numSamples = inStream.read(samples.getArray(), 0, bufferSize);
-            if (numSamples > 0) {
+            int count = inStream.read(samples.getArray(), 0, bufferSize);
+            if (count > 0) {
                /* if there are samples and not waiting */
-               samples.setNumberOfSamples(numSamples);
+               samples.setCount(count);
                if (AudioProcessorQueue.singleton.push(samples)) {
                   /*
                    * Grab a new buffer from the pool if the current buffer was
@@ -119,9 +119,9 @@ public class MicSerialListener
          boolean problem = false;
          synchronized (searchLock) {
             while (inStream != null && !foundDock && SystemClock.elapsedRealtime() <= endTime) {
-               int numSamples = inStream.read(samples, 0, bufferSize);
-               if (numSamples > 0) {
-                  foundDock = support.autoGainControl(samples, numSamples);
+               int count = inStream.read(samples, 0, bufferSize);
+               if (count > 0) {
+                  foundDock = support.autoGainControl(samples, count);
                } else {
                   problem = true;
                }

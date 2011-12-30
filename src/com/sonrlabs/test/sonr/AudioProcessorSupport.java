@@ -18,10 +18,10 @@ final class AudioProcessorSupport
    private int signalMaxSum = 0;
    
    private final int[] movingsum = new int[TRANSMISSION_LENGTH];
-   private final int[] movingbuf = new int[9];
-   private final int[][] trans_buf = new int[MAX_TRANSMISSIONS * 3][TRANSMISSION_LENGTH + BIT_OFFSET];
-   private final int[] byteInDec = new int[MAX_TRANSMISSIONS * 3];
-   private final int[][] sloc = new int[MAX_TRANSMISSIONS][3];
+   private final int[] movingbuf = new int[MOVING_SIZE];
+   private final int[][] trans_buf = new int[MAX_TRANSMISSIONS * SAMPLES_PER_BUFFER][TRANSMISSION_LENGTH + BIT_OFFSET];
+   private final int[] byteInDec = new int[MAX_TRANSMISSIONS * SAMPLES_PER_BUFFER];
+   private final int[][] sloc = new int[MAX_TRANSMISSIONS][SAMPLES_PER_BUFFER];
    
    /**
     * This is the entry point for {@link AudioProcessor}. It looks for a
@@ -32,59 +32,59 @@ final class AudioProcessorSupport
     * 
     * TODO: Find out when and why that happens,
     */
-   void nextSample(int numSamples, short[] sample_buf) {
-      int sampleLocSize = processorFindSample(numSamples, sample_buf);
+   void nextSample(int count, short[] sample_buf) {
+      int sampleLocSize = findSample(count, sample_buf);
       if (sampleLocSize > 0) {
-         processSample(sampleLocSize, numSamples, sample_buf);
+         processSample(sampleLocSize, count, sample_buf);
       }
    }
 
-   private int processorFindSample(int numSamples, short[] sample_buf) {
-      int count = 0;
+   private int findSample(int count, short[] sample_buf) {
+      int currentIndex = 0;
       int arraypos;
       int numfoundsamples = 0;
 
       if (preambleIsCutOff) {
          sloc[numfoundsamples++][0] = preambleOffset;
          preambleIsCutOff = false;
-         count += SAMPLE_LENGTH + END_OFFSET;
+         currentIndex += SAMPLE_LENGTH + END_OFFSET;
          // Log.d(TAG, "PREAMBLE CUT OFF BEGIN");
       } else {
-         count = SAMPLE_LENGTH;
+         currentIndex = SAMPLE_LENGTH;
       }
 
-      while (count < numSamples - 1) {
+      while (currentIndex < count - 1) {
          /* 1. find where the PSK signals begin */
-         if (Math.abs(sample_buf[count] - sample_buf[count + 1]) > THRESHOLD) {
-            if (count >= SAMPLE_LENGTH && count < SAMPLE_LENGTH * 2 && numfoundsamples == 0) {
-               count -= SAMPLE_LENGTH;
-               while (Math.abs(sample_buf[count] - sample_buf[count + 1]) < THRESHOLD) {
-                  count++;
+         if (Math.abs(sample_buf[currentIndex] - sample_buf[currentIndex + 1]) > THRESHOLD) {
+            if (currentIndex >= SAMPLE_LENGTH && currentIndex < SAMPLE_LENGTH * 2 && numfoundsamples == 0) {
+               currentIndex -= SAMPLE_LENGTH;
+               while (Math.abs(sample_buf[currentIndex] - sample_buf[currentIndex + 1]) < THRESHOLD) {
+                  currentIndex++;
                }
             }
-            if (count + PREAMBLE >= numSamples) {
+            if (currentIndex + PREAMBLE >= count) {
                // Log.d(TAG, "PREAMBLE CUT OFF");
-               if (count + BEGIN_OFFSET <= numSamples) {
+               if (currentIndex + BEGIN_OFFSET <= count) {
                   preambleOffset = 0;
                } else {
-                  preambleOffset = count + BEGIN_OFFSET - numSamples;
+                  preambleOffset = currentIndex + BEGIN_OFFSET - count;
                }
                preambleIsCutOff = true;
                break;
             } else {
                /* preamble not cut off */
-               sloc[numfoundsamples++][0] = count + BEGIN_OFFSET;
+               sloc[numfoundsamples++][0] = currentIndex + BEGIN_OFFSET;
                if (numfoundsamples >= MAX_TRANSMISSIONS) {
                   break;
                }
-               count += SAMPLE_LENGTH + END_OFFSET;
+               currentIndex += SAMPLE_LENGTH + END_OFFSET;
             }
          }
-         count++;
+         currentIndex++;
       }
 
       if (numfoundsamples > 0) {
-         processorAGC(sample_buf);
+         autoGainControl(sample_buf);
       }
 
       int numsampleloc = 0;
@@ -96,33 +96,33 @@ final class AudioProcessorSupport
           */
          arraypos = 0;
          movingsum[0] = 0;
-         for (int i = sloc[n][0]; i < sloc[n][0] + 9; i++) {
+         for (int i = sloc[n][0]; i < sloc[n][0] + MOVING_SIZE; i++) {
             movingbuf[i - sloc[n][0]] = sample_buf[i];
             movingsum[0] += sample_buf[i];
          }
-         for (int i = sloc[n][0] + 9; i < sloc[n][0] + SAMPLE_LENGTH - BIT_OFFSET; i++) {
+         for (int i = sloc[n][0] + MOVING_SIZE; i < sloc[n][0] + SAMPLE_LENGTH - BIT_OFFSET; i++) {
             movingsum[1] = movingsum[0] - movingbuf[arraypos];
             movingsum[1] += sample_buf[i];
             movingbuf[arraypos] = sample_buf[i];
             arraypos++;
-            if (arraypos == 9) {
+            if (arraypos == MOVING_SIZE) {
                arraypos = 0;
             }
 
             if (isPhase(movingsum[0], movingsum[1], signalMaxSum)) {
-               sloc[numsampleloc / 3][numsampleloc % 3] = i - 5;
+               sloc[numsampleloc / SAMPLES_PER_BUFFER][numsampleloc % SAMPLES_PER_BUFFER] = i - 5;
 
                samplelocsize = ++numsampleloc;
-               if (numsampleloc >= MAX_TRANSMISSIONS * 3) {
+               if (numsampleloc >= MAX_TRANSMISSIONS * SAMPLES_PER_BUFFER) {
                   return samplelocsize;
                }
                /* next transmission */
                i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1;
-               sloc[numsampleloc / 3][numsampleloc % 3] = i;
+               sloc[numsampleloc / SAMPLES_PER_BUFFER][numsampleloc % SAMPLES_PER_BUFFER] = i;
                ++numsampleloc;
                /* next transmission */
                i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1;
-               sloc[numsampleloc / 3][numsampleloc % 3] = i;
+               sloc[numsampleloc / SAMPLES_PER_BUFFER][numsampleloc % SAMPLES_PER_BUFFER] = i;
                samplelocsize = ++numsampleloc;
 
                /*
@@ -138,7 +138,7 @@ final class AudioProcessorSupport
                 * MicSerialListener.BEGIN_OFFSET;
                 * 
                 * movingsum[0] = 0; //re-set up the variables to continue
-                * searching for signals arraypos = 0; for(int t = i; t < i + 9;
+                * searching for signals arraypos = 0; for(int t = i; t < i + MAGIC_9;
                 * t++) { movingbuf[t - i] = sample_buf[t]; movingsum[0] +=
                 * sample_buf[t]; } i += 4;
                 */
@@ -150,12 +150,12 @@ final class AudioProcessorSupport
       return samplelocsize;
    }
 
-   private void processSample(int sampleLocSize, int numSamples, short[] sample_buf) {
+   private void processSample(int sampleLocSize, int count, short[] sample_buf) {
       /* copy transmission down because the buffer could get overwritten */
       for (int j = 0; j < sampleLocSize; j++) {
          for (int i = 0; i < TRANSMISSION_LENGTH; i++) {
-            if (sloc[j / 3][j % 3] + i < numSamples) {
-               trans_buf[j][i] = sample_buf[sloc[j / 3][j % 3] + i];
+            if (sloc[j / SAMPLES_PER_BUFFER][j % SAMPLES_PER_BUFFER] + i < count) {
+               trans_buf[j][i] = sample_buf[sloc[j / SAMPLES_PER_BUFFER][j % SAMPLES_PER_BUFFER] + i];
             }
          }
       }
@@ -165,17 +165,17 @@ final class AudioProcessorSupport
       for (int s = 0; s < sampleLocSize; s++) {
          int arraypos = 0;
          movingsum[0] = 0;
-         for (int i = 0; i < 9; i++) {
+         for (int i = 0; i < MOVING_SIZE; i++) {
             movingbuf[i] = trans_buf[s][i];
             movingsum[0] += trans_buf[s][i];
          }
 
-         for (int i = 9; i < TRANSMISSION_LENGTH; i++) {
+         for (int i = MOVING_SIZE; i < TRANSMISSION_LENGTH; i++) {
             movingsum[i] = movingsum[i - 1] - movingbuf[arraypos];
             movingsum[i] += trans_buf[s][i];
             movingbuf[arraypos] = trans_buf[s][i];
             arraypos++;
-            if (arraypos == 9) {
+            if (arraypos == MOVING_SIZE) {
                arraypos = 0;
             }
          }
@@ -206,41 +206,44 @@ final class AudioProcessorSupport
          // Log.d(TAG, "TRANSMISSION[" + s + "]: " + "0x"+
          // Integer.toHexString(byteInDec[s]));
 
-         // if(byteInDec[s] != 0x27 || samplelocsize < 3) {
+         // if(byteInDec[s] != BOUND || samplelocsize < SAMPLE_CHUNK_COUNT) {
          // Log.d(TAG, "--------------");
          // }
       }
 
       if (sampleLocSize > 1) {
          /* 2 or more */
-         for (int i = 0; i < sampleLocSize; i += 3) {
+         for (int i = 0; i < sampleLocSize; i += SAMPLES_PER_BUFFER) {
             /*
              * receive byte using best two out of three.
              */
-            if ((byteInDec[i] == byteInDec[i + 1] || byteInDec[i] == byteInDec[i + 2]) && byteInDec[i] != 0x27) {
-               AudioProcessorQueue.singleton.processAction(byteInDec[i]);
-            } else if (byteInDec[i + 1] == byteInDec[i + 2] && byteInDec[i + 1] != 0x27) {
-               AudioProcessorQueue.singleton.processAction(byteInDec[i + 1]);
+            int byte0 = byteInDec[i];
+            int byte1 = byteInDec[i + 1];
+            int byte2 = byteInDec[i + 2];
+            if ((byte0 == byte1 || byte0 == byte2) && byte0 != BOUNDARY) {
+               AudioProcessorQueue.singleton.processAction(byte0);
+            } else if (byte1 == byte2 && byte1 != BOUNDARY) {
+               AudioProcessorQueue.singleton.processAction(byte1);
             }
          }
       }
    }
 
-   private void processorAGC(short[] sample_buf) {
+   private void autoGainControl(short[] sample_buf) {
       signalMaxSum = 0;
       int arraypos = 0;
       int startpos = sloc[0][0];
       movingsum[0] = 0;
-      for (int i = startpos; i < startpos + 9; i++) {
+      for (int i = startpos; i < startpos + MOVING_SIZE; i++) {
          movingbuf[i - startpos] = sample_buf[i];
          movingsum[0] += sample_buf[i];
       }
-      for (int i = startpos + 9; i < startpos + PREAMBLE - BEGIN_OFFSET + 3 * (TRANSMISSION_LENGTH + BIT_OFFSET); i++) {
+      for (int i = startpos + MOVING_SIZE; i < startpos + PREAMBLE - BEGIN_OFFSET + SAMPLES_PER_BUFFER * (TRANSMISSION_LENGTH + BIT_OFFSET); i++) {
          movingsum[1] = movingsum[0] - movingbuf[arraypos];
          movingsum[1] += sample_buf[i];
          movingbuf[arraypos] = sample_buf[i];
          arraypos++;
-         if (arraypos == 9) {
+         if (arraypos == MOVING_SIZE) {
             arraypos = 0;
          }
 

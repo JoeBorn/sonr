@@ -550,7 +550,7 @@ public class SONR
                   Log.d(TAG, "Attempting rate " + SAMPLE_RATE + "Hz, bits: " + audioFormat + ", channel: " + channelConfig);
                }
 
-               bufferSize = 3 * AudioRecord.getMinBufferSize(SAMPLE_RATE, channelConfig, audioFormat);
+               bufferSize = AudioSupportConstants.SAMPLES_PER_BUFFER * AudioRecord.getMinBufferSize(SAMPLE_RATE, channelConfig, audioFormat);
 
                if (bufferSize != AudioRecord.ERROR_BAD_VALUE) {
                   // check if we can instantiate and have a success

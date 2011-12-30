@@ -19,23 +19,23 @@ final class ListenerAudioSupport
    
    private int SIGNAL_MAX_SUM = 0;
    private final int[] movingsum = new int[TRANSMISSION_LENGTH];
-   private final int[] movingbuf = new int[9];
+   private final int[] movingbuf = new int[MOVING_SIZE];
 
    
    /**
     * This is the entry point for {@link MicSerialListener}.
     */
-   boolean autoGainControl(short[] samples, int numSamples) {
+   boolean autoGainControl(short[] samples, int count) {
 
       boolean found = false;
       int startpos = SAMPLE_LENGTH;
       int arraypos = 0;
-      int sampleloc[] = new int[3];
-      while (startpos < numSamples - 1 && Math.abs(samples[startpos] - samples[startpos + 1]) < THRESHOLD) {
+      int sampleloc[] = new int[SAMPLES_PER_BUFFER];
+      while (startpos < count - 1 && Math.abs(samples[startpos] - samples[startpos + 1]) < THRESHOLD) {
          startpos++;
       }
 
-      if (startpos < numSamples - 1 && startpos >= SAMPLE_LENGTH && startpos < SAMPLE_LENGTH * 2) {
+      if (startpos < count - 1 && startpos >= SAMPLE_LENGTH && startpos < SAMPLE_LENGTH * (SAMPLES_PER_BUFFER-1)) {
          startpos -= SAMPLE_LENGTH;
          while (Math.abs(samples[startpos] - samples[startpos + 1]) < THRESHOLD) {
             // && startpos < numSamples-1)
@@ -45,21 +45,21 @@ final class ListenerAudioSupport
 
       startpos += BEGIN_OFFSET;
 
-      if (startpos < numSamples - (SAMPLE_LENGTH - BEGIN_OFFSET)) {
+      if (startpos < count - (SAMPLE_LENGTH - BEGIN_OFFSET)) {
          Log.d(TAG, "Found a sample...");
 
          movingsum[0] = 0;
-         for (int i = startpos; i < startpos + 9; i++) {
+         for (int i = startpos; i < startpos + MOVING_SIZE; i++) {
             movingbuf[i - startpos] = samples[i];
             movingsum[0] += samples[i];
          }
          SIGNAL_MAX_SUM = 0;
-         for (int i = startpos + 9; i < startpos + PREAMBLE - BEGIN_OFFSET + 3 * (TRANSMISSION_LENGTH + BIT_OFFSET); i++) {
+         for (int i = startpos + MOVING_SIZE; i < startpos + PREAMBLE - BEGIN_OFFSET +  SAMPLES_PER_BUFFER * (TRANSMISSION_LENGTH + BIT_OFFSET); i++) {
             movingsum[1] = movingsum[0] - movingbuf[arraypos];
             movingsum[1] += samples[i];
             movingbuf[arraypos] = samples[i];
             arraypos++;
-            if (arraypos == 9) {
+            if (arraypos == MOVING_SIZE) {
                arraypos = 0;
             }
 
@@ -68,29 +68,29 @@ final class ListenerAudioSupport
                SIGNAL_MAX_SUM = temp;
             }
 
-            // test_buf[i - startpos - 9] = sample_buf1[i];
-            // movingsum2[i - startpos - 9] = movingsum[0];
+            // test_buf[i - startpos - MAGIC_9] = sample_buf1[i];
+            // movingsum2[i - startpos - MAGIC_9] = movingsum[0];
             movingsum[0] = movingsum[1];
          }
 
          SIGNAL_MAX_SUM /= 1.375;
          findSample(startpos, samples, sampleloc);
 
-         int[] triple = new int[3];
-         for (int n = 0; n < 3; n++) {
+         int[] triple = new int[SAMPLES_PER_BUFFER];
+         for (int n = 0; n < SAMPLES_PER_BUFFER; n++) {
             if (sampleloc[n] != 0) {
                arraypos = 0;
                movingsum[0] = 0;
-               for (int i = 0; i < 9; i++) {
+               for (int i = 0; i < MOVING_SIZE; i++) {
                   movingbuf[i] = samples[i + sampleloc[n]];
                   movingsum[0] += samples[i + sampleloc[n]];
                }
-               for (int i = 9; i < TRANSMISSION_LENGTH; i++) {
+               for (int i = MOVING_SIZE; i < TRANSMISSION_LENGTH; i++) {
                   movingsum[i] = movingsum[i - 1] - movingbuf[arraypos];
                   movingsum[i] += samples[i + sampleloc[n]];
                   movingbuf[arraypos] = samples[i + sampleloc[n]];
                   arraypos++;
-                  if (arraypos == 9) {
+                  if (arraypos == MOVING_SIZE) {
                      arraypos = 0;
                   }
                }
@@ -121,10 +121,10 @@ final class ListenerAudioSupport
             }
          }
 
-         /* If at least two are 0x27, that's a match. */
+         /* If at least two are BOUND, that's a match. */
          int matchCount = 0;
          for (int value : triple) {
-            if (value == 0x27) {
+            if (value == BOUNDARY) {
                ++matchCount;
             }
          }
@@ -138,17 +138,17 @@ final class ListenerAudioSupport
       int arraypos = 0;
       int numsampleloc = 0;
       movingsum[0] = 0;
-      for (int i = startpos; i < startpos + 9; i++) {
+      for (int i = startpos; i < startpos + MOVING_SIZE; i++) {
          movingbuf[i - startpos] = samples[i];
          movingsum[0] += samples[i];
       }
 
-      for (int i = startpos + 9; i < startpos + SAMPLE_LENGTH - BIT_OFFSET; i++) {
+      for (int i = startpos + MOVING_SIZE; i < startpos + SAMPLE_LENGTH - BIT_OFFSET; i++) {
          movingsum[1] = movingsum[0] - movingbuf[arraypos];
          movingsum[1] += samples[i];
          movingbuf[arraypos] = samples[i];
          arraypos++;
-         if (arraypos == 9) {
+         if (arraypos == MOVING_SIZE) {
             arraypos = 0;
          }
 

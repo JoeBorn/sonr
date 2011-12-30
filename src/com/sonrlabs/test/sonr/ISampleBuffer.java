@@ -10,9 +10,9 @@ interface ISampleBuffer {
     */
    public void release();
    
-   public int getNumberOfSamples();
+   public int getCount();
    
-   public void setNumberOfSamples(int numberOfSamples);
+   public void setCount(int count);
    
    public short[] getArray();
 }

@@ -27,7 +27,7 @@ class SampleBufferPool {
       return buffers.get(nextIndex);
    }
    
-   ISampleBuffer getBuffer(int numberOfSamples) {
+   ISampleBuffer getBuffer(int size) {
       synchronized (buffers) {
          ReusableBuffer availableBuffer = null;
          for (ReusableBuffer buffer : buffers) {
@@ -45,7 +45,7 @@ class SampleBufferPool {
             availableBuffer.check();
             android.util.Log.i(getClass().getName(), "Increased buffer pool size to " + buffers.size());
          }
-         availableBuffer.setNumberOfSamples(numberOfSamples);
+         availableBuffer.setCount(size);
          return availableBuffer;
       }
    }
@@ -54,7 +54,7 @@ class SampleBufferPool {
    private class ReusableBuffer
          implements ISampleBuffer {
       private boolean available = true;
-      private int numberOfSamples;
+      private int count;
       private final short[] array;
       
       ReusableBuffer() {
@@ -72,13 +72,13 @@ class SampleBufferPool {
       }
 
       @Override
-      public int getNumberOfSamples() {
-         return numberOfSamples;
+      public int getCount() {
+         return count;
       }
       
       @Override
-      public void setNumberOfSamples(int numberOfSamples) {
-         this.numberOfSamples = numberOfSamples;
+      public void setCount(int count) {
+         this.count = count;
       }
 
       synchronized private boolean check() {

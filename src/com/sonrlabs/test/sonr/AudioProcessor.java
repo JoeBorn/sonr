@@ -8,7 +8,7 @@ final class AudioProcessor {
    
    void nextSample(ISampleBuffer sampleBuffer) {
       try {
-         support.nextSample(sampleBuffer.getNumberOfSamples(), sampleBuffer.getArray());
+         support.nextSample(sampleBuffer.getCount(), sampleBuffer.getArray());
       } catch (RuntimeException e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);

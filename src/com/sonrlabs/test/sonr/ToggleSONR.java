@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 
 import org.acra.ErrorReporter;
 
+import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
@@ -47,6 +48,8 @@ public class ToggleSONR
 
    @Override
    public int onStartCommand(Intent intent, int flags, int startId) {
+      Notification notification = new Notification();
+
       try {
          // LogFile.MakeLog("ToggleSONR triggered");
          Log.d(TAG, "onStart");
@@ -131,7 +134,9 @@ public class ToggleSONR
                            // LogFile.MakeLog("DOCK NOT FOUND");
                            Log.d(TAG, SONR.DOCK_NOT_FOUND);
                            theclient.destroy();
-                           return START_STICKY;
+                           startForeground(1337, notification);
+
+                           return START_FLAG_REDELIVERY; //START_STICKY;
                         }
                         theclient.destroy();
                      } // end if sonr main screen
@@ -165,7 +170,9 @@ public class ToggleSONR
       } catch (Exception e) {
          e.printStackTrace();
       }
-      return START_STICKY;
+      
+      startForeground(1337, notification);
+      return START_FLAG_REDELIVERY; //START_STICKY;
    } // end onstart
 
    /**

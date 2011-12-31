@@ -91,6 +91,8 @@ public class SONR
 
    protected PowerManager.WakeLock mWakeLock;
 
+   private final BroadcastReceiver StopReceiver = new StopReceiver();
+
    @Override
    public void onCreate(Bundle savedInstanceState) {
       try {
@@ -139,21 +141,7 @@ public class SONR
          noneButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               if (!theclient.foundDock()) {
-                  theclient.searchSignal();
-               }
-
-               if (theclient.foundDock()) {
-                  Toast.makeText(getApplicationContext(), DOCK_FOUND, Toast.LENGTH_SHORT).show();
-                  theclient.startListener();
-                  SONR_ON = true;
-                  MakeNotification(getApplicationContext());
-
-                  Intent startMain = new Intent(Intent.ACTION_MAIN);
-                  startMain.addCategory(Intent.CATEGORY_HOME);
-                  startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                  startActivity(startMain);
-               }
+               new CheckDockOnNoneSelection(v).start();
             }
          });
 
@@ -205,32 +193,14 @@ public class SONR
          if (!Common.get(this, SONR.PLAYER_SELECTED, false) && !Common.get(this, SONR.DEFAULT_PLAYER_SELECTED, false)) {
             DialogCommon.quickPopoutDialog(this, false, SELECT_PLAYER, OK_TXT);
          } else {
-            if (!theclient.foundDock()) {
-               theclient.searchSignal();
-            }
-
-            if (theclient.foundDock()) {
-               Toast.makeText(getApplicationContext(), DOCK_FOUND, Toast.LENGTH_SHORT).show();
-
-               // LogFile.MakeLog("DOCK FOUND");
-
-               theclient.startListener();
-               final CheckBox checkBox = (CheckBox) this.findViewById(R.id.checkbox_default_player);
-               Start(this, checkBox.isChecked());
-            } else {
-               Toast.makeText(getApplicationContext(), DOCK_NOT_FOUND, Toast.LENGTH_SHORT).show();
-
-               // LogFile.MakeLog("DOCK NOT FOUND");
-
-               DialogCommon.quickPopoutDialog(this, false, DOCK_NOT_FOUND_TRY_AGAIN, OK_TXT);
-            }
+            new CheckDockOnPlayerSelection(view).start();
          }
       } catch (Exception e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       }
    }
-
+   
    private static void MakeNotification(Context ctx) {
       String ns = Context.NOTIFICATION_SERVICE;
       NotificationManager mNotificationManager = (NotificationManager) ctx.getSystemService(ns);
@@ -453,6 +423,114 @@ public class SONR
       return finalMap.values();
    }
 
+   /**
+    *  TODO: replace this junk with javadoc for this class.
+    */
+   private final class StopReceiver
+         extends BroadcastReceiver {
+      @Override
+      public void onReceive(Context context, Intent intent) {
+         // Handle reciever
+         String mAction = intent.getAction();
+
+         if (DISCONNECT_ACTION.equals(mAction)) {
+            finish();
+         }
+      }
+   }
+
+   /**
+    * Run the signal search in its own thread to avoid blocking the main thread.
+    */
+   private abstract class DockChecker
+         extends Thread {
+   
+      private final View view;
+      
+      DockChecker(View view) {
+         setDaemon(true);
+         this.view = view;
+      }
+      
+      @Override
+      public void run() {
+         if (!theclient.foundDock()) {
+            theclient.searchSignal();
+         }
+         /*
+          * Only the search runs in this thread. The response runs in the main
+          * thread.
+          */
+         Runnable task;
+         if (theclient.foundDock()) {
+            theclient.startListener();
+            task = new Runnable() {
+               public void run() {
+                  dockFound();
+               }
+            };
+            view.post(task);
+         } else {
+            task = new Runnable() {
+               public void run() {
+                  dockNotFound();
+               }
+            };
+         }
+         view.post(task);
+      }
+      
+      void dockFound() {
+         Toast.makeText(getApplicationContext(), DOCK_FOUND, Toast.LENGTH_SHORT).show();
+      }
+      
+      void dockNotFound() {
+         Toast.makeText(getApplicationContext(), DOCK_NOT_FOUND, Toast.LENGTH_SHORT).show();
+         DialogCommon.quickPopoutDialog(SONR.this, false, DOCK_NOT_FOUND_TRY_AGAIN, OK_TXT);
+      }
+   }
+
+   private class CheckDockOnPlayerSelection
+         extends DockChecker {
+      
+      CheckDockOnPlayerSelection(View view) {
+         super(view);
+      }
+
+      @Override
+      void dockFound() {
+         super.dockFound();
+         final CheckBox checkBox = (CheckBox) findViewById(R.id.checkbox_default_player);
+         Start(SONR.this, checkBox.isChecked());
+      }
+   }
+
+   private class CheckDockOnNoneSelection
+         extends DockChecker {
+      
+      CheckDockOnNoneSelection(View view) {
+         super(view);
+      }
+
+      @Override
+      void dockFound() {
+         super.dockFound();
+         SONR_ON = true;
+         MakeNotification(getApplicationContext());
+         
+         Intent startMain = new Intent(Intent.ACTION_MAIN);
+         startMain.addCategory(Intent.CATEGORY_HOME);
+         startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+         startActivity(startMain);
+      }
+      
+      @Override
+      void dockNotFound() {
+         // do nothing
+      }
+   
+   }
+
    private class AppInfoAdapter
          extends BaseAdapter {
       public List<ApplicationInfo> ApplicationInfos = new ArrayList<ApplicationInfo>();
@@ -506,18 +584,6 @@ public class SONR
       }
 
    }
-
-   private final BroadcastReceiver StopReceiver = new BroadcastReceiver() {
-      @Override
-      public void onReceive(Context context, Intent intent) {
-         // Handle reciever
-         String mAction = intent.getAction();
-
-         if (DISCONNECT_ACTION.equals(mAction)) {
-            finish();
-         }
-      }
-   };
 
    public static void Start(Context context, boolean defaultplayer) {
       Common.save(context, SONR.DEFAULT_PLAYER_SELECTED, defaultplayer);

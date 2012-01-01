@@ -9,6 +9,9 @@ package com.sonrlabs.test.sonr;
  * Messy audio signal processing used by {@link AudioProcessor} to detect user
  * signals from the remote.
  * 
+ * This is effectively a singleton since it's only instantiated once per
+ * {@link AudioProcessor}, and that in turn is effectively a singleton.
+ * 
  */
 final class AudioProcessorSupport
       implements AudioSupportConstants {
@@ -156,6 +159,12 @@ final class AudioProcessorSupport
          for (int i = 0; i < TRANSMISSION_LENGTH; i++) {
             if (sloc[j / SAMPLES_PER_BUFFER][j % SAMPLES_PER_BUFFER] + i < count) {
                trans_buf[j][i] = sample_buf[sloc[j / SAMPLES_PER_BUFFER][j % SAMPLES_PER_BUFFER] + i];
+            } else {
+               /*
+                * Deleted an else clause here that was originally waiting on
+                * aother buffer in a way that wasn't thread-safe. Unclear how
+                * to make this work reliably.
+                */
             }
          }
       }

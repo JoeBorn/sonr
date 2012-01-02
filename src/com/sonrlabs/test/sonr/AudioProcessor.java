@@ -26,8 +26,15 @@ import org.acra.ErrorReporter;
 final class AudioProcessor
       implements AudioSupportConstants {
    
+   /**
+    * XXX What is this preamble about?
+    * 
+    * XXX Seems suspicious that these are fields, with values that persist between
+    * calls why aren't they local to {@link #findSample()}?
+    */
    private boolean preambleIsCutOff = false;
    private int preambleOffset = 0;
+   
    private int signalMaxSum = 0;
    
    private final int[] movingsum = new int[TRANSMISSION_LENGTH];
@@ -98,7 +105,7 @@ final class AudioProcessor
                }
             }
             if (currentIndex + PREAMBLE >= count) {
-               // Log.d(TAG, "PREAMBLE CUT OFF");
+//               Log.d("Audio Processor", "PREAMBLE CUT OFF");
                if (currentIndex + BEGIN_OFFSET <= count) {
                   preambleOffset = 0;
                } else {
@@ -168,19 +175,7 @@ final class AudioProcessor
                 * signal
                 */
                break;
-
-               /*
-                * i += MicSerialListener.TRANSMISSION_LENGTH +
-                * MicSerialListener.BIT_OFFSET +
-                * MicSerialListener.FRAMES_PER_BIT +
-                * MicSerialListener.BEGIN_OFFSET;
-                * 
-                * movingsum[0] = 0; //re-set up the variables to continue
-                * searching for signals arraypos = 0; for(int t = i; t < i + MAGIC_9;
-                * t++) { movingbuf[t - i] = sample_buf[t]; movingsum[0] +=
-                * sample_buf[t]; } i += 4;
-                */
-            } else {
+             } else {
                movingsum[0] = movingsum[1];
             }
          }
@@ -236,30 +231,21 @@ final class AudioProcessor
                switchphase = true;
             }
          }
-
-         // Log.d(TAG, "TRANSMISSION[" + s + "]: " + "0x"+
-         // Integer.toHexString(byteInDec[s]));
-
-         // if(byteInDec[s] != BOUND || samplelocsize < SAMPLE_CHUNK_COUNT) {
-         // Log.d(TAG, "--------------");
-         // }
       }
 
       if (sampleLocSize > 1) {
-         for (int i = 0; i < sampleLocSize; i += SAMPLES_PER_BUFFER) {
-            /*
-             * receive byte using best two out of three.
-             * 
-             * Note the we're depending on SAMPLES_PER_BUFFER being 3 here.
-             */
-            int byte0 = byteInDec[i];
-            int byte1 = byteInDec[i + 1];
-            int byte2 = byteInDec[i + 2];
-            if ((byte0 == byte1 || byte0 == byte2) && byte0 != BOUNDARY && byte0 != 0) {
-               AudioProcessorQueue.singleton.processAction(byte0);
-            } else if (byte1 == byte2 && byte1 != BOUNDARY && byte1 != 0) {
-               AudioProcessorQueue.singleton.processAction(byte1);
-            }
+         /*
+         * receive byte using best two out of three.
+         *
+         * Note the we're depending on SAMPLES_PER_BUFFER being 3 here.
+         */
+         int byte0 = byteInDec[0];
+         int byte1 = byteInDec[1];
+         int byte2 = byteInDec[2];
+         if ((byte0 == byte1 || byte0 == byte2) && byte0 != BOUNDARY && byte0 != 0) {
+            AudioProcessorQueue.singleton.processAction(byte0);
+         } else if (byte1 == byte2 && byte1 != BOUNDARY && byte1 != 0) {
+            AudioProcessorQueue.singleton.processAction(byte1);
          }
       }
    }
@@ -273,7 +259,8 @@ final class AudioProcessor
          movingbuf[i - startpos] = sample_buf[i];
          movingsum[0] += sample_buf[i];
       }
-      for (int i = startpos + MOVING_SIZE; i < startpos + PREAMBLE - BEGIN_OFFSET + SAMPLES_PER_BUFFER * (TRANSMISSION_LENGTH + BIT_OFFSET); i++) {
+      int endpos = startpos + PREAMBLE - BEGIN_OFFSET + SAMPLES_PER_BUFFER * (TRANSMISSION_LENGTH + BIT_OFFSET);
+      for (int i = startpos + MOVING_SIZE; i < endpos; i++) {
          movingsum[1] = movingsum[0] - movingbuf[arraypos];
          movingsum[1] += sample_buf[i];
          movingbuf[arraypos] = sample_buf[i];

@@ -415,7 +415,8 @@ public class SONR
       queryResults.addAll(packageManager.queryIntentActivities(allLauncherAppsIntent, 0));
 
       for (ResolveInfo resolveInfo : queryResults) {
-         if (!finalMap.containsKey(resolveInfo.activityInfo.packageName)) {
+         if (!finalMap.containsKey(resolveInfo.activityInfo.packageName)
+               && resolveInfo.activityInfo.packageName != "com.android.music") {
             finalMap.put(resolveInfo.activityInfo.packageName, resolveInfo);
          }
       }

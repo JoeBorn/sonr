@@ -26,6 +26,4 @@ interface AudioSupportConstants {
    public static final int END_OFFSET = TRANSMISSION_LENGTH + BIT_OFFSET;
    // beginning of a sample
    public static final int THRESHOLD = 4000;
-   // transmissions in a single nsample
-   public static final int MAX_TRANSMISSIONS = 10;
 }

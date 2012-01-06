@@ -72,11 +72,9 @@ final class AudioProcessorQueue
             pending.addAll(queuedBuffers);
             queuedBuffers.clear();
          }
-         for (ISampleBuffer buffer : pending) {
-             processor.nextSample(buffer);
-         }
+         processor.nextSamples(pending);
          /*
-          * Yield here so we don't starve other threads. This can lead to
+          * Could Yield here so we don't starve other threads. This can lead to
           * delayed reponse to remote-control operations, don't use this unless
           * we really have to.
           */

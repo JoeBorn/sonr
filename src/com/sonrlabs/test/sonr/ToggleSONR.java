@@ -110,7 +110,12 @@ public class ToggleSONR
                               new SONRClient(this, SONR.findAudioRecord(), SONR.bufferSize,
                                              (AudioManager) this.getSystemService(Context.AUDIO_SERVICE));
                         theclient.createListener();
+                        
+                        /*
+                         * XXX Really call searchSignal again? The createListener call above just did that.
+                         */
                         theclient.searchSignal();
+                        
                         boolean found = theclient.foundDock();
                         Log.d(TAG, "made it past search signal");
                         if (found) {

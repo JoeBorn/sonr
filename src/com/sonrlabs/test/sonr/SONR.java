@@ -339,26 +339,6 @@ public class SONR
       return showMenu;
    }
 
-   @Override
-   public boolean onOptionsItemSelected(MenuItem item) {
-      super.onOptionsItemSelected(item);
-
-      switch (item.getItemId()) {
-         case R.id.aboutMenuItem:
-            Log.d(TAG, "About clicked");
-            break;
-         case R.id.configurationMenuItem:
-            Log.d(TAG, "Configuration Clicked");
-            Intent intent = new Intent(SONR.this, ConfigurationActivity.class);
-            startActivity(intent);
-            break;
-         default:
-            break;
-      }
-
-      return true;
-   }
-
    public static List<ApplicationInfo> convert(Context c, Collection<ResolveInfo> infos) {
       final List<ApplicationInfo> result = new ArrayList<ApplicationInfo>();
 

@@ -7,6 +7,7 @@ import org.acra.ErrorReporter;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.text.util.Linkify;
 import android.text.util.Linkify.TransformFilter;
@@ -35,6 +36,7 @@ public class IntroScreen
          super.onCreate(savedInstanceState);
          setContentView(R.layout.intro);
          TextView t2 = (TextView) findViewById(R.id.intro_msg);
+         t2.setText(Html.fromHtml(getResources().getText(R.string.home_text).toString()));
          Linkify.addLinks(t2, pattern, COM_SONRLABS_SONR, null, transformFilter);
          t2.setMovementMethod(LinkMovementMethod.getInstance());
       } catch (Exception e) {

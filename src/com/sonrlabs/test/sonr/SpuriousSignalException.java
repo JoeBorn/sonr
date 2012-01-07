@@ -20,12 +20,12 @@ class SpuriousSignalException
    }
    
    String generateLog(int samplelocsize, short[] samples, int[] sampleStartIndices, int[] signals) {
-      builder.append("Spurious signal ").append(signalCode);
+      builder.append("Spurious signal ").append(signalCode).append(" sample-count=").append(samplelocsize);
       builder.append("Signals:");
-      for (int i=0; i<samplelocsize; i++) {
+      for (int i=0; i<signals.length; i++) {
          builder.append(i).append('=').append(signals[i]);
       }
-      builder.append("\nIndices:");
+      builder.append(" Indices:");
       for (int i=0; i<sampleStartIndices.length; i++) {
          builder.append(i).append('=').append(sampleStartIndices[i]).append("->").append(samples[i]);
       }

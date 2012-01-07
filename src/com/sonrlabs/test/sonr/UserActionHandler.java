@@ -189,31 +189,39 @@ class UserActionHandler
          case UP:
             key = KeyEvent.KEYCODE_DPAD_UP;
             Log.d(TAG, "UP");
+            
+            /* For now treat these as spurious. Restore the break when they're not */
+            throw new SpuriousSignalException(receivedByte);
             // Toast.makeText(getApplicationContext(), "UP",
             // Toast.LENGTH_SHORT).show();
             // LogFile.MakeLog("RECEIVED UP");
-            break;
          case DOWN:
             key = KeyEvent.KEYCODE_DPAD_DOWN;
             Log.d(TAG, "DOWN");
+            
+            /* For now treat these as spurious. Restore the break when they're not */
+            throw new SpuriousSignalException(receivedByte);
             // Toast.makeText(getApplicationContext(), "DOWN",
             // Toast.LENGTH_SHORT).show();
             // LogFile.MakeLog("RECEIVED DOWN");
-            break;
          case LEFT:
             key = KeyEvent.KEYCODE_DPAD_LEFT;
             Log.d(TAG, "LEFT");
+            
+            /* For now treat these as spurious. Restore the break when they're not */
+            throw new SpuriousSignalException(receivedByte);
             // Toast.makeText(getApplicationContext(), "LEFT",
             // Toast.LENGTH_SHORT).show();
             // LogFile.MakeLog("RECEIVED LEFT");
-            break;
          case RIGHT:
             key = KeyEvent.KEYCODE_DPAD_RIGHT;
             Log.d(TAG, "RIGHT");
+            
+            /* For now treat these as spurious. Restore the break when they're not */
+            throw new SpuriousSignalException(receivedByte);
             // Toast.makeText(getApplicationContext(), "RIGHT",
             // Toast.LENGTH_SHORT).show();
             // LogFile.MakeLog("RECEIVED RIGHT");
-            break;
          case SELECT:
             key = KeyEvent.KEYCODE_DPAD_CENTER;
             Log.d(TAG, "SELECT");

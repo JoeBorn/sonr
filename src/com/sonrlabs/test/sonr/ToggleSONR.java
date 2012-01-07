@@ -1,5 +1,6 @@
 package com.sonrlabs.test.sonr;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.acra.ErrorReporter;
@@ -172,7 +173,7 @@ public class ToggleSONR
                Log.d(TAG, "Caught POWER_DISCONNECTED_INTENT");
             }
          }
-      } catch (Exception e) {
+      } catch (RuntimeException e) {
          e.printStackTrace();
       }
       
@@ -192,7 +193,7 @@ public class ToggleSONR
          if (headsetReceiver != null) {
             unregisterReceiver(headsetReceiver);
          }
-      } catch (Exception e) {
+      } catch (RuntimeException e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       }
@@ -303,7 +304,15 @@ public class ToggleSONR
             isRoutingHeadset = retVal == 1;
             Log.d(TAG, "getDeviceConnectionState " + retVal);
 
-         } catch (Exception e) {
+         } catch (RuntimeException e) {
+            Log.e(TAG, "Could not determine status in isRoutingHeadset(): " + e);
+         } catch (ClassNotFoundException e) {
+            Log.e(TAG, "Could not determine status in isRoutingHeadset(): " + e);
+         } catch (NoSuchMethodException e) {
+            Log.e(TAG, "Could not determine status in isRoutingHeadset(): " + e);
+         } catch (IllegalAccessException e) {
+            Log.e(TAG, "Could not determine status in isRoutingHeadset(): " + e);
+         } catch (InvocationTargetException e) {
             Log.e(TAG, "Could not determine status in isRoutingHeadset(): " + e);
          }
       }
@@ -392,7 +401,15 @@ public class ToggleSONR
          Method setDeviceConnectionState = audioSystem.getMethod("setDeviceConnectionState", int.class, int.class, String.class);
 
          setDeviceConnectionState.invoke(audioSystem, device, state, address);
-      } catch (Exception e) {
+      } catch (RuntimeException e) {
+         Log.e(TAG, "setDeviceConnectionState failed: " + e);
+      } catch (ClassNotFoundException e) {
+         Log.e(TAG, "setDeviceConnectionState failed: " + e);
+      } catch (NoSuchMethodException e) {
+         Log.e(TAG, "setDeviceConnectionState failed: " + e);
+      } catch (IllegalAccessException e) {
+         Log.e(TAG, "setDeviceConnectionState failed: " + e);
+      } catch (InvocationTargetException e) {
          Log.e(TAG, "setDeviceConnectionState failed: " + e);
       }
    }

@@ -57,7 +57,7 @@ public class SONRClient
          // LogFile.MakeLog("Start Listener");
          try {
             MicSerialListener.startNewListener(singletonListener);
-         } catch (Exception e) {
+         } catch (RuntimeException e) {
             e.printStackTrace();
             ErrorReporter.getInstance().handleException(e);
          }
@@ -82,7 +82,7 @@ public class SONRClient
             }
             singletonListener = new MicSerialListener(theaudiorecord, bufferSize);
          }
-      } catch (Exception e) {
+      } catch (RuntimeException e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       }
@@ -110,7 +110,7 @@ public class SONRClient
             }
          }
          CLIENT_ON = false;
-      } catch (Exception e) {
+      } catch (RuntimeException e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       }
@@ -137,7 +137,7 @@ public class SONRClient
             ctx.unregisterReceiver(clientStopReceiver);
             Log.i(getClass().getName(), "Unregistered broadcast receiver " + clientStopReceiver + " in context " + ctx);
             clientStopReceiver = null;
-         } catch (Exception e) {
+         } catch (RuntimeException e) {
             Log.i(getClass().getName(), "Failed to unregister broadcast receiver " + clientStopReceiver + " in context " + ctx, e);
          }
       } else {

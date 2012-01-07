@@ -37,7 +37,7 @@ public class IntroScreen
          TextView t2 = (TextView) findViewById(R.id.intro_msg);
          Linkify.addLinks(t2, pattern, COM_SONRLABS_SONR, null, transformFilter);
          t2.setMovementMethod(LinkMovementMethod.getInstance());
-      } catch (Exception e) {
+      } catch (RuntimeException e) {
          Log.d(SONR.TAG, e.toString());
          ErrorReporter.getInstance().handleException(e);
       }

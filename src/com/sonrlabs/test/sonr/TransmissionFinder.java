@@ -82,7 +82,7 @@ final class TransmissionFinder
          processSignal();
       } catch (SpuriousSignalException e) {
          String message = e.generateLog(samplelocsize, samples, sampleStartIndices, signals);
-         Log.e("Spurious Signal", message);
+         Log.d("Spurious Signal", message);
       }
    }
   

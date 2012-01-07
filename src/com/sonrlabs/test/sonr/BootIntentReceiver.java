@@ -24,7 +24,7 @@ public class BootIntentReceiver
                context.startService(i);
             }
          }
-      } catch (Exception e) {
+      } catch (RuntimeException e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
 

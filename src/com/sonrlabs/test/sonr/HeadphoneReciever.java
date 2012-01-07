@@ -52,7 +52,7 @@ public class HeadphoneReciever
             serviceIntent.putExtras(intent.getExtras());
          }
          context.startService(serviceIntent);
-      } catch (Exception e) {
+      } catch (RuntimeException e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       }

@@ -64,10 +64,11 @@ class UserActionHandler
    }
 
    @Override
-   public void processAction(int receivedByte) {
+   public void processAction(int receivedByte)
+         throws SpuriousSignalException {
       try {
          processUserCommand(receivedByte);
-      } catch (Exception e) {
+      } catch (RuntimeException e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       }

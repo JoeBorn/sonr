@@ -8,5 +8,6 @@ interface IUserActionHandler {
     * Process the action.
     * @param receivedByte byte encoding of user action.
     */
-   public void processAction(int receivedByte);
+   public void processAction(int receivedByte)
+         throws SpuriousSignalException;
 }

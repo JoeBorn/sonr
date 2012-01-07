@@ -73,7 +73,8 @@ class UserActionHandler
       }
    }
 
-   private void processUserCommand(int receivedByte) {
+   private void processUserCommand(int receivedByte)
+         throws SpuriousSignalException {
       checkAutoUnmute(receivedByte);
       int key = Integer.MIN_VALUE;
       switch (receivedByte) {
@@ -251,9 +252,7 @@ class UserActionHandler
             break;
             
          default:
-            Log.d(TAG, "UNKNOWN action code " + receivedByte);
-            // LogFile.MakeLog("RECEIVED " + receivedByte);
-            break;
+            throw new SpuriousSignalException(receivedByte);
       }
 
       if (key != Integer.MIN_VALUE) {

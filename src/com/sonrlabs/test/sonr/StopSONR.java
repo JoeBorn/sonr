@@ -27,7 +27,7 @@ public class StopSONR
          this.sendBroadcast(i);
          super.onDestroy();
          finish();
-      } catch (Exception e) {
+      } catch (RuntimeException e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       }

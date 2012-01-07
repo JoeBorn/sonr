@@ -21,7 +21,7 @@ public class TermsScreen
 
          TextView terms = (TextView) findViewById(R.id.text_terms);
          terms.setMovementMethod(new ScrollingMovementMethod());
-      } catch (Exception e) {
+      } catch (RuntimeException e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       }
@@ -42,7 +42,7 @@ public class TermsScreen
          Intent i = new Intent(this, StopSONR.class);
          startActivity(i);
          finish();
-      } catch (Exception e) {
+      } catch (RuntimeException e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       }

@@ -182,7 +182,7 @@ public final class Common {
          HttpGet method = new HttpGet(url);
          HttpResponse response = client.execute(method);
          data = response.getEntity().getContent();
-      } catch (Exception e) {
+      } catch (IOException e) {
          e.printStackTrace();
          data = new StringBasedInputReader("");
       }

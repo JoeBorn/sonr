@@ -64,16 +64,18 @@ class UserActionHandler
    }
 
    @Override
-   public void processAction(int receivedByte) {
+   public void processAction(int receivedByte)
+         throws SpuriousSignalException {
       try {
          processUserCommand(receivedByte);
-      } catch (Exception e) {
+      } catch (RuntimeException e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       }
    }
 
-   private void processUserCommand(int receivedByte) {
+   private void processUserCommand(int receivedByte)
+         throws SpuriousSignalException {
       checkAutoUnmute(receivedByte);
       int key = Integer.MIN_VALUE;
       switch (receivedByte) {
@@ -187,31 +189,39 @@ class UserActionHandler
          case UP:
             key = KeyEvent.KEYCODE_DPAD_UP;
             Log.d(TAG, "UP");
+            
+            /* For now treat these as spurious. Restore the break when they're not */
+            throw new SpuriousSignalException(receivedByte);
             // Toast.makeText(getApplicationContext(), "UP",
             // Toast.LENGTH_SHORT).show();
             // LogFile.MakeLog("RECEIVED UP");
-            break;
          case DOWN:
             key = KeyEvent.KEYCODE_DPAD_DOWN;
             Log.d(TAG, "DOWN");
+            
+            /* For now treat these as spurious. Restore the break when they're not */
+            throw new SpuriousSignalException(receivedByte);
             // Toast.makeText(getApplicationContext(), "DOWN",
             // Toast.LENGTH_SHORT).show();
             // LogFile.MakeLog("RECEIVED DOWN");
-            break;
          case LEFT:
             key = KeyEvent.KEYCODE_DPAD_LEFT;
             Log.d(TAG, "LEFT");
+            
+            /* For now treat these as spurious. Restore the break when they're not */
+            throw new SpuriousSignalException(receivedByte);
             // Toast.makeText(getApplicationContext(), "LEFT",
             // Toast.LENGTH_SHORT).show();
             // LogFile.MakeLog("RECEIVED LEFT");
-            break;
          case RIGHT:
             key = KeyEvent.KEYCODE_DPAD_RIGHT;
             Log.d(TAG, "RIGHT");
+            
+            /* For now treat these as spurious. Restore the break when they're not */
+            throw new SpuriousSignalException(receivedByte);
             // Toast.makeText(getApplicationContext(), "RIGHT",
             // Toast.LENGTH_SHORT).show();
             // LogFile.MakeLog("RECEIVED RIGHT");
-            break;
          case SELECT:
             key = KeyEvent.KEYCODE_DPAD_CENTER;
             Log.d(TAG, "SELECT");
@@ -251,9 +261,7 @@ class UserActionHandler
             break;
             
          default:
-            Log.d(TAG, "UNKNOWN action code " + receivedByte);
-            // LogFile.MakeLog("RECEIVED " + receivedByte);
-            break;
+            throw new SpuriousSignalException(receivedByte);
       }
 
       if (key != Integer.MIN_VALUE) {

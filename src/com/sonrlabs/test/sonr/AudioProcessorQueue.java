@@ -36,7 +36,8 @@ final class AudioProcessorQueue
       actionHandler = handler;
    }
    
-   void processAction(int actionCode) {
+   void processAction(int actionCode)
+         throws SpuriousSignalException {
       if (actionHandler != null) {
          actionHandler.processAction(actionCode);
       }

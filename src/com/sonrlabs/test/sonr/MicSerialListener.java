@@ -131,7 +131,7 @@ public class MicSerialListener
             Log.d("MicSerialListener", "Mic input was unavailable to be read");
             ErrorReporter.getInstance().putCustomData("MicSerialListener", "Mic input was unavailable to be read");
          }
-      } catch (Exception e) {
+      } catch (RuntimeException e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       } finally {

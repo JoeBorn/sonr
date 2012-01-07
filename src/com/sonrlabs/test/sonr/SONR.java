@@ -160,7 +160,7 @@ public class SONR
             //intent = new Intent(this, IntroScreen.class);
          }
          //startActivity(intent);
-      } catch (Exception e) {
+      } catch (RuntimeException e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       }
@@ -195,7 +195,7 @@ public class SONR
          } else {
             new CheckDockOnPlayerSelection(view).start();
          }
-      } catch (Exception e) {
+      } catch (RuntimeException e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       }
@@ -249,7 +249,7 @@ public class SONR
          NotificationManager mNotificationManager = (NotificationManager) getSystemService(ns);
          mNotificationManager.cancel(SONR.SONR_ID);
          mWakeLock.release();
-      } catch (Exception e) {
+      } catch (RuntimeException e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       }
@@ -607,7 +607,7 @@ public class SONR
                      return recorder;
                   }
                }
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                if (MODE > 0) {
                   Log.v(TAG, "Unable to allocate for: " + SAMPLE_RATE + "Hz, bits: " + audioFormat + ", channel: " + channelConfig);
                   Log.e(TAG, "Exception " + e);

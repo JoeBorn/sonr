@@ -39,7 +39,7 @@ public class IntroScreen
          t2.setText(Html.fromHtml(getResources().getText(R.string.home_text).toString()));
          Linkify.addLinks(t2, pattern, COM_SONRLABS_SONR, null, transformFilter);
          t2.setMovementMethod(LinkMovementMethod.getInstance());
-      } catch (Exception e) {
+      } catch (RuntimeException e) {
          Log.d(SONR.TAG, e.toString());
          ErrorReporter.getInstance().handleException(e);
       }

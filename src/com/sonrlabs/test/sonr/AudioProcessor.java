@@ -31,6 +31,10 @@ final class AudioProcessor {
    /* This funky structure is shared by the checker and the finder. */
    private final int[] sampleStartInidices = new int[AudioSupportConstants.SAMPLES_PER_BUFFER];
    
+   void newConnection() {
+      finder.newConnection();
+   }
+
    /**
     * Process the next set of buffers. For now do this one at a time.
     * 

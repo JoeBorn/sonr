@@ -34,6 +34,7 @@ final class AudioProcessorQueue
    
    void setUserActionHandler(IUserActionHandler handler) {
       actionHandler = handler;
+      processor.newConnection();
    }
    
    void processAction(int actionCode)

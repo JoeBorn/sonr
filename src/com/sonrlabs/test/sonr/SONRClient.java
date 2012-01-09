@@ -24,7 +24,7 @@ public class SONRClient
    
    /*
     * No idea why this is public or static, or even what it's for. Some Android
-    * reflective magic?
+    * reflective magic? - Answer: just a static variable to maintain state by original author
     */
    public static boolean CLIENT_ON = false;
    
@@ -122,11 +122,12 @@ public class SONRClient
          public void onReceive(Context context, Intent intent) {
             // Handle reciever
             String mAction = intent.getAction();
-            if (mAction.equals(SONR.DISCONNECT_ACTION)) {
+            if (SONR.DISCONNECT_ACTION.equals(mAction)) {
                destroy();
             }
          }
       };
+      
       ctx.registerReceiver(clientStopReceiver, new IntentFilter(SONR.DISCONNECT_ACTION));
       Log.i(getClass().getName(), "Registered broadcast receiver " + clientStopReceiver + " in context " + ctx);
    }

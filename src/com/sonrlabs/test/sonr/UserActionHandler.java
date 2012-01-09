@@ -288,7 +288,7 @@ class UserActionHandler
       // FAST_FORWARD || theKeyEvent == REWIND || theKeyEvent == NEXT_TRACK ||
       // theKeyEvent == PREVIOUS_TRACK) {
       Intent i = new Intent(Intent.ACTION_MEDIA_BUTTON);     
-      String selectedMediaPlayer =  Common.get(context, SONR.APP_PACKAGE_NAME, "MEDIAPLAYERNOTFOUND");
+      String selectedMediaPlayer =  Common.get(context, SONR.APP_PACKAGE_NAME, null);
       Log.d("BROADCAST PLAYER", selectedMediaPlayer);
       i.setPackage(selectedMediaPlayer);
    

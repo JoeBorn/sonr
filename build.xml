@@ -81,7 +81,7 @@
     <!-- version-tag: 1 -->
     <import file="${sdk.dir}/tools/ant/build.xml" />
     
-   <target name="deploy" >
+   <target name="deploy" depends="release">
       <exec executable="/bin/sh">
          <arg value="install-sonr.sh"/>
       </exec>

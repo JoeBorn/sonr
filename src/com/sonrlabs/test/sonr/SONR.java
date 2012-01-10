@@ -95,8 +95,8 @@ public class SONR
 
    @Override
    public void onCreate(Bundle savedInstanceState) {
-      super.onCreate(savedInstanceState);
       try {
+         super.onCreate(savedInstanceState);
 
          Common.save(this, SONR.PLAYER_SELECTED, false);
 
@@ -178,16 +178,14 @@ public class SONR
       ApplicationInfo ai;
       ai = infos.get(position);
       List<ResolveInfo> rinfos = findActivitiesForPackage(this, ai.packageName);
-      if (!rinfos.isEmpty()) {
-         ResolveInfo ri = rinfos.get(0);
-         
-         Common.save(this, SONR.APP_PACKAGE_NAME, ri.activityInfo.packageName);
-         Common.save(this, SONR.APP_FULL_NAME, ri.activityInfo.name);
-         Common.save(this, SONR.PLAYER_SELECTED, true);
+      ResolveInfo ri = rinfos.get(0);
 
-         currentlySelectedApplicationInfoIndex = position;
-         listView.invalidateViews();
-      }
+      Common.save(this, SONR.APP_PACKAGE_NAME, ri.activityInfo.packageName);
+      Common.save(this, SONR.APP_FULL_NAME, ri.activityInfo.name);
+      Common.save(this, SONR.PLAYER_SELECTED, true);
+
+      currentlySelectedApplicationInfoIndex = position;
+      listView.invalidateViews();
    }
 
    public void buttonOK(View view) {
@@ -339,23 +337,6 @@ public class SONR
          showMenu = false;
       }
       return showMenu;
-   }
-   
-   @Override
-   public boolean onOptionsItemSelected(MenuItem item) {
-      boolean consumeResult = super.onOptionsItemSelected(item); 
-      switch (item.getItemId()) {
-         case R.id.quitOption:
-            stopService(new Intent(this, ToggleSONR.class));
-            theclient.destroy();
-            finish();
-            consumeResult = true;
-            break;
-         default:
-            consumeResult = false;
-            break;
-      }
-      return consumeResult; 
    }
 
    public static List<ApplicationInfo> convert(Context c, Collection<ResolveInfo> infos) {

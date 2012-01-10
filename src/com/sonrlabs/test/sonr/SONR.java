@@ -392,7 +392,7 @@ public class SONR
 
       for (ResolveInfo resolveInfo : queryResults) {
          if (!finalMap.containsKey(resolveInfo.activityInfo.packageName)
-               && resolveInfo.activityInfo.packageName != "com.android.music") {
+               && !resolveInfo.activityInfo.packageName.equals("com.android.music")) {
             finalMap.put(resolveInfo.activityInfo.packageName, resolveInfo);
          }
       }

@@ -7,7 +7,7 @@
   	android:weightSum="1.0" >
     
     <ImageView android:id="@+id/splash_logo"
-		android:src="@drawable/splash_logo"
+		android:src="@drawable/dianddock"
 		android:adjustViewBounds="true"
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"

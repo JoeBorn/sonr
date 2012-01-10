@@ -15,18 +15,10 @@ final class TransmissionFinder
    private final int[] movingsum = new int[TRANSMISSION_LENGTH];
    private int samplelocsize;
    private int signalMaxSum = 0;
-   private boolean needsAgc = true;
-
-   void newConnection() {
-      needsAgc = true;
-   }
 
    boolean findSamples(short[] samples, int sampleCount, int[] sampleStartIndices) {
       samplelocsize = 0;
-      if (needsAgc) {
-         autoGainControl(samples, sampleStartIndices);
-         needsAgc = false;
-      }
+      autoGainControl(samples, sampleStartIndices);
       for (int n = 0, numsampleloc = 0; n < sampleCount; n++) {
          numsampleloc = findPSKTransmissions(samples, numsampleloc, sampleStartIndices);
       }

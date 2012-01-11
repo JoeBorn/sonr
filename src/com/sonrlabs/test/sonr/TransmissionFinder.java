@@ -54,35 +54,37 @@ final class TransmissionFinder
                arraypos = 0;
             }
          }
-
-         /* we start out with a phase shift */
-         boolean isinphase = true, switchphase = true;
-         int bitnum = 0;
-         signals[signalIndex] = 0;
-
-         for (int i = FRAMES_PER_BIT + 1; i < TRANSMISSION_LENGTH; i++) {
-            if (isPhase(movingsum[i - 1], movingsum[i], signalMaxSum) && switchphase) {
-               isinphase = !isinphase;
-               /* already switched */
-               switchphase = false;
-            }
-
-            if (i % FRAMES_PER_BIT == 0) {
-               if (!isinphase) {
-                  /* i/MicSerialListener.FRAMES_PER_BIT-1 */
-                  signals[signalIndex] |= 0x1 << bitnum;
-               }
-               bitnum++;
-               /* reached a bit, can now switch */
-               switchphase = true;
-            }
-         }
+         constructSignal(signalIndex);
       }
       try {
          processSignal();
       } catch (SpuriousSignalException e) {
          String message = e.generateLog(samplelocsize, samples, sampleStartIndices, signals);
          Log.d("Spurious Signal", message);
+      }
+   }
+
+   void constructSignal(int signalIndex) {
+      /* we start out with a phase shift and 0 signal */
+      boolean inphase = true, switchphase = true;
+      signals[signalIndex] = 0;
+
+      for (int i = FRAMES_PER_BIT + 1, bitnum=0; i < TRANSMISSION_LENGTH; i++) {
+         if (isPhase(movingsum[i - 1], movingsum[i], signalMaxSum) && switchphase) {
+            inphase = !inphase;
+            /* already switched */
+            switchphase = false;
+         }
+
+         boolean atFrameBoundary = i % FRAMES_PER_BIT == 0;
+         if (atFrameBoundary) {
+            if (!inphase) {
+               signals[signalIndex] |= 0x1 << bitnum;
+            }
+            bitnum++;
+            /* reached a bit, can now switch */
+            switchphase = true;
+         }
       }
    }
   

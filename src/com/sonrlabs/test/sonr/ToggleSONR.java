@@ -25,18 +25,22 @@ import com.sonrlabs.test.sonr.common.Common;
 public class ToggleSONR
       extends Service {
 
-   private static String TAG = ToggleSONR.class.getSimpleName();
+   private static final String TAG = ToggleSONR.class.getSimpleName();
 //   public static final String INTENT_UPDATE_ICON = "INTENT_UPDATE_ICON";
-   public static final String INTENT_USER_TOGGLE_REQUEST = "INTENT_TOGGLE_HEADSET";
+   private static final String INTENT_USER_TOGGLE_REQUEST = "INTENT_TOGGLE_HEADSET";
 
    /*
    * Constants determined from AudioSystem source
    */
-   public static final int DEVICE_IN_WIRED_HEADSET = 0x400000;
-   public static final int DEVICE_OUT_EARPIECE = 0x1;
-   public static final int DEVICE_OUT_WIRED_HEADSET = 0x4;
-   public static final int DEVICE_STATE_UNAVAILABLE = 0;
-   public static final int DEVICE_STATE_AVAILABLE = 1;
+   private static final int DEVICE_IN_WIRED_HEADSET = 0x400000;
+   private static final int DEVICE_OUT_EARPIECE = 0x1;
+   private static final int DEVICE_OUT_WIRED_HEADSET = 0x4;
+   private static final int DEVICE_STATE_UNAVAILABLE = 0;
+   private static final int DEVICE_STATE_AVAILABLE = 1;
+   private static final String HEADSET_PLUG_INTENT = "android.intent.action.HEADSET_PLUG";
+   private static final String ACTION_POWER_CONNECTED = "android.intent.action.ACTION_POWER_CONNECTED";
+   private static final String ACTION_POWER_DISCONNECTED = "android.intent.action.ACTION_POWER_DISCONNECTED";
+
 
    public static boolean SERVICE_ON = false;
 
@@ -45,7 +49,7 @@ public class ToggleSONR
       return null;
    }
 
-   public static HeadphoneReciever headsetReceiver = null;
+   private static HeadphoneReciever headsetReceiver = null;
 
    @Override
    public int onStartCommand(Intent intent, int flags, int startId) {
@@ -67,13 +71,13 @@ public class ToggleSONR
              * register and unregister the broadcast receiver in the service
              */
             headsetReceiver = new HeadphoneReciever();
-            IntentFilter plugIntentFilter = new IntentFilter(HeadphoneReciever.HEADSET_PLUG_INTENT);
+            IntentFilter plugIntentFilter = new IntentFilter(HEADSET_PLUG_INTENT);
             registerReceiver(headsetReceiver, plugIntentFilter);
 
-            IntentFilter powerConnectedFilter = new IntentFilter(HeadphoneReciever.ACTION_POWER_CONNECTED);
+            IntentFilter powerConnectedFilter = new IntentFilter(ACTION_POWER_CONNECTED);
             registerReceiver(headsetReceiver, powerConnectedFilter);
 
-            IntentFilter powerDisconnectedFilter = new IntentFilter(HeadphoneReciever.ACTION_POWER_DISCONNECTED);
+            IntentFilter powerDisconnectedFilter = new IntentFilter(ACTION_POWER_DISCONNECTED);
             registerReceiver(headsetReceiver, powerDisconnectedFilter);
          }
 
@@ -85,7 +89,7 @@ public class ToggleSONR
                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                this.startActivity(i);
 
-            } else if (intent.getAction().equals(HeadphoneReciever.HEADSET_PLUG_INTENT)) {
+            } else if (intent.getAction().equals(HEADSET_PLUG_INTENT)) {
                int state = intent.getExtras().getInt("state");
 
                Log.d(TAG, "Headset plug intent recieved, state " + Integer.toString(state));
@@ -159,13 +163,13 @@ public class ToggleSONR
                }
 
                updateIcon();
-            } else if (intent.getAction().equals(HeadphoneReciever.ACTION_POWER_CONNECTED)) {
+            } else if (intent.getAction().equals(ACTION_POWER_CONNECTED)) {
                /**
                 * Do nothing - but this intent should wake the service up and
                 * allow us to catch HEADSET_PLUG
                 */
                Log.d(TAG, "Caught POWER_CONNECTED_INTENT");
-            } else if (intent.getAction().equals(HeadphoneReciever.ACTION_POWER_DISCONNECTED)) {
+            } else if (intent.getAction().equals(ACTION_POWER_DISCONNECTED)) {
                /**
                 * Do nothing - but this intent should wake the service up and
                 * allow us to refresh the icon if we were previously asleep
@@ -199,7 +203,7 @@ public class ToggleSONR
       }
    }
 
-   public static void route_headset(Context ctx) {
+   private static void route_headset(Context ctx) {
       Log.d(TAG, "route to headset");
       AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
       if (Build.VERSION.SDK_INT == Build.VERSION_CODES.DONUT) {
@@ -214,7 +218,7 @@ public class ToggleSONR
       }
    }
 
-   public static void unroute_headset(Context ctx) {
+   private static void unroute_headset(Context ctx) {
       Log.d(TAG, "unroute headset");
       AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
       
@@ -276,7 +280,7 @@ public class ToggleSONR
     * 
     * @return true if routing to headset, false if routing somewhere else
     */
-   public static boolean isRoutingHeadset(Context ctx) {
+   private static boolean isRoutingHeadset(Context ctx) {
       boolean isRoutingHeadset = false;
 
       if (Build.VERSION.SDK_INT == Build.VERSION_CODES.DONUT) {
@@ -323,7 +327,7 @@ public class ToggleSONR
     * Updates the icon of the appwidget based on the current status of headphone
     * routing
     */
-   public void updateIconON() {
+   void updateIconON() {
       RemoteViews view = new RemoteViews(this.getPackageName(), R.layout.toggle_apwidget);
       view.setImageViewResource(R.id.Icon, R.drawable.sonr_on);
 
@@ -359,7 +363,7 @@ public class ToggleSONR
 //      manager.updateAppWidget(thisWidget, view);
 //   }
 
-   public void updateIcon() {
+   void updateIcon() {
       Log.d(TAG, "updateIcon");
 
       RemoteViews view = new RemoteViews(this.getPackageName(), R.layout.toggle_apwidget);
@@ -395,7 +399,7 @@ public class ToggleSONR
     * @param state
     * @param address
     */
-   static public void setDeviceConnectionState(final int device, final int state, final String address) {
+   private static void setDeviceConnectionState(final int device, final int state, final String address) {
       try {
          Class<?> audioSystem = Class.forName("android.media.AudioSystem");
          Method setDeviceConnectionState = audioSystem.getMethod("setDeviceConnectionState", int.class, int.class, String.class);

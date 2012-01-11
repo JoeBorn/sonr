@@ -15,7 +15,7 @@ import android.content.SharedPreferences;
 public final class Common {
 
    public static final String N_A = "N_A";
-   public static final String SHARED_PREF_NAME = "SONR";
+   private static final String SHARED_PREF_NAME = "SONR";
 
    private Common() {
       // utility

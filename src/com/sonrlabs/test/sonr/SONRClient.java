@@ -22,18 +22,13 @@ public class SONRClient
     */
    private static MicSerialListener singletonListener;
    
-   /*
-    * No idea why this is public or static, or even what it's for. Some Android
-    * reflective magic?
-    */
-   public static boolean CLIENT_ON = false;
-   
-   private BroadcastReceiver clientStopReceiver;
-   
+
    private final AudioManager theAudioManager;
    private final AudioRecord theaudiorecord;
    private final int bufferSize;
    private final Context ctx;
+
+   private BroadcastReceiver clientStopReceiver;
 
 
    SONRClient(Context c, AudioRecord ar, int buffsize, AudioManager am) {
@@ -41,7 +36,6 @@ public class SONRClient
       theaudiorecord = ar;
       bufferSize = buffsize;
       ctx = c;
-      CLIENT_ON = true;
    }
    
    boolean foundDock() {
@@ -109,7 +103,6 @@ public class SONRClient
                singletonListener.stopRunning();
             }
          }
-         CLIENT_ON = false;
       } catch (RuntimeException e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);

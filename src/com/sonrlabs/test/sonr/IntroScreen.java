@@ -22,8 +22,8 @@ public class IntroScreen
 
    private static final String COM_SONRLABS_SONR = "com.sonrlabs.sonr";
 
-   private static Pattern pattern = Pattern.compile("terms of service and privacy policy");
-   private static TransformFilter transformFilter = new TransformFilter() {
+   private static final Pattern pattern = Pattern.compile("terms of service and privacy policy");
+   private static final TransformFilter transformFilter = new TransformFilter() {
       @Override
       public final String transformUrl(final Matcher match, String url) {
          return ".TermsScreen://";

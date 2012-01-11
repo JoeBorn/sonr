@@ -53,43 +53,39 @@ import com.sonrlabs.test.sonr.common.DialogCommon;
 public class SONR
       extends ListActivity {
 
-   private static final String SAMPLE_URI = "\\";
-   private static final String AUDIO_MIME_TYPE = "audio/*";
+   public static final String TAG = SONR.class.getSimpleName();
+   public static final int SONR_ID = 1;
    public static final String DOCK_NOT_FOUND = "DOCK NOT FOUND";
    public static final String DOCK_FOUND = "DOCK FOUND";
-   public static final String DOCK_NOT_FOUND_TRY_AGAIN = "Dock not detected, check connections and try again";
-   public static final String OK_TXT = "Ok";
-   public static final String SELECT_PLAYER = "Please select a music player";
    public static final String DEFAULT_PLAYER_SELECTED = "DEFAULT_PLAYER_SELECTED";
    public static final String APP_PACKAGE_NAME = "APP_PACKAGE_NAME";
-   public static final String APP_FULL_NAME = "APP_FULL_NAME";
-   public static final String PLAYER_SELECTED = "PLAYER_SELECTED";
-   public static final String FIRST_LAUNCH = "FIRST_LAUNCH";
-
-   public static final String TAG = SONR.class.getSimpleName();
-
-   public static int DEBUG = 1;
-//   public static int RELEASE = 0;
-   public static int MODE = DEBUG;
-
-   public static final int SAMPLE_RATE = 44100; // In Hz
-   public static final int SONR_ID = 1;
-   private List<ApplicationInfo> infos = null;
-   private int currentlySelectedApplicationInfoIndex;
-   private SONRClient theclient;
-   public static int bufferSize = 0;
-   private AudioRecord theaudiorecord = null;
-   private AudioManager m_amAudioManager;
-   private boolean isRegistered = false;
-
    public static boolean SONR_ON = false;
    public static boolean MAIN_SCREEN = false;
    public static final String DISCONNECT_ACTION = "android.intent.action.DISCONNECT_DOCK";
    public static final String SHARED_PREFERENCES = "SONRSharedPreferences";
 
-   protected PowerManager.WakeLock mWakeLock;
+   public static int bufferSize = 0;
+
+   private static final String SAMPLE_URI = "\\";
+   private static final String AUDIO_MIME_TYPE = "audio/*";
+   private static final String DOCK_NOT_FOUND_TRY_AGAIN = "Dock not detected, check connections and try again";
+   private static final String OK_TXT = "Ok";
+   private static final String SELECT_PLAYER = "Please select a music player";
+   private static final String APP_FULL_NAME = "APP_FULL_NAME";
+   private static final String PLAYER_SELECTED = "PLAYER_SELECTED";
+   private static final String FIRST_LAUNCH = "FIRST_LAUNCH";
+   private static final int DEBUG = 1;
+   private static final int MODE = DEBUG;
+   private static final int SAMPLE_RATE = 44100; // In Hz
+   private List<ApplicationInfo> infos = null;
+   private int currentlySelectedApplicationInfoIndex;
+   private SONRClient theclient;
+   private AudioRecord theaudiorecord = null;
+   private AudioManager m_amAudioManager;
 
    private final BroadcastReceiver StopReceiver = new StopReceiver();
+   private boolean isRegistered = false;
+   private PowerManager.WakeLock mWakeLock;
 
    @Override
    public void onCreate(Bundle savedInstanceState) {
@@ -335,7 +331,7 @@ public class SONR
       return showMenu;
    }
 
-   public static List<ApplicationInfo> convert(Context c, Collection<ResolveInfo> infos) {
+   private static List<ApplicationInfo> convert(Context c, Collection<ResolveInfo> infos) {
       final List<ApplicationInfo> result = new ArrayList<ApplicationInfo>();
 
       final Set<ApplicationInfo> apps = new HashSet<ApplicationInfo>();
@@ -369,7 +365,7 @@ public class SONR
       return result;
    }
 
-   public static Collection<ResolveInfo> findActivities(Context context) {
+   private static Collection<ResolveInfo> findActivities(Context context) {
       Map<String, ResolveInfo> finalMap = new HashMap<String, ResolveInfo>();
 
       final PackageManager packageManager = context.getPackageManager();
@@ -442,6 +438,7 @@ public class SONR
          if (theclient.foundDock()) {
             theclient.startListener();
             task = new Runnable() {
+               @Override
                public void run() {
                   dockFound();
                }
@@ -449,6 +446,7 @@ public class SONR
             view.post(task);
          } else {
             task = new Runnable() {
+               @Override
                public void run() {
                   dockNotFound();
                }
@@ -509,7 +507,7 @@ public class SONR
 
    private class AppInfoAdapter
          extends BaseAdapter {
-      public List<ApplicationInfo> ApplicationInfos = new ArrayList<ApplicationInfo>();
+      public final List<ApplicationInfo> ApplicationInfos = new ArrayList<ApplicationInfo>();
       private final LayoutInflater mInflater;
       private final PackageManager pm;
 

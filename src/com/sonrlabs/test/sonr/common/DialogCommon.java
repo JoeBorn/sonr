@@ -6,7 +6,7 @@ import android.content.DialogInterface;
 
 public class DialogCommon {
 
-   private static DialogInterface.OnClickListener doNothingListener = new DialogInterface.OnClickListener() {
+   private static final DialogInterface.OnClickListener doNothingListener = new DialogInterface.OnClickListener() {
       @Override
       public void onClick(DialogInterface dialog, int id) {
          //do nothing

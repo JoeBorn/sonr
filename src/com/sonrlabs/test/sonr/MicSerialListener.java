@@ -9,7 +9,7 @@ import android.media.AudioRecord;
 import android.os.SystemClock;
 import android.util.Log;
 
-public class MicSerialListener
+class MicSerialListener
       implements Runnable {
    private static final String TAG = "MicSerialListener";
 

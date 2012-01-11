@@ -13,14 +13,9 @@ import android.util.Log;
  * 
  */
 final class ListenerAudioSupport
-      implements AudioSupportConstants {
+      extends SignalConstruction {
    
    private static final String TAG = ListenerAudioSupport.class.getSimpleName();
-   
-   private int SIGNAL_MAX_SUM = 0;
-   private final int[] movingsum = new int[TRANSMISSION_LENGTH];
-   private final int[] movingbuf = new int[MOVING_SIZE];
-
    
    /**
     * This is the entry point for {@link MicSerialListener}.
@@ -53,7 +48,7 @@ final class ListenerAudioSupport
             movingbuf[i - startpos] = samples[i];
             movingsum[0] += samples[i];
          }
-         SIGNAL_MAX_SUM = 0;
+         signalMaxSum = 0;
          for (int i = startpos + MOVING_SIZE; i < startpos + PREAMBLE - BEGIN_OFFSET +  SAMPLES_PER_BUFFER * (TRANSMISSION_LENGTH + BIT_OFFSET); i++) {
             movingsum[1] = movingsum[0] - movingbuf[arraypos];
             movingsum[1] += samples[i];
@@ -64,8 +59,8 @@ final class ListenerAudioSupport
             }
 
             int temp = Math.abs(movingsum[0] - movingsum[1]);
-            if (temp > SIGNAL_MAX_SUM) {
-               SIGNAL_MAX_SUM = temp;
+            if (temp > signalMaxSum) {
+               signalMaxSum = temp;
             }
 
             // test_buf[i - startpos - MAGIC_9] = sample_buf1[i];
@@ -73,10 +68,9 @@ final class ListenerAudioSupport
             movingsum[0] = movingsum[1];
          }
 
-         SIGNAL_MAX_SUM /= 1.375;
+         signalMaxSum /= 1.375;
          findSample(startpos, samples, sampleloc);
 
-         int[] triple = new int[SAMPLES_PER_BUFFER];
          for (int n = 0; n < SAMPLES_PER_BUFFER; n++) {
             if (sampleloc[n] != 0) {
                arraypos = 0;
@@ -95,35 +89,13 @@ final class ListenerAudioSupport
                   }
                }
 
-               boolean isinphase = true, switchphase = true;
-               /* we start out with a phase shift */
-               int bitnum = 0;
-
-               for (int i = FRAMES_PER_BIT + 1; i < TRANSMISSION_LENGTH; i++) {
-                  if (isPhase(movingsum[i - 1], movingsum[i], SIGNAL_MAX_SUM) && switchphase) {
-                     isinphase = !isinphase;
-                     switchphase = false; // already switched
-                  }
-
-                  if (i % FRAMES_PER_BIT == 0) {
-                     if (!isinphase) {
-                        triple[n] |= 0x1 << bitnum;
-                     }
-                     bitnum++;
-                     /* reached a bit, can now switch again if phase shifts */
-                     switchphase = true;
-                  }
-               }
-
-               Log.d(TAG, "TRANSMISSION[" + n + "]: " + "0x" + Integer.toHexString(triple[n]));
-               // LogFile.MakeLog("TRANSMISSION[" + n + "]: " + "0x"+
-               // Integer.toHexString(byteInDec[n]));
+               constructSignal(n);
             }
          }
 
          /* If at least two are BOUND, that's a match. */
          int matchCount = 0;
-         for (int value : triple) {
+         for (int value : signals) {
             if (value == BOUNDARY) {
                ++matchCount;
             }
@@ -133,6 +105,7 @@ final class ListenerAudioSupport
 
       return found;
    }
+
    
    private void findSample(int startpos, short[] samples, int[] sampleloc) {
       int arraypos = 0;
@@ -152,7 +125,7 @@ final class ListenerAudioSupport
             arraypos = 0;
          }
 
-         if (isPhase(movingsum[0], movingsum[1], SIGNAL_MAX_SUM)) {
+         if (isPhaseChange(0)) {
             sampleloc[numsampleloc++] = i - 5;
             // next transmission
             i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1;
@@ -166,9 +139,4 @@ final class ListenerAudioSupport
          movingsum[0] = movingsum[1];
       }
    }
-   
-   private boolean isPhase(int sum1, int sum2, int max) {
-      return Math.abs(sum1 - sum2) > max;
-   }
-
 }

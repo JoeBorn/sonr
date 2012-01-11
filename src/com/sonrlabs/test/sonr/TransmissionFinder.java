@@ -8,13 +8,10 @@ package com.sonrlabs.test.sonr;
 import android.util.Log;
 
 final class TransmissionFinder
-      implements AudioSupportConstants {
-   private final int[] signals = new int[SAMPLES_PER_BUFFER];
-   private final int[] movingbuf = new int[MOVING_SIZE];
+      extends SignalConstruction {
    private final int[][] trans_buf = new int[SAMPLES_PER_BUFFER][TRANSMISSION_LENGTH + BIT_OFFSET];
-   private final int[] movingsum = new int[TRANSMISSION_LENGTH];
    private int samplelocsize;
-   private int signalMaxSum = 0;
+   
 
    boolean findSamples(short[] samples, int sampleCount, int[] sampleStartIndices) {
       samplelocsize = 0;
@@ -64,30 +61,6 @@ final class TransmissionFinder
       }
    }
 
-   void constructSignal(int signalIndex) {
-      /* we start out with a phase shift and 0 signal */
-      boolean inphase = true, switchphase = true;
-      signals[signalIndex] = 0;
-
-      for (int i = FRAMES_PER_BIT + 1, bitnum=0; i < TRANSMISSION_LENGTH; i++) {
-         if (switchphase && isPhaseChange(i-1)) {
-            inphase = !inphase;
-            /* already switched */
-            switchphase = false;
-         }
-
-         boolean atFrameBoundary = i % FRAMES_PER_BIT == 0;
-         if (atFrameBoundary) {
-            if (!inphase) {
-               signals[signalIndex] |= 0x1 << bitnum;
-            }
-            bitnum++;
-            /* reached a bit, can now switch */
-            switchphase = true;
-         }
-      }
-   }
-  
    private void processSignal()
          throws SpuriousSignalException {
       /*
@@ -161,12 +134,6 @@ final class TransmissionFinder
          }
       }
       return numsampleloc;
-   }
-
-   private boolean isPhaseChange(int movingSumIndex) {
-      int sum1 = movingsum[movingSumIndex];
-      int sum2 = movingsum[movingSumIndex+1];
-      return Math.abs(sum1 - sum2) > signalMaxSum;
    }
 
    private void autoGainControl(short[] samples, int[] sampleStartIndices) {

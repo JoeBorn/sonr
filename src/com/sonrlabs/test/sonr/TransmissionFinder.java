@@ -70,7 +70,7 @@ final class TransmissionFinder
       signals[signalIndex] = 0;
 
       for (int i = FRAMES_PER_BIT + 1, bitnum=0; i < TRANSMISSION_LENGTH; i++) {
-         if (isPhase(movingsum[i - 1], movingsum[i], signalMaxSum) && switchphase) {
+         if (switchphase && isPhaseChange(i-1)) {
             inphase = !inphase;
             /* already switched */
             switchphase = false;
@@ -136,7 +136,7 @@ final class TransmissionFinder
             arraypos = 0;
          }
 
-         if (isPhase(movingsum[0], movingsum[1], signalMaxSum)) {
+         if (isPhaseChange(0)) {
             sampleStartIndices[numsampleloc % SAMPLES_PER_BUFFER] = i - 5;
 
             samplelocsize = ++numsampleloc;
@@ -163,8 +163,10 @@ final class TransmissionFinder
       return numsampleloc;
    }
 
-   private boolean isPhase(int sum1, int sum2, int max) {
-      return Math.abs(sum1 - sum2) > max;
+   private boolean isPhaseChange(int movingSumIndex) {
+      int sum1 = movingsum[movingSumIndex];
+      int sum2 = movingsum[movingSumIndex+1];
+      return Math.abs(sum1 - sum2) > signalMaxSum;
    }
 
    private void autoGainControl(short[] samples, int[] sampleStartIndices) {

@@ -37,18 +37,18 @@ final class TransmissionFinder
             trans_buf[j][i] = samples[sampleStartIndex];
          }
       }
-      for (int s = 0; s < samplelocsize; s++) {
+      for (int signalIndex = 0; signalIndex < samplelocsize; signalIndex++) {
          int arraypos = 0;
          movingsum[0] = 0;
          for (int i = 0; i < MOVING_SIZE; i++) {
-            movingbuf[i] = trans_buf[s][i];
-            movingsum[0] += trans_buf[s][i];
+            movingbuf[i] = trans_buf[signalIndex][i];
+            movingsum[0] += trans_buf[signalIndex][i];
          }
 
          for (int i = MOVING_SIZE; i < TRANSMISSION_LENGTH; i++) {
             movingsum[i] = movingsum[i - 1] - movingbuf[arraypos];
-            movingsum[i] += trans_buf[s][i];
-            movingbuf[arraypos] = trans_buf[s][i];
+            movingsum[i] += trans_buf[signalIndex][i];
+            movingbuf[arraypos] = trans_buf[signalIndex][i];
             arraypos++;
             if (arraypos == MOVING_SIZE) {
                arraypos = 0;
@@ -58,7 +58,7 @@ final class TransmissionFinder
          /* we start out with a phase shift */
          boolean isinphase = true, switchphase = true;
          int bitnum = 0;
-         signals[s] = 0;
+         signals[signalIndex] = 0;
 
          for (int i = FRAMES_PER_BIT + 1; i < TRANSMISSION_LENGTH; i++) {
             if (isPhase(movingsum[i - 1], movingsum[i], signalMaxSum) && switchphase) {
@@ -70,7 +70,7 @@ final class TransmissionFinder
             if (i % FRAMES_PER_BIT == 0) {
                if (!isinphase) {
                   /* i/MicSerialListener.FRAMES_PER_BIT-1 */
-                  signals[s] |= 0x1 << bitnum;
+                  signals[signalIndex] |= 0x1 << bitnum;
                }
                bitnum++;
                /* reached a bit, can now switch */

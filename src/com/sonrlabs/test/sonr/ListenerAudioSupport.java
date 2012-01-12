@@ -1,6 +1,6 @@
 /***************************************************************************
- * Copyright 2011 by SONR
  *
+ * Copyright 2011 by SONR
  **************************************************************************/
 
 package com.sonrlabs.test.sonr;
@@ -69,7 +69,7 @@ final class ListenerAudioSupport
          }
 
          signalMaxSum /= 1.375;
-         findSample(startpos, samples, sampleloc);
+         findSample(startpos, samples, 0, sampleloc);
 
          for (int n = 0; n < SAMPLES_PER_BUFFER; n++) {
             if (sampleloc[n] != 0) {
@@ -104,39 +104,5 @@ final class ListenerAudioSupport
       }
 
       return found;
-   }
-
-   
-   private void findSample(int startpos, short[] samples, int[] sampleloc) {
-      int arraypos = 0;
-      int numsampleloc = 0;
-      movingsum[0] = 0;
-      for (int i = startpos; i < startpos + MOVING_SIZE; i++) {
-         movingbuf[i - startpos] = samples[i];
-         movingsum[0] += samples[i];
-      }
-
-      for (int i = startpos + MOVING_SIZE; i < startpos + SAMPLE_LENGTH - BIT_OFFSET; i++) {
-         movingsum[1] = movingsum[0] - movingbuf[arraypos];
-         movingsum[1] += samples[i];
-         movingbuf[arraypos] = samples[i];
-         arraypos++;
-         if (arraypos == MOVING_SIZE) {
-            arraypos = 0;
-         }
-
-         if (isPhaseChange(0)) {
-            sampleloc[numsampleloc++] = i - 5;
-            // next transmission
-            i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1;
-            sampleloc[numsampleloc++] = i;
-            // next transmission
-            i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1;
-            sampleloc[numsampleloc] = i;
-            return;
-         }
-
-         movingsum[0] = movingsum[1];
-      }
    }
 }

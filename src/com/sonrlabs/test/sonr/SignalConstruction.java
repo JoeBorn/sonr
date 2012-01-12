@@ -36,4 +36,41 @@ public class SignalConstruction
       int sum2 = movingsum[movingSumIndex+1];
       return Math.abs(sum1 - sum2) > signalMaxSum;
    }
+   
+   protected int findSample(int startpos, short[] samples, int numsampleloc, int[] sampleStartIndices) {
+      movingsum[0] = 0;
+      int start = startpos + MOVING_SIZE;
+      for (int i = startpos; i < start; i++) {
+         movingbuf[i - startpos] = samples[i];
+         movingsum[0] += samples[i];
+      }
+      int arraypos = 0;
+      int end = startpos + SAMPLE_LENGTH - BIT_OFFSET;
+      for (int i = start; i < end; i++) {
+         movingsum[1] = movingsum[0] - movingbuf[arraypos];
+         movingsum[1] += samples[i];
+         movingbuf[arraypos] = samples[i];
+         arraypos++;
+         if (arraypos == MOVING_SIZE) {
+            arraypos = 0;
+         }
+   
+         if (isPhaseChange(0)) {
+            sampleStartIndices[numsampleloc++] = i - 5;
+            if (numsampleloc >= SAMPLES_PER_BUFFER) {
+               break;
+            }
+            // next transmission
+            i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1;
+            sampleStartIndices[numsampleloc++] = i;
+            // next transmission
+            i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1;
+            sampleStartIndices[numsampleloc] = i;
+            break;
+         } else {
+            movingsum[0] = movingsum[1];
+         }
+      }
+      return numsampleloc;
+   }
 }

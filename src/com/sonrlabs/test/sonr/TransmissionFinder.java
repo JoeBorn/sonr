@@ -16,8 +16,9 @@ final class TransmissionFinder
    boolean findSamples(short[] samples, int sampleCount, int[] sampleStartIndices) {
       samplelocsize = 0;
       autoGainControl(samples, sampleStartIndices);
-      for (int n = 0, numsampleloc = 0; n < sampleCount; n++) {
-         numsampleloc = findPSKTransmissions(samples, numsampleloc, sampleStartIndices);
+      int startpos = sampleStartIndices[0];
+      for (int n = 0; n < sampleCount; n++) {
+         samplelocsize = findSample(startpos, samples, samplelocsize, sampleStartIndices);
       }
       return samplelocsize > 0;
    }
@@ -82,58 +83,6 @@ final class TransmissionFinder
    
    private boolean testMatch(int first, int second) {
       return first != 0 & first != BOUNDARY && first == second;
-   }
-
-   /*
-    * 2. cycle through the found PSK locations and find the specific start
-    * points of individual transmissions.
-    * 
-    * Works in part by side-effecting <code>samplelocsize</code>
-    */
-   private int findPSKTransmissions(short[] samples, int numsampleloc, int[] sampleStartIndices) {
-      int arraypos = 0;
-      movingsum[0] = 0;
-      int firstIndex = sampleStartIndices[0];
-      int start = firstIndex + MOVING_SIZE;
-      for (int i = firstIndex; i < start; i++) {
-         movingbuf[i - firstIndex] = samples[i];
-         movingsum[0] += samples[i];
-      }
-      int end = firstIndex + SAMPLE_LENGTH - BIT_OFFSET;
-      for (int i = start; i < end; i++) {
-         movingsum[1] = movingsum[0] - movingbuf[arraypos];
-         movingsum[1] += samples[i];
-         movingbuf[arraypos] = samples[i];
-         arraypos++;
-         if (arraypos == MOVING_SIZE) {
-            arraypos = 0;
-         }
-
-         if (isPhaseChange(0)) {
-            sampleStartIndices[numsampleloc % SAMPLES_PER_BUFFER] = i - 5;
-
-            samplelocsize = ++numsampleloc;
-            if (numsampleloc >= SAMPLES_PER_BUFFER) {
-               return samplelocsize;
-            }
-            /* next transmission */
-            i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1;
-            sampleStartIndices[numsampleloc % SAMPLES_PER_BUFFER] = i;
-            ++numsampleloc;
-            /* next transmission */
-            i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1;
-            sampleStartIndices[numsampleloc % SAMPLES_PER_BUFFER] = i;
-            samplelocsize = ++numsampleloc;
-
-            /*
-             * finished with this signal, go back to search through next signal
-             */
-            break;
-         } else {
-            movingsum[0] = movingsum[1];
-         }
-      }
-      return numsampleloc;
    }
 
    private void autoGainControl(short[] samples, int[] sampleStartIndices) {

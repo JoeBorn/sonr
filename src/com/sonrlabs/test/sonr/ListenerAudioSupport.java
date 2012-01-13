@@ -8,8 +8,7 @@ package com.sonrlabs.test.sonr;
 import android.util.Log;
 
 /**
- * Messy signal processing used by {@link MicSerialListener} to find
- * and sync up with the dock.
+ * TODO: Rename, for instance, DockFinder; or absorb back into MicSerialListener
  * 
  */
 final class ListenerAudioSupport

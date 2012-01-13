@@ -3,11 +3,12 @@ package com.sonrlabs.test.sonr;
 public class SignalConstruction
       implements AudioSupportConstants {
 
+   private int signalMaxSum = 0;
+   
    /* Eventually these should be private, once all the common code is moved here. */
    final int[] signals = new int[SAMPLES_PER_BUFFER];
    final int[] movingbuf = new int[MOVING_SIZE];
    final int[] movingsum = new int[TRANSMISSION_LENGTH];
-   int signalMaxSum = 0;
    
    protected void constructSignal(int signalIndex) {
       /* we start out with a phase shift and 0 signal */
@@ -72,5 +73,33 @@ public class SignalConstruction
          }
       }
       return numsampleloc;
+   }
+   protected void computeSignalMax(short[] samples, int startpos) {
+      movingsum[0] = 0;
+      for (int i = startpos; i < startpos + MOVING_SIZE; i++) {
+         movingbuf[i - startpos] = samples[i];
+         movingsum[0] += samples[i];
+      }
+      signalMaxSum = 0;
+      int index = 0;
+      int endpos = startpos + PREAMBLE - BEGIN_OFFSET + SAMPLES_PER_BUFFER * (TRANSMISSION_LENGTH + BIT_OFFSET);
+      for (int i = startpos + MOVING_SIZE; i < endpos; i++) {
+         movingsum[1] = movingsum[0] - movingbuf[index];
+         movingsum[1] += samples[i];
+         movingbuf[index] = samples[i];
+         index++;
+         if (index == MOVING_SIZE) {
+            index = 0;
+         }
+   
+         int temp = Math.abs(movingsum[0] - movingsum[1]);
+         if (temp > signalMaxSum) {
+            signalMaxSum = temp;
+         }
+   
+         movingsum[0] = movingsum[1];
+      }
+   
+      signalMaxSum /= 1.375;
    }
 }

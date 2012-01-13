@@ -86,32 +86,6 @@ final class TransmissionFinder
    }
 
    private void autoGainControl(short[] samples, int[] sampleStartIndices) {
-      signalMaxSum = 0;
-      int index = 0;
-      int firstIndex = sampleStartIndices[0];
-      movingsum[0] = 0;
-      for (int i = firstIndex; i < firstIndex + MOVING_SIZE; i++) {
-         movingbuf[i - firstIndex] = samples[i];
-         movingsum[0] += samples[i];
-      }
-      int endpos = firstIndex + PREAMBLE - BEGIN_OFFSET + SAMPLES_PER_BUFFER * (TRANSMISSION_LENGTH + BIT_OFFSET);
-      for (int i = firstIndex + MOVING_SIZE; i < endpos; i++) {
-         movingsum[1] = movingsum[0] - movingbuf[index];
-         movingsum[1] += samples[i];
-         movingbuf[index] = samples[i];
-         index++;
-         if (index == MOVING_SIZE) {
-            index = 0;
-         }
-
-         int temp = Math.abs(movingsum[0] - movingsum[1]);
-         if (temp > signalMaxSum) {
-            signalMaxSum = temp;
-         }
-
-         movingsum[0] = movingsum[1];
-      }
-
-      signalMaxSum /= 1.375;
+      computeSignalMax(samples, sampleStartIndices[0]);
    }
 }

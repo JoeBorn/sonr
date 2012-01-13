@@ -22,9 +22,8 @@ final class ListenerAudioSupport
     */
    boolean autoGainControl(short[] samples, int count) {
 
-      boolean found = false;
       int startpos = SAMPLE_LENGTH;
-      int sampleloc[] = new int[SAMPLES_PER_BUFFER];
+      int sampleStartIndices[] = new int[SAMPLES_PER_BUFFER];
       while (startpos < count - 1 && Math.abs(samples[startpos] - samples[startpos + 1]) < THRESHOLD) {
          startpos++;
       }
@@ -42,40 +41,19 @@ final class ListenerAudioSupport
       if (startpos < count - (SAMPLE_LENGTH - BEGIN_OFFSET)) {
          Log.d(TAG, "Found a sample...");
          computeSignalMax(samples, startpos);
-         findSample(startpos, samples, 0, sampleloc);
+         findSample(startpos, samples, 0, sampleStartIndices);
 
-         for (int n = 0; n < SAMPLES_PER_BUFFER; n++) {
-            if (sampleloc[n] != 0) {
-               int index = 0;
-               movingsum[0] = 0;
-               for (int i = 0; i < MOVING_SIZE; i++) {
-                  movingbuf[i] = samples[i + sampleloc[n]];
-                  movingsum[0] += samples[i + sampleloc[n]];
-               }
-               for (int i = MOVING_SIZE; i < TRANSMISSION_LENGTH; i++) {
-                  movingsum[i] = movingsum[i - 1] - movingbuf[index];
-                  movingsum[i] += samples[i + sampleloc[n]];
-                  movingbuf[index] = samples[i + sampleloc[n]];
-                  index++;
-                  if (index == MOVING_SIZE) {
-                     index = 0;
-                  }
-               }
-
-               constructSignal(n);
-            }
-         }
+         constructSignal(samples, sampleStartIndices);
 
          /* If at least two are BOUND, that's a match. */
-         int matchCount = 0;
-         for (int value : signals) {
-            if (value == BOUNDARY) {
-               ++matchCount;
-            }
-         }
-         found = matchCount >= 2;
+         return countBoundSignals() >= 2;
       }
 
-      return found;
+      return false;
+   }
+
+   @Override
+   protected boolean checkSignal(int signal) {
+      return signal != 0;
    }
 }

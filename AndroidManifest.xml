@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="com.sonrlabs.test.sonr"
-      android:versionCode="67"
-      android:versionName="0.67-test">
+      android:versionCode="68"
+      android:versionName="0.68-test">
 
 	<uses-sdk android:minSdkVersion="4" />
 	<uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -11,6 +11,7 @@
 	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 	<uses-permission android:name="android.permission.INTERNET"></uses-permission>
 	<uses-permission android:name="android.permission.WAKE_LOCK" />
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application android:icon="@drawable/sonr_icon" android:label="@string/app_name" android:debuggable="true" android:name="SONRApplication">
         <activity android:name=".SONR"

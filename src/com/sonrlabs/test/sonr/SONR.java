@@ -45,6 +45,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.flurry.android.FlurryAgent;
 import com.sonrlabs.test.sonr.common.Common;
 import com.sonrlabs.test.sonr.common.DialogCommon;
 import com.sonrlabs.test.sonr.signal.AudioProcessor;
@@ -214,7 +215,21 @@ public class SONR
    public void onBackPressed() {
       // finish(); Do Nothing?
    }
-
+   
+   @Override
+   public void onStart()
+   {
+      super.onStart();
+      FlurryAgent.onStartSession(this, "NNCR41GZ52ZYBXPZPTGT");
+   }
+   
+   @Override
+   public void onStop()
+   {
+      super.onStop();
+      FlurryAgent.onEndSession(this);
+   }
+   
    @Override
    public void onDestroy() { // shut it down
       try {
@@ -383,8 +398,7 @@ public class SONR
       queryResults.addAll(packageManager.queryIntentActivities(allLauncherAppsIntent, 0));
 
       for (ResolveInfo resolveInfo : queryResults) {
-         if (!finalMap.containsKey(resolveInfo.activityInfo.packageName)
-               && !resolveInfo.activityInfo.packageName.equals("com.android.music")) {
+         if (!finalMap.containsKey(resolveInfo.activityInfo.packageName)) {
             finalMap.put(resolveInfo.activityInfo.packageName, resolveInfo);
          }
       }

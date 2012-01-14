@@ -42,11 +42,27 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal" >
 
+        <CheckBox
+            android:id="@+id/checkbox_default_player"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dip"
+            android:layout_weight="2"
+            android:text="always use this choice" />
+
         <Button
             android:id="@+id/noneButton"
-            android:layout_width="fill_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="None" />
+
+        <Button
+            android:id="@+id/button_selectmusicapp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="buttonOK"
+            android:text="OK" />
     </LinearLayout>
 
 </LinearLayout>

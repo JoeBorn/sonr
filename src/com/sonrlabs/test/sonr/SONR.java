@@ -35,10 +35,12 @@ import android.util.Log;
 import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -177,12 +179,14 @@ public class SONR
 
       currentlySelectedApplicationInfoIndex = position;
       listView.invalidateViews();
-      
+   }
+
+   public void buttonOK(View view) {
       try {
          if (!Common.get(this, SONR.PLAYER_SELECTED, false) && !Common.get(this, SONR.DEFAULT_PLAYER_SELECTED, false)) {
             DialogCommon.quickPopoutDialog(this, false, SELECT_PLAYER, OK_TXT);
          } else {
-            new CheckDockOnPlayerSelection(clickedView).start();
+            new CheckDockOnPlayerSelection(view).start();
          }
       } catch (RuntimeException e) {
          e.printStackTrace();
@@ -485,7 +489,8 @@ public class SONR
       @Override
       void dockFound() {
          super.dockFound();
-         Start(SONR.this, true);
+         final CheckBox checkBox = (CheckBox) findViewById(R.id.checkbox_default_player);
+         Start(SONR.this, checkBox.isChecked());
       }
    }
 

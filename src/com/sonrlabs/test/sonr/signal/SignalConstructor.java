@@ -8,7 +8,7 @@ abstract class SignalConstructor
       implements AudioSupportConstants {
 
    private static final String TAG = "SignalConstructor";
-   private static final int MIN_MATCHES = 2;
+   private static final int MIN_MATCHES = 3;
    private int signalMaxSum = 0;
    private final int[] movingbuf = new int[MOVING_SIZE];
    private final int[] movingsum = new int[TRANSMISSION_LENGTH];

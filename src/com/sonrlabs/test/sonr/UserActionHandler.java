@@ -87,29 +87,17 @@ class UserActionHandler
                lastPlayTime = SystemClock.elapsedRealtime();
                Log.d(TAG, "PLAY");
                FlurryAgent.logEvent("PLAY_PRESSED");
-
-               // Toast.makeText(getApplicationContext(), "PLAY",
-               // Toast.LENGTH_SHORT).show();
-               // LogFile.MakeLog("RECEIVED PLAY");
             }
             break;
          case FAST_FORWARD:
             key = KeyEvent.KEYCODE_MEDIA_FAST_FORWARD;
             Log.d(TAG, "FAST_FORWARD");
             FlurryAgent.logEvent("FAST_FORWARD_PRESSED");
-
-            // Toast.makeText(getApplicationContext(),
-            // "FAST FORWARD",
-            // Toast.LENGTH_SHORT).show();
-            // LogFile.MakeLog("RECEIVED FAST FORWARD");
             break;
          case REWIND:
             key = KeyEvent.KEYCODE_MEDIA_REWIND;
             Log.d(TAG, "REWIND");
             FlurryAgent.logEvent("REWIND_PRESSED");
-            // Toast.makeText(getApplicationContext(), "REWIND",
-            // Toast.LENGTH_SHORT).show();
-            // LogFile.MakeLog("RECEIVED REWIND");
             break;
          case NEXT_TRACK:
             if (lastSkipTime < SystemClock.elapsedRealtime() - SKIP_TIME) {
@@ -117,11 +105,6 @@ class UserActionHandler
                lastSkipTime = SystemClock.elapsedRealtime();
                Log.d(TAG, "NEXT_TRACK");
                FlurryAgent.logEvent("NEXT_TRACK_PRESSED");
-               // Toast.makeText(getApplicationContext(),
-               // "NEXT TRACK",
-               // Toast.LENGTH_SHORT).show();
-
-               // LogFile.MakeLog("RECEIVED NEXT TRACK");
             }
             break;
          case PREVIOUS_TRACK:
@@ -130,9 +113,6 @@ class UserActionHandler
                lastBackTime = SystemClock.elapsedRealtime();
                Log.d(TAG, "PREVIOUS_TRACK");
                FlurryAgent.logEvent("PREVIOUS_TRACK_PRESSED");
-               // Toast.makeText(getApplicationContext(),
-               // "PREVIOUS TRACK", Toast.LENGTH_SHORT).show();
-               // LogFile.MakeLog("RECEIVED PREVIOUS TRACK");
             }
             break;
          case VOLUME_UP:
@@ -142,10 +122,6 @@ class UserActionHandler
                lastVolumeTime = SystemClock.elapsedRealtime();
                Log.d(TAG, "VOLUME_UP");
                FlurryAgent.logEvent("VOLUME_UP_PRESSED");
-               // Toast.makeText(getApplicationContext(),
-               // "VOLUME UP",
-               // Toast.LENGTH_SHORT).show();
-               // LogFile.MakeLog("RECEIVED VOLUME UP");
             }
             break;
          case VOLUME_DOWN:
@@ -155,9 +131,6 @@ class UserActionHandler
                lastVolumeTime = SystemClock.elapsedRealtime();
                Log.d(TAG, "VOLUME_DOWN");
                FlurryAgent.logEvent("VOLUME_DOWN_PRESSED");
-               // Toast.makeText(getApplicationContext(),
-               // "VOLUME_DOWN", Toast.LENGTH_SHORT).show();
-               // LogFile.MakeLog("RECEIVED VOLUME DOWN");
             }
             break;
          case MUTE:
@@ -167,8 +140,7 @@ class UserActionHandler
                   manager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, AudioManager.FLAG_SHOW_UI);
                   muted = false;
                } else {
-                  // volume =
-                  // theAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+                  // volume = theAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
                   volume = 0;
                   manager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, AudioManager.FLAG_SHOW_UI);
                   muted = true;
@@ -176,92 +148,52 @@ class UserActionHandler
                lastMuteTime = SystemClock.elapsedRealtime();
                Log.d(TAG, "MUTE");
                FlurryAgent.logEvent("MUTE_PRESSED");
-               // Toast.makeText(getApplicationContext(), "MUTE",
-               // Toast.LENGTH_SHORT).show();
-               // LogFile.MakeLog("RECEIVED MUTE");
             }
             break;
          case THUMBS_UP:
             Log.d(TAG, "THUMBS_UP");
             FlurryAgent.logEvent("THUMBS_UP_PRESSED");
-            // LogFile.MakeLog("RECEIVED THUMBS UP");
             break;
          case THUMBS_DOWN:
             Log.d(TAG, "THUMBS_DOWN");
             FlurryAgent.logEvent("THUMBS_DOWN_PRESSED");
-            // Toast.makeText(getApplicationContext(),
-            // "THUMBS_DOWN",
-            // Toast.LENGTH_SHORT).show();
-            // LogFile.MakeLog("RECEIVED THUMBS DOWN");
             break;
          case FAVORITE:
             Log.d(TAG, "FAVORITE");
             FlurryAgent.logEvent("FAVORITE_PRESSED");
-            // Toast.makeText(getApplicationContext(), "FAVORITE",
-            // Toast.LENGTH_SHORT).show();
-            // LogFile.MakeLog("RECEIVED FAVORITE");
             break;
          case UP:
             key = KeyEvent.KEYCODE_DPAD_UP;
             Log.d(TAG, "UP");
             FlurryAgent.logEvent("KEYCODE_DPAD_UP_PRESSED");
-            
-            /* For now treat these as spurious. Restore the break when they're not */
-            throw new SpuriousSignalException(receivedByte);
-            // Toast.makeText(getApplicationContext(), "UP",
-            // Toast.LENGTH_SHORT).show();
-            // LogFile.MakeLog("RECEIVED UP");
+            break;
          case DOWN:
             key = KeyEvent.KEYCODE_DPAD_DOWN;
             Log.d(TAG, "DOWN");
             FlurryAgent.logEvent("KEYCODE_DPAD_DOWN_PRESSED");
-            
-            /* For now treat these as spurious. Restore the break when they're not */
-            throw new SpuriousSignalException(receivedByte);
-            // Toast.makeText(getApplicationContext(), "DOWN",
-            // Toast.LENGTH_SHORT).show();
-            // LogFile.MakeLog("RECEIVED DOWN");
+            break;
          case LEFT:
             key = KeyEvent.KEYCODE_DPAD_LEFT;
             Log.d(TAG, "LEFT");
             FlurryAgent.logEvent("KEYCODE_DPAD_LEFT_PRESSED");
-            
-            /* For now treat these as spurious. Restore the break when they're not */
-            throw new SpuriousSignalException(receivedByte);
-            // Toast.makeText(getApplicationContext(), "LEFT",
-            // Toast.LENGTH_SHORT).show();
-            // LogFile.MakeLog("RECEIVED LEFT");
+            break;
          case RIGHT:
             key = KeyEvent.KEYCODE_DPAD_RIGHT;
             Log.d(TAG, "RIGHT");
             FlurryAgent.logEvent("KEYCODE_DPAD_RIGHT_PRESSED");
-            
-            /* For now treat these as spurious. Restore the break when they're not */
-            throw new SpuriousSignalException(receivedByte);
-            // Toast.makeText(getApplicationContext(), "RIGHT",
-            // Toast.LENGTH_SHORT).show();
-            // LogFile.MakeLog("RECEIVED RIGHT");
+            break;
          case SELECT:
             key = KeyEvent.KEYCODE_DPAD_CENTER;
             Log.d(TAG, "SELECT");
             FlurryAgent.logEvent("KEYCODE_DPAD_CENTER_PRESSED");
-            // Toast.makeText(getApplicationContext(), "SELECT",
-            // Toast.LENGTH_SHORT).show();
-            // LogFile.MakeLog("RECEIVED SELECT");
             break;
          case POWER_ON:
             Log.d(TAG, "POWER_ON");
             FlurryAgent.logEvent("POWER_ON_PRESSED");
-            // Toast.makeText(getApplicationContext(), "POWER ON",
-            // Toast.LENGTH_SHORT).show();
-            // LogFile.MakeLog("RECEIVED POWER ON");
             break;
          case POWER_OFF:
             Log.d(TAG, "POWER_OFF");
             FlurryAgent.logEvent("POWER_OFF_PRESSED");
-            // Toast.makeText(getApplicationContext(), "POWER OFF",
-            // Toast.LENGTH_SHORT).show();
-            // LogFile.MakeLog("RECEIVED POWER OFF");
             break;
          case SONR_HOME:
             Log.d(TAG, "HOME");
@@ -273,14 +205,10 @@ class UserActionHandler
             break;
          case SEARCH:
             Log.d(TAG, "SEARCH");
-            // Toast.makeText(getApplicationContext(), "SEARCH",
-            // Toast.LENGTH_SHORT).show();
-            // LogFile.MakeLog("RECEIVED SEARCH");
             break;
             
          case 0:
             // consider this a no-op for now.
-//            Log.d(TAG, "ZERO");
             break;
             
          default:

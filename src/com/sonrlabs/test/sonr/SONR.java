@@ -581,6 +581,7 @@ public class SONR
       MakeNotification(context);
 
       if (Common.get(context, SONR.PLAYER_SELECTED, false)) {
+         FlurryAgent.logEvent(SONR.APP_FULL_NAME);
          Intent mediaApp = new Intent();
          mediaApp.setClassName(Common.get(context, SONR.APP_PACKAGE_NAME, Common.N_A),
                                Common.get(context, SONR.APP_FULL_NAME, Common.N_A));

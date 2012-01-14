@@ -3,6 +3,7 @@ package com.sonrlabs.test.sonr;
 import org.acra.ErrorReporter;
 
 import com.sonrlabs.test.sonr.common.Common;
+import com.sonrlabs.test.sonr.signal.SpuriousSignalException;
 
 import android.content.Context;
 import android.content.Intent;

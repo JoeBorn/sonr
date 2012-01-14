@@ -3,12 +3,13 @@
  *
  **************************************************************************/
 
-package com.sonrlabs.test.sonr;
+package com.sonrlabs.test.sonr.signal;
+
 
 import android.util.Log;
 
 final class TransmissionFinder
-      extends SignalConstruction {
+      extends SignalConstructor {
    
    private int samplelocsize;
    

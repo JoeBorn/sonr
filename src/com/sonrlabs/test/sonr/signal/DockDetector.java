@@ -3,23 +3,26 @@
  * Copyright 2011 by SONR
  **************************************************************************/
 
-package com.sonrlabs.test.sonr;
+package com.sonrlabs.test.sonr.signal;
+
 
 import android.util.Log;
 
 /**
- * TODO: Rename, for instance, DockFinder; or absorb back into MicSerialListener
+ * Sync with the dock.
  * 
  */
-final class ListenerAudioSupport
-      extends SignalConstruction {
+public class DockDetector
+      extends SignalConstructor {
    
-   private static final String TAG = ListenerAudioSupport.class.getSimpleName();
+   private static final String TAG = DockDetector.class.getSimpleName();
    
    /**
-    * This is the entry point for {@link MicSerialListener}.
+    * This is the entry point for {@link com.sonrlabs.test.sonr.MicSerialListener}.
+    * <p>
+    * TODO: See if we can merge this method and {@link PreambleCheck#findPSKBegin}.
     */
-   boolean autoGainControl(short[] samples, int count) {
+   public boolean findDock(short[] samples, int count) {
 
       int startpos = SAMPLE_LENGTH;
       int sampleStartIndices[] = new int[SAMPLES_PER_BUFFER];

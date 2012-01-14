@@ -1,4 +1,4 @@
-package com.sonrlabs.test.sonr;
+package com.sonrlabs.test.sonr.signal;
 
 interface AudioSupportConstants {
    /**

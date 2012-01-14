@@ -25,10 +25,8 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
-import android.media.MediaRecorder.AudioSource;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.PowerManager;
@@ -49,6 +47,7 @@ import android.widget.Toast;
 
 import com.sonrlabs.test.sonr.common.Common;
 import com.sonrlabs.test.sonr.common.DialogCommon;
+import com.sonrlabs.test.sonr.signal.AudioProcessor;
 
 public class SONR
       extends ListActivity {
@@ -74,9 +73,6 @@ public class SONR
    private static final String APP_FULL_NAME = "APP_FULL_NAME";
    private static final String PLAYER_SELECTED = "PLAYER_SELECTED";
    private static final String FIRST_LAUNCH = "FIRST_LAUNCH";
-   private static final int DEBUG = 1;
-   private static final int MODE = DEBUG;
-   private static final int SAMPLE_RATE = 44100; // In Hz
    private List<ApplicationInfo> infos = null;
    private int currentlySelectedApplicationInfoIndex;
    private SONRClient theclient;
@@ -127,7 +123,7 @@ public class SONR
             startService(i);
          }
 
-         theaudiorecord = findAudioRecord();
+         theaudiorecord = AudioProcessor.findAudioRecord();
          theclient = new SONRClient(this, theaudiorecord, bufferSize, m_amAudioManager);
          theclient.onCreate();
 
@@ -267,7 +263,7 @@ public class SONR
       
       if(theaudiorecord == null)
       {
-         theaudiorecord = findAudioRecord();
+         theaudiorecord = AudioProcessor.findAudioRecord();
          theclient = new SONRClient(this, theaudiorecord, bufferSize, m_amAudioManager);
          theclient.onCreate();
       }
@@ -572,42 +568,5 @@ public class SONR
          mediaApp.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
          context.startActivity(mediaApp);
       }
-   }
-
-   public static AudioRecord findAudioRecord() {
-      // AudioRecord.java:467 PCM_8BIT not supported at the moment
-      for (short audioFormat : new short[] { /* AudioFormat.ENCODING_PCM_8BIT, */
-         AudioFormat.ENCODING_PCM_16BIT
-      }) {
-         for (short channelConfig : new short[] {
-            AudioFormat.CHANNEL_CONFIGURATION_MONO,
-            AudioFormat.CHANNEL_IN_MONO,
-            AudioFormat.CHANNEL_CONFIGURATION_DEFAULT,
-            AudioFormat.CHANNEL_IN_DEFAULT
-         }) {
-            try {
-               if (MODE > 0) {
-                  Log.d(TAG, "Attempting rate " + SAMPLE_RATE + "Hz, bits: " + audioFormat + ", channel: " + channelConfig);
-               }
-
-               bufferSize = AudioSupportConstants.SAMPLES_PER_BUFFER * AudioRecord.getMinBufferSize(SAMPLE_RATE, channelConfig, audioFormat);
-
-               if (bufferSize != AudioRecord.ERROR_BAD_VALUE) {
-                  // check if we can instantiate and have a success
-                  AudioRecord recorder = new AudioRecord(AudioSource.DEFAULT, SAMPLE_RATE, channelConfig, audioFormat, bufferSize);
-
-                  if (recorder.getState() == AudioRecord.STATE_INITIALIZED) {
-                     return recorder;
-                  }
-               }
-            } catch (RuntimeException e) {
-               if (MODE > 0) {
-                  Log.v(TAG, "Unable to allocate for: " + SAMPLE_RATE + "Hz, bits: " + audioFormat + ", channel: " + channelConfig);
-                  Log.e(TAG, "Exception " + e);
-               }
-            }
-         }
-      }
-      return null;
    }
 }

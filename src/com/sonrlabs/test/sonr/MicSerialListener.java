@@ -5,6 +5,8 @@ import java.util.concurrent.Executors;
 
 import org.acra.ErrorReporter;
 
+import com.sonrlabs.test.sonr.signal.DockDetector;
+
 import android.media.AudioRecord;
 import android.os.SystemClock;
 import android.util.Log;
@@ -23,7 +25,7 @@ class MicSerialListener
     * One instance shared by each listener, only one of which is active at any
     * given time.  Is this safe?
     */
-   private static final ListenerAudioSupport support = new ListenerAudioSupport();
+   private static final DockDetector support = new DockDetector();
 
    static void  startNewListener(MicSerialListener listener) {
       executor.execute(listener);
@@ -71,7 +73,7 @@ class MicSerialListener
             if (count > 0) {
                /* if there are samples and not waiting */
                samples.setCount(count);
-               if (AudioProcessorQueue.singleton.push(samples)) {
+               if (AudioProcessorQueue.push(samples)) {
                   /*
                    * Grab a new buffer from the pool if the current buffer was
                    * successfully queued. Otherwise reuse it.
@@ -121,7 +123,7 @@ class MicSerialListener
             while (inStream != null && !foundDock && SystemClock.elapsedRealtime() <= endTime) {
                int count = inStream.read(samples, 0, bufferSize);
                if (count > 0) {
-                  foundDock = support.autoGainControl(samples, count);
+                  foundDock = support.findDock(samples, count);
                } else {
                   problem = true;
                }

@@ -70,7 +70,7 @@ public class SONRClient
             unregisterReceiver();
             registerReceiver();
             IUserActionHandler controller = new UserActionHandler(theAudioManager,ctx);
-            AudioProcessorQueue.singleton.setUserActionHandler(controller);
+            AudioProcessorQueue.setUserActionHandler(controller);
             if (singletonListener != null) {
                singletonListener.stopRunning();
             }

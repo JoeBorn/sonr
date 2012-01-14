@@ -3,7 +3,8 @@
  *
  **************************************************************************/
 
-package com.sonrlabs.test.sonr;
+package com.sonrlabs.test.sonr.signal;
+
 
 /**
  * Look for signal start, taking into account the 'preamble'.

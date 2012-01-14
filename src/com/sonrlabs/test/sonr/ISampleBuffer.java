@@ -3,7 +3,7 @@ package com.sonrlabs.test.sonr;
 /**
  *  Reusable sample buffers.
  */
-interface ISampleBuffer {
+public interface ISampleBuffer {
    
    /**
     * Make the buffer available for reuse.

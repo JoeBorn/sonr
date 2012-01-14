@@ -1,5 +1,7 @@
 package com.sonrlabs.test.sonr;
 
+import com.sonrlabs.test.sonr.signal.SpuriousSignalException;
+
 /**
  * Process a user action initiated from the remote or the dock buttons,
  */

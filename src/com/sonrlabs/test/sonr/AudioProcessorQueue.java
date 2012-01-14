@@ -10,13 +10,29 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+import com.sonrlabs.test.sonr.signal.AudioProcessor;
+import com.sonrlabs.test.sonr.signal.SpuriousSignalException;
+
 /**
  *  Queue requests, process them in sequence in a task.
  */
-final class AudioProcessorQueue
+public final class AudioProcessorQueue
       extends Thread {
    
-   static final AudioProcessorQueue singleton = new AudioProcessorQueue(20);
+   private static final AudioProcessorQueue singleton = new AudioProcessorQueue(20);
+   
+   static boolean push(ISampleBuffer buffer) {
+      return singleton.offer(buffer);
+   }
+   
+   static void setUserActionHandler(IUserActionHandler handler) {
+      singleton.actionHandler = handler;
+   }
+   
+   public static void processAction(int actionCode)
+         throws SpuriousSignalException {
+      singleton.handleAction(actionCode);
+   }
    
    private final AudioProcessor processor = new AudioProcessor();
    private IUserActionHandler actionHandler;
@@ -32,18 +48,14 @@ final class AudioProcessorQueue
       start();
    }
    
-   void setUserActionHandler(IUserActionHandler handler) {
-      actionHandler = handler;
-   }
-   
-   void processAction(int actionCode)
+   private void handleAction(int actionCode)
          throws SpuriousSignalException {
       if (actionHandler != null) {
          actionHandler.processAction(actionCode);
       }
    }
    
-   boolean push(ISampleBuffer buffer) {
+   private boolean offer(ISampleBuffer buffer) {
       synchronized (lock) {
          if (queuedBuffers.size() == capacity) {
             android.util.Log.w(getClass().getName(), "Queue capacity exceeded");

@@ -1,6 +1,8 @@
-package com.sonrlabs.test.sonr;
+package com.sonrlabs.test.sonr.signal;
 
-abstract class SignalConstruction
+import com.sonrlabs.test.sonr.AudioProcessorQueue;
+
+abstract class SignalConstructor
       implements AudioSupportConstants {
 
    private int signalMaxSum = 0;
@@ -15,7 +17,7 @@ abstract class SignalConstruction
       int first = signals[firstIndex];
       boolean match = first != 0 & first != BOUNDARY && first == signals[secondIndex];
       if (match) {
-         AudioProcessorQueue.singleton.processAction(first);
+         AudioProcessorQueue.processAction(first);
       }
       return match;
    }

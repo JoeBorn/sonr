@@ -10,6 +10,24 @@ abstract class SignalConstructor
    private final int[] movingsum = new int[TRANSMISSION_LENGTH];
    private final int[] signals = new int[SAMPLES_PER_BUFFER];
    
+   /**
+    * The use case for this method is {@link #constructSignal(short[], int[])}.
+    * That method is invoked by both by {@link ListenerAudioSupport} and also by
+    * {@link TransmissionFinder}
+    * <p>
+    * The former had a test to determine whether or not the construction should
+    * proceed, the latter did not. Otherwise the code was identical. To handle
+    * this I added the abstract method.
+    * <p>
+    * The distinction seems slightly suspicious. More likely either both cases
+    * should be running the same test (<code> signal != 0</code> ) or neither
+    * should.
+    * 
+    * 
+    * @param signal the current signal value.
+    * 
+    * @return whether or not signal construction should proceeed.
+    */
    abstract protected boolean checkSignal(int signal);
    
    boolean processSignalIfMatch(int firstIndex, int secondIndex)

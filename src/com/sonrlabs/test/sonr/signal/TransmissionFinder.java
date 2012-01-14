@@ -28,11 +28,6 @@ final class TransmissionFinder
       }
    }
 
-   @Override
-   protected boolean checkSignal(int signal) {
-      return true;
-   }
-
    private void processSample(short[] samples, int[] sampleStartIndices) {
       if (samplelocsize < 2) {
          // don't bother

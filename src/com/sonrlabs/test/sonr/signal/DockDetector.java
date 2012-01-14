@@ -51,9 +51,4 @@ public class DockDetector
 
       return false;
    }
-
-   @Override
-   protected boolean checkSignal(int signal) {
-      return signal != 0;
-   }
 }

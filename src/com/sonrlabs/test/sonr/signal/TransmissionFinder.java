@@ -6,6 +6,8 @@
 package com.sonrlabs.test.sonr.signal;
 
 
+import com.sonrlabs.test.sonr.ISampleBuffer;
+
 import android.util.Log;
 
 final class TransmissionFinder
@@ -13,14 +15,17 @@ final class TransmissionFinder
    
    private int samplelocsize;
    
-   boolean findSamples(short[] samples, int sampleCount, int[] sampleStartIndices) {
+   void nextSample(ISampleBuffer buffer, int sampleCount, int[] sampleStartIndices) {
+      short[] samples = buffer.getArray();
       samplelocsize = 0;
       autoGainControl(samples, sampleStartIndices);
       int startpos = sampleStartIndices[0];
       for (int n = 0; n < sampleCount; n++) {
          samplelocsize = findSample(startpos, samples, samplelocsize, sampleStartIndices);
       }
-      return samplelocsize > 0;
+      if (samplelocsize > 0) {
+         processSample(samples, sampleStartIndices);
+      }
    }
 
    @Override
@@ -28,7 +33,7 @@ final class TransmissionFinder
       return true;
    }
 
-   void processSample(int count, short[] samples, int[] sampleStartIndices) {
+   private void processSample(short[] samples, int[] sampleStartIndices) {
       if (samplelocsize < 2) {
          // don't bother
          return;
@@ -42,13 +47,14 @@ final class TransmissionFinder
       }
    }
 
+   /*
+    * Look for two out of three match.
+    * 
+    * Works by side-effect which is why the bodies of the if statements are empty.
+    * Note the we're depending on SAMPLES_PER_BUFFER being 3 here.
+    */
    private void processSignal()
          throws SpuriousSignalException {
-      /*
-       * receive byte using best two out of three.
-       * 
-       * Note the we're depending on SAMPLES_PER_BUFFER being 3 here.
-       */
       if (processSignalIfMatch(0, 1)) {
       } else if (samplelocsize > 2 && processSignalIfMatch(0, 2)) {
       } else if (samplelocsize > 2 && processSignalIfMatch(1, 2)) {

@@ -5,42 +5,51 @@
 
 package com.sonrlabs.test.sonr.signal;
 
+import com.sonrlabs.test.sonr.ISampleBuffer;
+
 
 /**
  * Look for signal start, taking into account the 'preamble'.
  * 
  * XXX What is this preamble stuff about?
  */
-final class PreambleCheck
+final class TransmissionPreprocessor
       implements AudioSupportConstants {
+   
+   private final TransmissionFinder finder = new TransmissionFinder();
+   private final int[] sampleStartIndices = new int[SAMPLES_PER_BUFFER];
+
    /*
-    * XXX Seems suspicious that these are fields, with values that persist
-    * between calls
+    * XXX Seems suspicious that these two persist between calls
     */
    private boolean preambleIsCutOff;
    private int preambleOffset = 0;
 
-   private int currentIndex;
-   private int sampleCount;
-
-   int countSamples(int count, short[] samples, int[] sampleStartIndicies) {
-      currentIndex = 0;
-      sampleCount = 0;
+   void nextSample(ISampleBuffer buffer) {
+      int numfoundsamples = countSamples(buffer);
+      if (numfoundsamples > 0) {
+         finder.nextSample(buffer, numfoundsamples, sampleStartIndices);
+      }
+   }
+   
+   private int countSamples(ISampleBuffer buffer) {
+      int currentIndex = 0;
+      int sampleCount = 0;
       if (preambleIsCutOff) {
          ++sampleCount;
-         sampleStartIndicies[0] = preambleOffset;
+         sampleStartIndices[0] = preambleOffset;
          preambleIsCutOff = false;
          currentIndex += SAMPLE_LENGTH + END_OFFSET;
          // Log.d(TAG, "PREAMBLE CUT OFF BEGIN");
       } else {
          currentIndex = SAMPLE_LENGTH;
       }
-
-      findPSKBegin(count, samples, sampleStartIndicies);
-      return sampleCount;
+      return findPSKBegin(buffer, currentIndex, sampleCount);
    }
 
-   private void findPSKBegin(int count, short[] samples, int[] sampleStartIndices) {
+   private int findPSKBegin(ISampleBuffer buffer, int currentIndex, int sampleCount) {
+      int count = buffer.getCount();
+      short[] samples = buffer.getArray();
       while (currentIndex < count - 1) {
          if (Math.abs(samples[currentIndex] - samples[currentIndex + 1]) > THRESHOLD) {
             if (currentIndex >= SAMPLE_LENGTH && currentIndex < SAMPLE_LENGTH * 2 && sampleCount == 0) {
@@ -66,5 +75,6 @@ final class PreambleCheck
          }
          currentIndex++;
       }
+      return sampleCount;
    }
 }

@@ -19,8 +19,6 @@ public class DockDetector
    
    /**
     * This is the entry point for {@link com.sonrlabs.test.sonr.MicSerialListener}.
-    * <p>
-    * TODO: See if we can merge this method and {@link PreambleCheck#findPSKBegin}.
     */
    public boolean findDock(short[] samples, int count) {
 

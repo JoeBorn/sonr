@@ -32,23 +32,7 @@ public final class AudioProcessor
    
    private static final String TAG = "AudioProcessor";
    
-   private static final short[] FORMATS = {
-      AudioFormat.ENCODING_PCM_16BIT
-      // AudioRecord.java:467 PCM_8BIT not supported at the moment
-   };
-
-   private static final short[] CHANNEL_CONFIGS = {
-      AudioFormat.CHANNEL_CONFIGURATION_MONO,
-      AudioFormat.CHANNEL_IN_MONO,
-      AudioFormat.CHANNEL_CONFIGURATION_DEFAULT,
-      AudioFormat.CHANNEL_IN_DEFAULT
-   };
-
-   private final TransmissionFinder finder = new TransmissionFinder();
-   private final PreambleCheck checker = new PreambleCheck();
-   
-   /* This funky structure is shared by the checker and the finder. */
-   private final int[] sampleStartInidices = new int[SAMPLES_PER_BUFFER];
+   private final TransmissionPreprocessor preprocessor = new TransmissionPreprocessor();
    
    /**
     * Process the next set of buffers. For now do this one at a time.
@@ -68,7 +52,7 @@ public final class AudioProcessor
    public void nextSamples(List<ISampleBuffer> buffers) {
       for (ISampleBuffer buffer : buffers) {
          try {
-            nextSample(buffer);
+            preprocessor.nextSample(buffer);
          } catch (RuntimeException e) {
             e.printStackTrace();
             ErrorReporter.getInstance().handleException(e);
@@ -78,15 +62,22 @@ public final class AudioProcessor
       }
    }
    
-   private void nextSample(ISampleBuffer buffer) {
-      int count = buffer.getCount();
-      short[] data = buffer.getArray();
-      int numfoundsamples = checker.countSamples(count, data, sampleStartInidices);
-      if (numfoundsamples > 0 && finder.findSamples(data, numfoundsamples, sampleStartInidices)) {
-         finder.processSample(count, data, sampleStartInidices);
-      }
-   }
-   
+   private static final short[] FORMATS = {
+      AudioFormat.ENCODING_PCM_16BIT
+      // AudioRecord.java:467 PCM_8BIT not supported at the moment
+   };
+
+   private static final short[] CHANNEL_CONFIGS = {
+      AudioFormat.CHANNEL_CONFIGURATION_MONO,
+      AudioFormat.CHANNEL_IN_MONO,
+      AudioFormat.CHANNEL_CONFIGURATION_DEFAULT,
+      AudioFormat.CHANNEL_IN_DEFAULT
+   };
+
+   /**
+    * Utility method to find the right audio format for a given phone.
+    * @return a suitable record, or null if none found.
+    */
    public static AudioRecord findAudioRecord() {
       for (short audioFormat : FORMATS) {
          for (short channelConfig : CHANNEL_CONFIGS) {

@@ -6,6 +6,7 @@
 package com.sonrlabs.test.sonr.signal;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import com.flurry.android.FlurryAgent;
 
@@ -18,7 +19,7 @@ public class SpuriousSignalException
    private static final long serialVersionUID = 1;
    private final int signalCode;
    private final String message;
-   private final HashMap<String, String> flurryParams = new HashMap<String, String>();
+   private final Map<String, String> flurryParams = new HashMap<String, String>();
    
    public SpuriousSignalException(int signalCode) {
       this.signalCode = signalCode;

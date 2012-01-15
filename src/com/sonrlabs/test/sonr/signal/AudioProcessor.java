@@ -13,7 +13,7 @@ import com.sonrlabs.test.sonr.ISampleBuffer;
 import com.sonrlabs.test.sonr.SONR;
 
 /**
- * Process an ordered collecton of reusable sample buffers.
+ * Process an ordered collection of reusable sample buffers.
  * <p>
  * This is effectively a singleton as it's only instantiated once by the
  * {@link com.sonrlabs.test.sonr.AudioProcessorQueue} singleton.

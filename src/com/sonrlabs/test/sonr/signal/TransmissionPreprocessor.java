@@ -11,7 +11,8 @@ import com.sonrlabs.test.sonr.ISampleBuffer;
 /**
  * Look for signal start, taking into account the 'preamble'.
  * 
- * XXX What is this preamble stuff about?
+ * The preamble is a section of signal designed to provide the time for the
+ * phone's internal hardware gain control to get adjusted to the signal amplitude.
  */
 final class TransmissionPreprocessor
       implements AudioSupportConstants {

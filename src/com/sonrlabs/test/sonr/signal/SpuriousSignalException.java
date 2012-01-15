@@ -18,7 +18,7 @@ public class SpuriousSignalException
       this.signalCode = signalCode;
    }
 
-   int getSignalCode() {
+   public int getSignalCode() {
       return signalCode;
    }
 }

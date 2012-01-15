@@ -4,16 +4,43 @@ import android.util.Log;
 
 import com.sonrlabs.test.sonr.AudioProcessorQueue;
 
+/**
+ * This class provides support for audio processing functionality that's common
+ * to both the initial connection to the dock and the processing of signals once
+ * that connection is established.
+ */
 abstract class SignalConstructor
       implements AudioSupportConstants {
 
    private static final String TAG = "SignalConstructor";
    private static final int MIN_MATCHES = 3;
+   
+   /**
+    * Used as the threshold to detect phase changes. It's computed by
+    * {@link #computeSignalMax()}.
+    */
    private int signalMaxSum = 0;
+   
+   // TODO: Document these
    private final int[] movingbuf = new int[MOVING_SIZE];
    private final int[] movingsum = new int[TRANSMISSION_LENGTH];
+   
+   /**
+    * Stores whatever signal was found in each sample.  The signal
+    * value for a given index is computed by {@link #constructSignal(int index)}.
+    */
    private final int[] signals = new int[SAMPLES_PER_BUFFER];
 
+   /**
+    * Look for at least {@value #MIN_MATCHES} matches of the values in {@link #signals}.
+    * If found, send that matching value off to the processor.
+    * 
+    * <p>
+    * 
+    * For now this is more convoluted than it has to be so we can log extra
+    * debugging information. Once we're past the detailed logging stage it
+    * should be simplified.
+    */
    void processSignalIfMatch()
          throws SpuriousSignalException {
       for (int i = 0; i < signals.length; i++) {

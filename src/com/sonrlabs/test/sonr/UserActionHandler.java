@@ -59,7 +59,7 @@ class UserActionHandler
    private long lastBackTime = 0;
    private int volume = -1;
    private boolean muted = false;
-
+   
    UserActionHandler(AudioManager manager, Context ctx) {
       this.manager = manager;
       this.context = ctx;

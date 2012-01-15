@@ -32,6 +32,11 @@ abstract class SignalConstructor
                      + matchCount + " matches";
                Log.d(TAG, msg);
                return;
+            } else if (matchCount > 1) {
+               String msg = "Ignoring signal " 
+                     + Integer.toBinaryString(baseSignal) + " [0x" + Integer.toHexString(baseSignal) + "] with "
+                     + matchCount + " matches";
+               Log.d(TAG, msg);
             }
          }
       }

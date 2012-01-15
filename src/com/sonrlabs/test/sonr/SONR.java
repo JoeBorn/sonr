@@ -64,6 +64,8 @@ public class SONR
    public static boolean MAIN_SCREEN = false;
    public static final String DISCONNECT_ACTION = "android.intent.action.DISCONNECT_DOCK";
    public static final String SHARED_PREFERENCES = "SONRSharedPreferences";
+   private final static HashMap<String, String> flurryParams = new HashMap<String, String>();
+
 
    public static int bufferSize = 0;
 
@@ -580,7 +582,8 @@ public class SONR
       MakeNotification(context);
 
       if (Common.get(context, SONR.PLAYER_SELECTED, false)) {
-         FlurryAgent.logEvent(SONR.APP_FULL_NAME);
+         flurryParams.put("MediaPlayer", SONR.APP_FULL_NAME);
+         FlurryAgent.logEvent("APP_FULL_NAME", flurryParams);
          Intent mediaApp = new Intent();
          mediaApp.setClassName(Common.get(context, SONR.APP_PACKAGE_NAME, Common.N_A),
                                Common.get(context, SONR.APP_FULL_NAME, Common.N_A));

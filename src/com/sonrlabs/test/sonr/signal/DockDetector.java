@@ -12,14 +12,12 @@ import android.util.Log;
  * Sync with the dock.
  * 
  */
-public class DockDetector
-      extends SignalConstructor {
+class DockDetector
+      extends SignalConstructor
+      implements IDockDetector {
    
    private static final String TAG = DockDetector.class.getSimpleName();
    
-   /**
-    * This is the entry point for {@link com.sonrlabs.test.sonr.MicSerialListener}.
-    */
    public boolean findDock(short[] samples, int count) {
 
       int startpos = SAMPLE_LENGTH;

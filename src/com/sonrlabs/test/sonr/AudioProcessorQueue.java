@@ -10,7 +10,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-import com.sonrlabs.test.sonr.signal.AudioProcessor;
+import com.sonrlabs.test.sonr.signal.Factory;
+import com.sonrlabs.test.sonr.signal.IAudioProcessor;
 import com.sonrlabs.test.sonr.signal.SpuriousSignalException;
 
 /**
@@ -34,7 +35,7 @@ public final class AudioProcessorQueue
       singleton.handleAction(actionCode);
    }
    
-   private final AudioProcessor processor = new AudioProcessor();
+   private final IAudioProcessor processor = Factory.createAudioProcessor();
    private IUserActionHandler actionHandler;
    
    private final Queue<ISampleBuffer> queuedBuffers = new LinkedList<ISampleBuffer>();

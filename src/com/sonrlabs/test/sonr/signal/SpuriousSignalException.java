@@ -18,7 +18,7 @@ public class SpuriousSignalException
    private static final long serialVersionUID = 1;
    private final int signalCode;
    private final String message;
-   final HashMap<String, String> flurryParams = new HashMap<String, String>();
+   private final HashMap<String, String> flurryParams = new HashMap<String, String>();
    
    public SpuriousSignalException(int signalCode) {
       this.signalCode = signalCode;

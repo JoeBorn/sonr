@@ -5,34 +5,25 @@ import android.util.Log;
 import com.sonrlabs.test.sonr.AudioProcessorQueue;
 
 /**
-<<<<<<< HEAD
  * Sonr uses differential phase shift keying for modulation:
  * http://en.wikipedia.org/wiki/Phase-shift_keying#Differential_phase-shift_keying_.28DPSK.29
  * and HDLC Framing
  * http://en.wikipedia.org/wiki/High-Level_Data_Link_Control
- */
-
-
-=======
+ * 
  * This class provides support for audio processing functionality that's common
  * to both the initial connection to the dock and the processing of signals once
  * that connection is established.
  */
->>>>>>> c4f507c522d34532d6fcf64fd21004abb5376b9f
 abstract class SignalConstructor
       implements AudioSupportConstants {
 
    private static final String TAG = "SignalConstructor";
-<<<<<<< HEAD
    private static final int MIN_MATCHES = 3;// how many of the three repetitions in the transmission required for valid data
-=======
-   private static final int MIN_MATCHES = 3;
-   
+
    /**
     * Used as the threshold to detect phase changes. It's computed by
     * {@link #computeSignalMax()}.
     */
->>>>>>> c4f507c522d34532d6fcf64fd21004abb5376b9f
    private int signalMaxSum = 0;
    
    // TODO: Document these

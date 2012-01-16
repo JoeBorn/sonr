@@ -1,38 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
- 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
- 	android:layout_width="fill_parent" 
-  	android:layout_height="fill_parent"
-  	android:orientation="vertical"
-  	android:weightSum="1.0" >
-    
-    <ImageView android:id="@+id/splash_logo"
-		android:src="@drawable/dianddock"
-		android:adjustViewBounds="true"
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-		android:layout_weight=".45"/>
-		  
-	<ImageView android:id="@+id/sonr_logo"
-		android:src="@drawable/sonr_logo"
-		android:adjustViewBounds="true"
-		android:layout_width="132dip"
-		android:layout_height="64dip"
-		android:layout_gravity="center"/>
-		
-	<TextView android:id="@+id/intro_msg"
-     	android:layout_width="fill_parent"
-     	android:text="@string/home_text"
-     	android:layout_height="wrap_content"
-     	android:layout_weight=".53"
-     	android:layout_margin="12dip"
-     	android:gravity="center|left"/>	
-     	
-   	<Button android:id="@+id/button_accept_msg"
-     	android:text="OK"
-     	android:layout_width="fill_parent"
-     	android:layout_height="wrap_content"
-     	android:onClick="acceptTerms"
-     	android:layout_margin="6dip"
-     	android:layout_weight=".01"/>
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:weightSum="1.0" >
+
+    <ImageView
+        android:id="@+id/splash_logo"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight=".45"
+        android:adjustViewBounds="true"
+        android:src="@drawable/dianddock" />
+
+    <ImageView
+        android:id="@+id/sonr_logo"
+        android:layout_width="132dip"
+        android:layout_height="64dip"
+        android:layout_gravity="center"
+        android:adjustViewBounds="true"
+        android:src="@drawable/sonr_logo" />
+
+    <TextView
+        android:id="@+id/intro_msg"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="12dip"
+        android:layout_weight=".53"
+        android:gravity="center|left"
+        android:text="@string/home_text" />
+
+    <TextView
+        android:id="@+id/intro_msg"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="Recommended players:" />
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal" android:gravity="center" android:layout_marginTop="10dp" android:layout_marginBottom="10dp">
+        <ImageButton
+            android:id="@+id/pandoraButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:background="@null"
+            android:scaleType="centerInside"
+            android:src="@drawable/pandora_radio" android:layout_marginRight="20dp" android:onClick="recommendedPlayers"/>
+
+        <ImageButton
+            android:id="@+id/winampButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:background="@null"
+            android:scaleType="centerInside"
+            android:src="@drawable/winamp" android:layout_marginLeft="20dp" android:onClick="recommendedPlayers"/>
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/button_accept_msg"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="6dip"
+        android:layout_weight=".01"
+        android:onClick="acceptTerms"
+        android:text="OK" />
+
 </LinearLayout>

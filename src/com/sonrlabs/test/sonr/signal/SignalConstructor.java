@@ -4,11 +4,19 @@ import android.util.Log;
 
 import com.sonrlabs.test.sonr.AudioProcessorQueue;
 
+/**
+ * Sonr uses differential phase shift keying for modulation:
+ * http://en.wikipedia.org/wiki/Phase-shift_keying#Differential_phase-shift_keying_.28DPSK.29
+ * and HDLC Framing
+ * http://en.wikipedia.org/wiki/High-Level_Data_Link_Control
+ */
+
+
 abstract class SignalConstructor
       implements AudioSupportConstants {
 
    private static final String TAG = "SignalConstructor";
-   private static final int MIN_MATCHES = 3;
+   private static final int MIN_MATCHES = 3;// how many of the three repetitions in the transmission required for valid data
    private int signalMaxSum = 0;
    private final int[] movingbuf = new int[MOVING_SIZE];
    private final int[] movingsum = new int[TRANSMISSION_LENGTH];

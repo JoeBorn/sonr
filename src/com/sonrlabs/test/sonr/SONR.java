@@ -78,10 +78,12 @@ public class SONR
    private static final String APP_FULL_NAME = "APP_FULL_NAME";
    private static final String PLAYER_SELECTED = "PLAYER_SELECTED";
    private static final String FIRST_LAUNCH = "FIRST_LAUNCH";
+   private static final String RE_INIT_LISTENER = "RE_INIT_LISTENER";
+   
    private List<ApplicationInfo> infos = null;
    private int currentlySelectedApplicationInfoIndex;
    private SONRClient theclient;
-   private AudioRecord theaudiorecord = null;
+   private static AudioRecord theaudiorecord;
    private AudioManager m_amAudioManager;
 
    private final BroadcastReceiver StopReceiver = new StopReceiver();
@@ -128,9 +130,13 @@ public class SONR
             startService(i);
          }
 
-         theaudiorecord = AudioProcessor.findAudioRecord();
-         theclient = new SONRClient(this, theaudiorecord, bufferSize, m_amAudioManager);
-         theclient.onCreate();
+         Intent startIntent = getIntent();
+         boolean initListener = startIntent.getBooleanExtra(SONR.RE_INIT_LISTENER, true);
+         if (initListener) {
+            theaudiorecord = AudioProcessor.findAudioRecord();
+            theclient = new SONRClient(this, theaudiorecord, bufferSize, m_amAudioManager);
+            theclient.onCreate();
+         }
 
          final Button noneButton = (Button) findViewById(R.id.noneButton);
          noneButton.setOnClickListener(new View.OnClickListener() {
@@ -201,18 +207,18 @@ public class SONR
       NotificationManager mNotificationManager = (NotificationManager) ctx.getSystemService(ns);
 
       int icon = R.drawable.sonr_icon;
-      CharSequence tickerText = "SONR Connected";
       long when = System.currentTimeMillis();
 
-      Notification notification = new Notification(icon, tickerText, when);
+      Notification notification = new Notification(icon, ctx.getString(R.string.tickerText), when);
       notification.flags |= Notification.FLAG_NO_CLEAR;
 
-      CharSequence contentTitle = TAG;
-      CharSequence contentText = "Disconnect from dock";
-      Intent notificationIntent = new Intent(ctx, StopSONR.class);
+      Intent notificationIntent = new Intent(ctx, SONR.class);
+      notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+      notificationIntent.putExtra(SONR.RE_INIT_LISTENER, false);
+      
       PendingIntent contentIntent = PendingIntent.getActivity(ctx, 0, notificationIntent, 0);
 
-      notification.setLatestEventInfo(ctx, contentTitle, contentText, contentIntent);
+      notification.setLatestEventInfo(ctx, TAG, ctx.getString(R.string.notificationText), contentIntent);
 
       mNotificationManager.notify(SONR_ID, notification);
    }
@@ -223,8 +229,7 @@ public class SONR
    }
    
    @Override
-   public void onStart()
-   {
+   public void onStart() {
       super.onStart();
       FlurryAgent.onStartSession(this, "NNCR41GZ52ZYBXPZPTGT");
    }

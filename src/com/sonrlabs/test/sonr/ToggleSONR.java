@@ -38,11 +38,7 @@ public class ToggleSONR
    private static final int DEVICE_OUT_WIRED_HEADSET = 0x4;
    private static final int DEVICE_STATE_UNAVAILABLE = 0;
    private static final int DEVICE_STATE_AVAILABLE = 1;
-   private static final String HEADSET_PLUG_INTENT = "android.intent.action.HEADSET_PLUG";
-   private static final String ACTION_POWER_CONNECTED = "android.intent.action.ACTION_POWER_CONNECTED";
-   private static final String ACTION_POWER_DISCONNECTED = "android.intent.action.ACTION_POWER_DISCONNECTED";
-
-
+   
    public static boolean SERVICE_ON = false;
 
    @Override
@@ -60,11 +56,13 @@ public class ToggleSONR
          // LogFile.MakeLog("ToggleSONR triggered");
          Log.d(TAG, "onStart");
 
-         SERVICE_ON = true;
-
-         if (intent.getAction() != null) {
+         String action = "";
+         if (intent != null && intent.getAction() != null) {
             Log.d(TAG, "Received " + intent.getAction());
+            action = intent.getAction();
          }
+         
+         SERVICE_ON = true;
 
          if (headsetReceiver == null) {
             /**
@@ -72,25 +70,25 @@ public class ToggleSONR
              * register and unregister the broadcast receiver in the service
              */
             headsetReceiver = new HeadphoneReciever();
-            IntentFilter plugIntentFilter = new IntentFilter(HEADSET_PLUG_INTENT);
+            IntentFilter plugIntentFilter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
             registerReceiver(headsetReceiver, plugIntentFilter);
 
-            IntentFilter powerConnectedFilter = new IntentFilter(ACTION_POWER_CONNECTED);
+            IntentFilter powerConnectedFilter = new IntentFilter(Intent.ACTION_POWER_CONNECTED);
             registerReceiver(headsetReceiver, powerConnectedFilter);
 
-            IntentFilter powerDisconnectedFilter = new IntentFilter(ACTION_POWER_DISCONNECTED);
+            IntentFilter powerDisconnectedFilter = new IntentFilter(Intent.ACTION_POWER_DISCONNECTED);
             registerReceiver(headsetReceiver, powerDisconnectedFilter);
          }
 
-         if (intent.getAction() != null) {
+         if (intent != null && !action.equals("")) {
 
-            if (intent.getAction().equals(INTENT_USER_TOGGLE_REQUEST)) {
+            if (INTENT_USER_TOGGLE_REQUEST.equals(action)) {
 
                Intent i = new Intent(this, SONR.class);
                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-               this.startActivity(i);
+               startActivity(i);
 
-            } else if (intent.getAction().equals(HEADSET_PLUG_INTENT)) {
+            } else if (Intent.ACTION_HEADSET_PLUG.equals(action)) {
                int state = intent.getExtras().getInt("state");
 
                Log.d(TAG, "Headset plug intent recieved, state " + Integer.toString(state));
@@ -164,13 +162,13 @@ public class ToggleSONR
                }
 
                updateIcon();
-            } else if (intent.getAction().equals(ACTION_POWER_CONNECTED)) {
+            } else if (Intent.ACTION_POWER_CONNECTED.equals(action)) {
                /**
                 * Do nothing - but this intent should wake the service up and
                 * allow us to catch HEADSET_PLUG
                 */
                Log.d(TAG, "Caught POWER_CONNECTED_INTENT");
-            } else if (intent.getAction().equals(ACTION_POWER_DISCONNECTED)) {
+            } else if (Intent.ACTION_POWER_CONNECTED.equals(action)) {
                /**
                 * Do nothing - but this intent should wake the service up and
                 * allow us to refresh the icon if we were previously asleep

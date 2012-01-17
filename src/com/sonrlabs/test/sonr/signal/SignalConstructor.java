@@ -5,14 +5,16 @@ import android.util.Log;
 import com.sonrlabs.test.sonr.AudioProcessorQueue;
 
 /**
- * Sonr uses differential phase shift keying for modulation:
- * http://en.wikipedia.org/wiki/Phase-shift_keying#Differential_phase-shift_keying_.28DPSK.29
- * and HDLC Framing
- * http://en.wikipedia.org/wiki/High-Level_Data_Link_Control
  * 
- * This class provides support for audio processing functionality that's common
- * to both the initial connection to the dock and the processing of signals once
- * that connection is established.
+ * This class provides support for audio processing functionality that's
+ * common to both the initial connection to the dock and the processing of
+ * signals once that connection is established.
+ * 
+ * <p>
+ *  Sonr uses differential phase shift keying for modulation and HDLC Framing.
+ *  
+ * @see <a href="http://en.wikipedia.org/wiki/Phase-shift_keying#Differential_phase-shift_keying_ .28DPSK.29">Phase Shift Keying</a>
+ * @see <a href="http://en.wikipedia.org/wiki/High-Level_Data_Link_Control">HDLC Framing</a>
  */
 abstract class SignalConstructor
       implements AudioSupportConstants {

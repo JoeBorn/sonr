@@ -9,17 +9,16 @@ import com.sonrlabs.test.sonr.ISampleBuffer;
 
 
 /**
- * Look for signal start, taking into account the 'preamble'.
- * 
- * The preamble is a section of signal designed to provide the time for the
+ * Look for signal start, taking into account the 'preamble',
+ * a section of signal designed to provide the time for the
  * phone's internal hardware gain control to get adjusted to the signal amplitude.
- * 
- * Transmission Structure:
- * [Preamble][Data][Copy of data][Second copy of data]
- * Data: start bit (phase shift), bit 0, bit 1, … bit 8, end bit (phase shift)
+ * <p>
+ * Transmission Structure: [Preamble] [Data] [Copy of data] [Second copy of data]
+ * <pre>
+ * Data: start bit (phase shift), bit 0, bit 1, ... bit 8, end bit (phase shift)
  * Bit: 18 samples (44,100 Hz sample rate/2400 bps data rate=18 samples per bit)
  * Preamble:  64 bits = 1152 samples
- * 
+ * </pre>
  */
 final class TransmissionPreprocessor
       implements AudioSupportConstants {

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="SONR" default="deploy">
 
-    <!-- The local.properties file is created and updated by the 'android' tool.
+	<!-- The local.properties file is created and updated by the 'android' tool.
          It contains the path to the SDK. It should *NOT* be checked into
          Version Control Systems. -->
-    <loadproperties srcFile="local.properties" />
-    <!-- The ant.properties file can be created by you. It is only edited by the
+	<loadproperties srcFile="local.properties" />
+	<!-- The ant.properties file can be created by you. It is only edited by the
          'android' tool to add properties to it.
          This is the place to change some Ant specific build properties.
          Here are some properties you may want to change/update:
@@ -25,9 +25,9 @@
          application and should be checked into Version Control Systems.
 
          -->
-    <property file="ant.properties" />
+	<property file="ant.properties" />
 
-    <!-- The project.properties file is created and updated by the 'android'
+	<!-- The project.properties file is created and updated by the 'android'
          tool, as well as ADT.
 
          This contains project specific properties such as project target, and library
@@ -36,18 +36,18 @@
 
          This file is an integral part of the build system for your
          application and should be checked into Version Control Systems. -->
-    <loadproperties srcFile="project.properties" />
+	<loadproperties srcFile="project.properties" />
 
-    <!-- quick check on sdk.dir -->
-    <fail
+	<!-- quick check on sdk.dir -->
+	<fail
             message="sdk.dir is missing. Make sure to generate local.properties using 'android update project'"
             unless="sdk.dir"
     />
 
 
-<!-- extension targets. Uncomment the ones where you want to do custom work
+	<!-- extension targets. Uncomment the ones where you want to do custom work
      in between standard targets -->
-<!--
+	<!--
     <target name="-pre-build">
     </target>
     <target name="-pre-compile">
@@ -60,7 +60,7 @@
     </target>
 -->
 
-    <!-- Import the actual build file.
+	<!-- Import the actual build file.
 
          To customize existing targets, there are two options:
          - Customize only one target:
@@ -78,13 +78,13 @@
          In all cases you must update the value of version-tag below to read 'custom' instead of an integer,
          in order to avoid having your file be overridden by tools such as "android update project"
     -->
-    <!-- version-tag: 1 -->
-    <import file="${sdk.dir}/tools/ant/build.xml" />
-    
-   <target name="deploy" depends="release">
-      <exec executable="/bin/sh">
-         <arg value="install-sonr.sh"/>
-      </exec>
-   </target>
+	<!-- version-tag: 1 -->
+	<import file="${sdk.dir}/tools/ant/build.xml" />
+
+	<target name="deploy">
+		<exec executable="/bin/sh">
+			<arg value="install-sonr.sh"/>
+		</exec>
+	</target>
 
 </project>

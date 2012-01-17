@@ -35,6 +35,7 @@ import android.util.Log;
 import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -89,8 +90,8 @@ public class SONR
 
    @Override
    public void onCreate(Bundle savedInstanceState) {
+      super.onCreate(savedInstanceState);
       try {
-         super.onCreate(savedInstanceState);
 
          Common.save(this, SONR.PLAYER_SELECTED, false);
 
@@ -346,6 +347,26 @@ public class SONR
       }
       return showMenu;
    }
+   
+      
+   @Override
+   public boolean onOptionsItemSelected(MenuItem item) {
+      boolean consumeResult = super.onOptionsItemSelected(item); 
+      switch (item.getItemId()) {
+         case R.id.quitOption:
+            stopService(new Intent(this, ToggleSONR.class));
+            theclient.destroy();
+            finish();
+            consumeResult = true;
+            break;
+         default:
+            consumeResult = false;
+            break;
+      }
+      return consumeResult; 
+   }
+
+   
 
    private static List<ApplicationInfo> convert(Context c, Collection<ResolveInfo> infos) {
       final List<ApplicationInfo> result = new ArrayList<ApplicationInfo>();

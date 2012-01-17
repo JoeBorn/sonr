@@ -115,7 +115,7 @@ public class SONRClient
          public void onReceive(Context context, Intent intent) {
             // Handle reciever
             String mAction = intent.getAction();
-            if (mAction.equals(SONR.DISCONNECT_ACTION)) {
+            if (SONR.DISCONNECT_ACTION.equals(mAction)) {
                destroy();
             }
          }

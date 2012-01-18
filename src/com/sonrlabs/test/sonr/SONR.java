@@ -78,13 +78,11 @@ public class SONR
    private static final String APP_FULL_NAME = "APP_FULL_NAME";
    private static final String PLAYER_SELECTED = "PLAYER_SELECTED";
    private static final String FIRST_LAUNCH = "FIRST_LAUNCH";
-   private static final String RE_INIT_LISTENER = "RE_INIT_LISTENER";
    
    private List<ApplicationInfo> infos = null;
    private int currentlySelectedApplicationInfoIndex;
    private SONRClient theclient;
-   private static AudioRecord theaudiorecord;
-   private AudioManager m_amAudioManager;
+   private AudioRecord theaudiorecord;
 
    private final BroadcastReceiver StopReceiver = new StopReceiver();
    private boolean isRegistered = false;
@@ -106,9 +104,9 @@ public class SONR
          
          if (isFirstLaunch()){
             //Show Intro screen
+            Common.save(this, SONR.FIRST_LAUNCH, false);
             Intent intent = new Intent(this, IntroScreen.class);
             startActivity(intent);
-            Common.save(this, SONR.FIRST_LAUNCH, false);
          }
 
          if (!isRegistered) {
@@ -120,8 +118,8 @@ public class SONR
          ListAdapter adapter = new AppInfoAdapter(this, infos);
          this.setListAdapter(adapter);
 
-         m_amAudioManager = (AudioManager) SONR.this.getSystemService(Context.AUDIO_SERVICE);
-         int savedNotificationVolume = m_amAudioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION);
+         AudioManager audioManager = (AudioManager) SONR.this.getSystemService(Context.AUDIO_SERVICE);
+         int savedNotificationVolume = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION);
          SharedPreferences sharedPreferences = getSharedPreferences(SONR.SHARED_PREFERENCES, 0);
          sharedPreferences.edit().putInt("savedNotificationVolume", savedNotificationVolume).commit();
 
@@ -130,21 +128,12 @@ public class SONR
             startService(i);
          }
 
-         Intent startIntent = getIntent();
-         boolean initListener = startIntent.getBooleanExtra(SONR.RE_INIT_LISTENER, true);
-         if (initListener) {
-            theaudiorecord = AudioProcessor.findAudioRecord();
-            theclient = new SONRClient(this, theaudiorecord, bufferSize, m_amAudioManager);
-            theclient.onCreate();
-         }
+         theaudiorecord = AudioProcessor.findAudioRecord();
+         theclient = new SONRClient(this, theaudiorecord, bufferSize, audioManager);
+         theclient.onCreate();
 
-         final Button noneButton = (Button) findViewById(R.id.noneButton);
-         noneButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-               new CheckDockOnNoneSelection(v).start();
-            }
-         });
+         Button noneButton = (Button) findViewById(R.id.noneButton);
+         noneButton.setOnClickListener(noneButtonListener);
 
          final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
          this.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, TAG);
@@ -152,7 +141,11 @@ public class SONR
 
          //Intent intent;
          if (Common.get(this, SONR.DEFAULT_PLAYER_SELECTED, false)) {
-            theclient.onDestroy();
+            
+            if (theclient != null) {
+               theclient.onDestroy();
+            }
+            
             if (theaudiorecord != null) {
                theaudiorecord.release();
             }
@@ -202,25 +195,31 @@ public class SONR
       }
    }
    
-   private static void MakeNotification(Context ctx) {
-      String ns = Context.NOTIFICATION_SERVICE;
-      NotificationManager mNotificationManager = (NotificationManager) ctx.getSystemService(ns);
+   private static void statusBarNotification(Context ctx) {
+      statusBarNotification(ctx, true);
+   }
+   
+   private static void statusBarNotification(Context ctx, boolean show) {
+      NotificationManager notificationManager = 
+         (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
 
-      int icon = R.drawable.sonr_icon;
-      long when = System.currentTimeMillis();
-
-      Notification notification = new Notification(icon, ctx.getString(R.string.tickerText), when);
-      notification.flags |= Notification.FLAG_NO_CLEAR;
-
-      Intent notificationIntent = new Intent(ctx, SONR.class);
-      notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-      notificationIntent.putExtra(SONR.RE_INIT_LISTENER, false);
-      
-      PendingIntent contentIntent = PendingIntent.getActivity(ctx, 0, notificationIntent, 0);
-
-      notification.setLatestEventInfo(ctx, TAG, ctx.getString(R.string.notificationText), contentIntent);
-
-      mNotificationManager.notify(SONR_ID, notification);
+      if (show) {
+         int icon = R.drawable.sonr_icon;
+         long when = System.currentTimeMillis();
+         
+         Notification notification = new Notification(icon, ctx.getString(R.string.tickerText), when);
+         notification.flags |= Notification.FLAG_NO_CLEAR;
+         
+         Intent notificationIntent = new Intent(ctx, SONR.class);
+         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+         
+         PendingIntent contentIntent = PendingIntent.getActivity(ctx, 0, notificationIntent, 0);
+         
+         notification.setLatestEventInfo(ctx, TAG, ctx.getString(R.string.notificationText), contentIntent);
+         notificationManager.notify(SONR_ID, notification);
+      } else {
+         notificationManager.cancel(SONR_ID);
+      }
    }
 
    @Override
@@ -255,8 +254,10 @@ public class SONR
          if (theaudiorecord != null) {
             theaudiorecord.release();
          }
-         // if(theaudiorecord != null) theaudiorecord.release();
-         // if(theclient != null) theclient.onDestroy();
+         
+         if(theaudiorecord != null) theaudiorecord.release();
+         if(theclient != null) theclient.onDestroy();
+         
          MAIN_SCREEN = false;
          SONR.SONR_ON = false;
          String ns = Context.NOTIFICATION_SERVICE;
@@ -282,23 +283,18 @@ public class SONR
    @Override
    public void onResume() {
       super.onResume();
-      if (m_amAudioManager == null) {
-         m_amAudioManager = (AudioManager) SONR.this.getSystemService(Context.AUDIO_SERVICE);
-      }
-      m_amAudioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 1, AudioManager.FLAG_VIBRATE);
+      
+      AudioManager audioManager = (AudioManager) SONR.this.getSystemService(Context.AUDIO_SERVICE);
+      audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 1, AudioManager.FLAG_VIBRATE);
       
       if(theaudiorecord == null)
       {
          theaudiorecord = AudioProcessor.findAudioRecord();
-         theclient = new SONRClient(this, theaudiorecord, bufferSize, m_amAudioManager);
-         theclient.onCreate();
+         if (theclient == null) {
+            theclient = new SONRClient(this, theaudiorecord, bufferSize, audioManager);
+            theclient.onCreate();
+         }
       }
-         
-      // LogFile.MakeLog("SONR resumed");
-      // if(!isRegistered) {
-      // registerReceiver(StopReceiver, new IntentFilter(DISCONNECT_ACTION));
-      // isRegistered = true;
-      // }
    }
 
    @Override
@@ -360,7 +356,13 @@ public class SONR
       switch (item.getItemId()) {
          case R.id.quitOption:
             stopService(new Intent(this, ToggleSONR.class));
-            theclient.destroy();
+            
+            statusBarNotification(this, false);
+            
+            if (theclient == null) {
+               theclient.destroy();
+            }
+            
             finish();
             consumeResult = true;
             break;
@@ -468,7 +470,7 @@ public class SONR
       
       @Override
       public void run() {
-         if (!theclient.foundDock()) {
+         if (theclient != null && !theclient.foundDock()) {
             theclient.searchSignal();
          }
          /*
@@ -476,7 +478,7 @@ public class SONR
           * thread.
           */
          Runnable task;
-         if (theclient.foundDock()) {
+         if (theclient != null && theclient.foundDock()) {
             theclient.startListener();
             task = new Runnable() {
                @Override
@@ -532,7 +534,7 @@ public class SONR
       void dockFound() {
          super.dockFound();
          SONR_ON = true;
-         MakeNotification(getApplicationContext());
+         statusBarNotification(getApplicationContext());
          
          Intent startMain = new Intent(Intent.ACTION_MAIN);
          startMain.addCategory(Intent.CATEGORY_HOME);
@@ -549,12 +551,13 @@ public class SONR
 
    private class AppInfoAdapter
          extends BaseAdapter {
+      
       public final List<ApplicationInfo> ApplicationInfos = new ArrayList<ApplicationInfo>();
       private final LayoutInflater mInflater;
       private final PackageManager pm;
 
       public AppInfoAdapter(Context c) {
-         mInflater = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+         mInflater = (LayoutInflater) c.getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
          pm = c.getPackageManager();
       }
 
@@ -605,7 +608,7 @@ public class SONR
       Common.save(context, SONR.DEFAULT_PLAYER_SELECTED, defaultplayer);
 
       SONR_ON = true;
-      MakeNotification(context);
+      statusBarNotification(context);
 
       if (Common.get(context, SONR.PLAYER_SELECTED, false)) {
          flurryParams.put("MediaPlayer", SONR.APP_FULL_NAME);
@@ -617,4 +620,12 @@ public class SONR
          context.startActivity(mediaApp);
       }
    }
+   
+   private View.OnClickListener noneButtonListener = new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+         new CheckDockOnNoneSelection(v).start();
+      }
+   };
+   
 }

@@ -105,14 +105,13 @@ public class ToggleSONR
 
                   if (isRoutingHeadset(this)) {
                      // LogFile.MakeLog("ToggleSONR headset has mic");
-                     if (!SONR.MAIN_SCREEN && !SONR.SONR_ON) { // if
+                     if (SONR.neverStarted()) { // if
                         /*
                          * running the app already, don't do autostart, that
                          * would be a mess
                          */
                         SONRClient theclient =
-                              new SONRClient(this, AudioProcessor.findAudioRecord(), SONR.bufferSize,
-                                             (AudioManager) this.getSystemService(Context.AUDIO_SERVICE));
+                              new SONRClient(this, AudioProcessor.findAudioRecord(), (AudioManager) this.getSystemService(Context.AUDIO_SERVICE));
                         theclient.createListener();
                         
                         /*
@@ -125,7 +124,7 @@ public class ToggleSONR
                         if (found) {
                            // LogFile.MakeLog(SONR.DOCK_FOUND);
                            Log.d(TAG, SONR.DOCK_FOUND);
-                           SONR.SONR_ON = true;
+                           SONR.setOn(true);
 
                            if (Common.get(this, SONR.DEFAULT_PLAYER_SELECTED, false)) {
                               Log.d(TAG, "DEFAULT MEDIA PLAYER FOUND");
@@ -153,8 +152,8 @@ public class ToggleSONR
                } else { // end if state != 0
                   unroute_headset(this);
                   // LogFile.MakeLog("ToggleSONR unrouting headset");
-                  if (SONR.SONR_ON) {
-                     SONR.SONR_ON = false;
+                  if (SONR.isOn()) {
+                     SONR.setOn(false);
                      Intent stopintent = new Intent(this, StopSONR.class);
                      stopintent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                      startActivity(stopintent);

@@ -10,7 +10,6 @@ import android.media.MediaRecorder.AudioSource;
 import android.util.Log;
 
 import com.sonrlabs.test.sonr.ISampleBuffer;
-import com.sonrlabs.test.sonr.SONR;
 
 /**
  * Process an ordered collection of reusable sample buffers.
@@ -25,6 +24,7 @@ public final class AudioProcessor
       implements AudioSupportConstants, IAudioProcessor {
    
    private static final String TAG = "AudioProcessor";
+   private static int bufferSize;
    
    private final TransmissionPreprocessor preprocessor = new TransmissionPreprocessor();
    
@@ -57,6 +57,9 @@ public final class AudioProcessor
       AudioFormat.CHANNEL_IN_DEFAULT
    };
 
+   public static int getAudioBufferSize() {
+      return bufferSize;
+   }
    /**
     * Utility method to find the right audio format for a given phone.
     * @return a suitable record, or null if none found.
@@ -66,17 +69,13 @@ public final class AudioProcessor
          for (short channelConfig : CHANNEL_CONFIGS) {
             Log.d(TAG, "Attempting rate " + SAMPLE_RATE + "Hz, bits: " + audioFormat + ", channel: " + channelConfig);
             try {
-               int bufferSize = SAMPLES_PER_BUFFER * AudioRecord.getMinBufferSize(SAMPLE_RATE, channelConfig, audioFormat);
-               if (bufferSize != AudioRecord.ERROR_BAD_VALUE) {
+               int bsize = SAMPLES_PER_BUFFER * AudioRecord.getMinBufferSize(SAMPLE_RATE, channelConfig, audioFormat);
+               if (bsize != AudioRecord.ERROR_BAD_VALUE) {
                   // check if we can instantiate and have a success
-                  AudioRecord recorder = new AudioRecord(AudioSource.DEFAULT, SAMPLE_RATE, channelConfig, audioFormat, bufferSize);
+                  AudioRecord recorder = new AudioRecord(AudioSource.DEFAULT, SAMPLE_RATE, channelConfig, audioFormat, bsize);
 
                   if (recorder.getState() == AudioRecord.STATE_INITIALIZED) {
-                     /*
-                      * Stash the value in public static field of SONR, since
-                      * existing code expects to find it there. Ugh.
-                      */
-                     SONR.bufferSize = bufferSize;
+                     bufferSize = bsize;
                      return recorder;
                   }
                }

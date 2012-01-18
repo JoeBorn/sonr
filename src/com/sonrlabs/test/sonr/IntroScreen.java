@@ -45,7 +45,7 @@ public class IntroScreen
          Linkify.addLinks(t2, pattern, COM_SONRLABS_SONR, null, transformFilter);
          t2.setMovementMethod(LinkMovementMethod.getInstance());
       } catch (RuntimeException e) {
-         Log.d(SONR.TAG, e.toString());
+         Log.d("IntroScreen", e.toString());
          ErrorReporter.getInstance().handleException(e);
       }
    }

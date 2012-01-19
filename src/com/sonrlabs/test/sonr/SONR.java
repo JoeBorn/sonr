@@ -74,9 +74,11 @@ public class SONR
    private static final Map<String, String> flurryParams = new HashMap<String, String>();
 
    private static SONR instance;
-
-   private boolean on = false;
-   private boolean mainScreen = false;
+   
+   /* XXX:  Dubious that these should be static. */
+   private static boolean on = false;
+   private static boolean mainScreen = false;
+   
    private List<ApplicationInfo> infos = null;
    private int currentlySelectedApplicationInfoIndex;
    private SONRClient client;
@@ -100,16 +102,10 @@ public class SONR
    protected void onCreate(Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
       try {
-
          Common.save(this, PLAYER_SELECTED, false);
-
-         // LogFile.MakeLog("\n\nSONR CREATE");
          mainScreen = true;
-
          currentlySelectedApplicationInfoIndex = -1;
-
          setContentView(R.layout.music_select_main);
-
          if (isFirstLaunch()) {
             // Show Intro screen
             Common.save(this, FIRST_LAUNCH, false);
@@ -623,27 +619,27 @@ public class SONR
 
 
    /*
-    * XXX Dubious methods needed by ToggleSONR.
+    * XXX Highly dubious access required by ToggleSONR.
     * 
     * Indicates the need for a refactoring.
     */
    static void setOn(boolean status) {
-      instance.on = status;
+      on = status;
    }
 
    static boolean isOn() {
-      return instance != null && instance.on;
+      return on;
    }
 
    static boolean neverStarted() {
-      return !instance.mainScreen && !instance.on;
+      return !mainScreen && !on;
    }
 
    /*
     * Sometimes the context is a SONR instance, sometimes it's a ToggleSONR
     * instance. Can that really be right?
     */
-   static void Start(Context context, boolean defaultplayer) {
+   static void startSonr(Context context, boolean defaultplayer) {
       instance.doStart(context, defaultplayer);
    }
 

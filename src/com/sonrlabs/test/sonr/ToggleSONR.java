@@ -129,7 +129,7 @@ public class ToggleSONR
                            if (Common.get(this, SONR.DEFAULT_PLAYER_SELECTED, false)) {
                               Log.d(TAG, "DEFAULT MEDIA PLAYER FOUND");
                               theclient.startListener();
-                              SONR.Start(this, true);
+                              SONR.startSonr(this, true);
                            } else {
                               Log.d(TAG, "NO DEFAULT MEDIA PLAYER");
                               Intent i = new Intent(this, SONR.class);

@@ -2,6 +2,8 @@
 <resources>
     <string-array name="mediaAppsNames">
         <item>music</item>
+        <item>radio</item>
+        <item>player</item>
         <item>pandora</item>
         <item>winamp</item>
         <item>audioplayer</item>
@@ -12,7 +14,9 @@
         <item>mp3</item>
         <item>mediaplayer</item>
         <item>slacker</item>
-        <item>doubleTwist</item>
+        <item>doubletwist</item>
         <item>rhapsody</item>
+        <item>melodis</item>
+        <item>mog</item>
     </string-array>
 </resources>

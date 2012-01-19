@@ -24,7 +24,7 @@
             android:id="@android:id/list"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:background="#444444" />
+            android:background="#444444" android:fadingEdge="none"/>
 
         <TextView
             android:id="@android:id/empty"

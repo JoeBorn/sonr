@@ -31,10 +31,10 @@ public class SONRClient
    private BroadcastReceiver clientStopReceiver;
 
 
-   SONRClient(Context c, AudioRecord ar, int buffsize, AudioManager am) {
+   SONRClient(Context c, AudioRecord ar, AudioManager am) {
       theAudioManager = am;
       theaudiorecord = ar;
-      bufferSize = buffsize;
+      bufferSize = com.sonrlabs.test.sonr.signal.AudioProcessor.getAudioBufferSize();
       ctx = c;
    }
    

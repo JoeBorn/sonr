@@ -1,5 +1,3 @@
-// This is what happens when you open the SONR app on the home screen.
-
 package com.sonrlabs.test.sonr;
 
 import java.util.ArrayList;
@@ -52,23 +50,17 @@ import com.sonrlabs.test.sonr.common.Common;
 import com.sonrlabs.test.sonr.common.DialogCommon;
 import com.sonrlabs.test.sonr.signal.AudioProcessor;
 
+// This is what happens when you open the SONR app on the home screen.
 public class SONR
       extends ListActivity {
 
-   public static final String TAG = SONR.class.getSimpleName();
    public static final int SONR_ID = 1;
    public static final String DOCK_NOT_FOUND = "DOCK NOT FOUND";
    public static final String DOCK_FOUND = "DOCK FOUND";
    public static final String DEFAULT_PLAYER_SELECTED = "DEFAULT_PLAYER_SELECTED";
    public static final String APP_PACKAGE_NAME = "APP_PACKAGE_NAME";
-   public static boolean SONR_ON = false;
-   public static boolean MAIN_SCREEN = false;
    public static final String DISCONNECT_ACTION = "android.intent.action.DISCONNECT_DOCK";
    public static final String SHARED_PREFERENCES = "SONRSharedPreferences";
-   private final static HashMap<String, String> flurryParams = new HashMap<String, String>();
-
-
-   public static int bufferSize = 0;
 
    private static final String SAMPLE_URI = "\\";
    private static final String AUDIO_MIME_TYPE = "audio/*";
@@ -78,49 +70,61 @@ public class SONR
    private static final String APP_FULL_NAME = "APP_FULL_NAME";
    private static final String PLAYER_SELECTED = "PLAYER_SELECTED";
    private static final String FIRST_LAUNCH = "FIRST_LAUNCH";
+   private static final String TAG = SONR.class.getSimpleName();
+   private static final Map<String, String> flurryParams = new HashMap<String, String>();
+
+   private static SONR instance;
+   
+   /* XXX:  Dubious that these should be static. */
+   private static boolean on = false;
+   private static boolean mainScreen = false;
    
    private List<ApplicationInfo> infos = null;
    private int currentlySelectedApplicationInfoIndex;
-   private SONRClient theclient;
-   private AudioRecord theaudiorecord;
-
-   private final BroadcastReceiver StopReceiver = new StopReceiver();
+   private SONRClient client;
+   private AudioRecord audio;
+   private final BroadcastReceiver stopReceiver = new StopReceiver();
    private boolean isRegistered = false;
    private PowerManager.WakeLock mWakeLock;
 
+   private View.OnClickListener noneButtonListener = new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+         new CheckDockOnNoneSelection(v).start();
+      }
+   };
+
+   public SONR() {
+      instance = this;
+   }
+
    @Override
-   public void onCreate(Bundle savedInstanceState) {
+   protected void onCreate(Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
       try {
-
-         Common.save(this, SONR.PLAYER_SELECTED, false);
-
-         // LogFile.MakeLog("\n\nSONR CREATE");
-         MAIN_SCREEN = true;
-
+         Common.save(this, PLAYER_SELECTED, false);
+         mainScreen = true;
          currentlySelectedApplicationInfoIndex = -1;
-
          setContentView(R.layout.music_select_main);
-         
-         if (isFirstLaunch()){
-            //Show Intro screen
-            Common.save(this, SONR.FIRST_LAUNCH, false);
+         if (isFirstLaunch()) {
+            // Show Intro screen
+            Common.save(this, FIRST_LAUNCH, false);
             Intent intent = new Intent(this, IntroScreen.class);
             startActivity(intent);
          }
 
          if (!isRegistered) {
-            registerReceiver(StopReceiver, new IntentFilter(DISCONNECT_ACTION));
+            registerReceiver(stopReceiver, new IntentFilter(DISCONNECT_ACTION));
             isRegistered = true;
          }
 
          infos = convert(this, findActivities(this));
          ListAdapter adapter = new AppInfoAdapter(this, infos);
-         this.setListAdapter(adapter);
+         setListAdapter(adapter);
 
-         AudioManager audioManager = (AudioManager) SONR.this.getSystemService(Context.AUDIO_SERVICE);
+         AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
          int savedNotificationVolume = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION);
-         SharedPreferences sharedPreferences = getSharedPreferences(SONR.SHARED_PREFERENCES, 0);
+         SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFERENCES, 0);
          sharedPreferences.edit().putInt("savedNotificationVolume", savedNotificationVolume).commit();
 
          if (!ToggleSONR.SERVICE_ON) {
@@ -128,141 +132,71 @@ public class SONR
             startService(i);
          }
 
-         theaudiorecord = AudioProcessor.findAudioRecord();
-         theclient = new SONRClient(this, theaudiorecord, bufferSize, audioManager);
-         theclient.onCreate();
+         audio = AudioProcessor.findAudioRecord();
+         client = new SONRClient(this, audio, audioManager);
+         client.onCreate();
 
          Button noneButton = (Button) findViewById(R.id.noneButton);
          noneButton.setOnClickListener(noneButtonListener);
 
          final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-         this.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, TAG);
-         this.mWakeLock.acquire();
+         mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, TAG);
+         mWakeLock.acquire();
 
-         //Intent intent;
-         if (Common.get(this, SONR.DEFAULT_PLAYER_SELECTED, false)) {
-            
-            if (theclient != null) {
-               theclient.onDestroy();
+         // Intent intent;
+         if (Common.get(this, DEFAULT_PLAYER_SELECTED, false)) {
+
+            if (client != null) {
+               client.onDestroy();
             }
-            
-            if (theaudiorecord != null) {
-               theaudiorecord.release();
+
+            if (audio != null) {
+               audio.release();
             }
-            //intent = new Intent(this, DefaultAppScreen.class);
+            // intent = new Intent(this, DefaultAppScreen.class);
          } else {
-            //intent = new Intent(this, IntroScreen.class);
+            // intent = new Intent(this, IntroScreen.class);
          }
-         //startActivity(intent);
+         // startActivity(intent);
       } catch (RuntimeException e) {
          e.printStackTrace();
          ErrorReporter.getInstance().handleException(e);
       }
    }
 
-   private boolean isFirstLaunch() {
-      // Restore preferences
-      return Common.get(this, SONR.FIRST_LAUNCH, true);
-   }
-   
    @Override
-   protected void onListItemClick(ListView listView, View clickedView, int position, long id) {
-      super.onListItemClick(listView, clickedView, position, id);
-
-      ApplicationInfo ai;
-      ai = infos.get(position);
-      List<ResolveInfo> rinfos = findActivitiesForPackage(this, ai.packageName);
-      ResolveInfo ri = rinfos.get(0);
-
-      Common.save(this, SONR.APP_PACKAGE_NAME, ri.activityInfo.packageName);
-      Common.save(this, SONR.APP_FULL_NAME, ri.activityInfo.name);
-      Common.save(this, SONR.PLAYER_SELECTED, true);
-
-      currentlySelectedApplicationInfoIndex = position;
-      listView.invalidateViews();
-   }
-
-   public void buttonOK(View view) {
-      try {
-         if (!Common.get(this, SONR.PLAYER_SELECTED, false) && !Common.get(this, SONR.DEFAULT_PLAYER_SELECTED, false)) {
-            DialogCommon.quickPopoutDialog(this, false, SELECT_PLAYER, OK_TXT);
-         } else {
-            new CheckDockOnPlayerSelection(view).start();
-         }
-      } catch (RuntimeException e) {
-         e.printStackTrace();
-         ErrorReporter.getInstance().handleException(e);
-      }
-   }
-   
-   private static void statusBarNotification(Context ctx) {
-      statusBarNotification(ctx, true);
-   }
-   
-   private static void statusBarNotification(Context ctx, boolean show) {
-      NotificationManager notificationManager = 
-         (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
-
-      if (show) {
-         int icon = R.drawable.sonr_icon;
-         long when = System.currentTimeMillis();
-         
-         Notification notification = new Notification(icon, ctx.getString(R.string.tickerText), when);
-         notification.flags |= Notification.FLAG_NO_CLEAR;
-         
-         Intent notificationIntent = new Intent(ctx, SONR.class);
-         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-         
-         PendingIntent contentIntent = PendingIntent.getActivity(ctx, 0, notificationIntent, 0);
-         
-         notification.setLatestEventInfo(ctx, TAG, ctx.getString(R.string.notificationText), contentIntent);
-         notificationManager.notify(SONR_ID, notification);
-      } else {
-         notificationManager.cancel(SONR_ID);
-      }
-   }
-
-   @Override
-   public void onBackPressed() {
-      // finish(); Do Nothing?
-   }
-   
-   @Override
-   public void onStart() {
+   protected void onStart() {
       super.onStart();
       FlurryAgent.onStartSession(this, "NNCR41GZ52ZYBXPZPTGT");
    }
-   
+
    @Override
-   public void onStop()
-   {
+   protected void onStop() {
       super.onStop();
       FlurryAgent.onEndSession(this);
    }
-   
+
    @Override
-   public void onDestroy() { // shut it down
+   protected void onDestroy() {
       try {
-         // LogFile.MakeLog("SONR DESTROY\n\n");
-         try {
-            this.unregisterReceiver(StopReceiver);
-            isRegistered = false;
-         } catch (RuntimeException e) {
-            // log something?
-         }
+         unregisterReceiver(stopReceiver);
          super.onDestroy();
-         if (theaudiorecord != null) {
-            theaudiorecord.release();
+         if (audio != null) {
+            audio.release();
          }
-         
-         if(theaudiorecord != null) theaudiorecord.release();
-         if(theclient != null) theclient.onDestroy();
-         
-         MAIN_SCREEN = false;
-         SONR.SONR_ON = false;
+
+         if (audio != null) {
+            audio.release();
+         }
+         if (client != null) {
+            client.onDestroy();
+         }
+
+         mainScreen = false;
+         on = false;
          String ns = Context.NOTIFICATION_SERVICE;
          NotificationManager mNotificationManager = (NotificationManager) getSystemService(ns);
-         mNotificationManager.cancel(SONR.SONR_ID);
+         mNotificationManager.cancel(SONR_ID);
          mWakeLock.release();
       } catch (RuntimeException e) {
          e.printStackTrace();
@@ -271,40 +205,56 @@ public class SONR
    }
 
    @Override
-   public void onPause() {
+   protected void onPause() {
       super.onPause();
       // LogFile.MakeLog("SONR paused");
       // try {
-      // this.unregisterReceiver(StopReceiver);
+      // unregisterReceiver(StopReceiver);
       // isRegistered = false;
       // } catch(Exception e) {}
    }
 
    @Override
-   public void onResume() {
+   protected void onResume() {
       super.onResume();
-      
-      AudioManager audioManager = (AudioManager) SONR.this.getSystemService(Context.AUDIO_SERVICE);
+
+      AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
       audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 1, AudioManager.FLAG_VIBRATE);
-      
-      if(theaudiorecord == null)
-      {
-         theaudiorecord = AudioProcessor.findAudioRecord();
-         if (theclient == null) {
-            theclient = new SONRClient(this, theaudiorecord, bufferSize, audioManager);
-            theclient.onCreate();
+
+      if (audio == null) {
+         audio = AudioProcessor.findAudioRecord();
+         if (client == null) {
+            client = new SONRClient(this, audio, audioManager);
+            client.onCreate();
          }
       }
    }
 
    @Override
-   public void onRestart() {
+   protected void onRestart() {
       super.onRestart();
       // LogFile.MakeLog("SONR restarted");
       if (!isRegistered) {
-         registerReceiver(StopReceiver, new IntentFilter(DISCONNECT_ACTION));
+         registerReceiver(stopReceiver, new IntentFilter(DISCONNECT_ACTION));
          isRegistered = true;
       }
+   }
+
+   @Override
+   protected void onListItemClick(ListView listView, View clickedView, int position, long id) {
+      super.onListItemClick(listView, clickedView, position, id);
+   
+      ApplicationInfo ai;
+      ai = infos.get(position);
+      List<ResolveInfo> rinfos = findActivitiesForPackage(this, ai.packageName);
+      ResolveInfo ri = rinfos.get(0);
+   
+      Common.save(this, APP_PACKAGE_NAME, ri.activityInfo.packageName);
+      Common.save(this, APP_FULL_NAME, ri.activityInfo.name);
+      Common.save(this, PLAYER_SELECTED, true);
+   
+      currentlySelectedApplicationInfoIndex = position;
+      listView.invalidateViews();
    }
 
    @Override
@@ -315,54 +265,36 @@ public class SONR
       }
    }
 
-   private static List<ResolveInfo> findActivitiesForPackage(Context context, String packageName) {
-      final PackageManager packageManager = context.getPackageManager();
-
-      final Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
-      mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-
-      final List<ResolveInfo> apps = packageManager.queryIntentActivities(mainIntent, 0);
-      final List<ResolveInfo> matches = new ArrayList<ResolveInfo>();
-
-      if (apps != null) {
-         // Find all activities that match the packageName
-         for (ResolveInfo info : apps) {
-            ActivityInfo activityInfo = info.activityInfo;
-            if (packageName.equals(activityInfo.packageName)) {
-               matches.add(info);
-            }
-         }
-      }
-
-      return matches;
+   @Override
+   public void onBackPressed() {
+      // finish(); Do Nothing?
    }
 
    @Override
    public boolean onCreateOptionsMenu(Menu menu) {
       boolean showMenu = super.onCreateOptionsMenu(menu);
       try {
-         this.getMenuInflater().inflate(R.menu.main, menu);
+         getMenuInflater().inflate(R.menu.main, menu);
       } catch (InflateException e) {
          Log.d(TAG, "Unable to inflate menu: " + e);
          showMenu = false;
       }
       return showMenu;
    }
-   
-      
+
    @Override
    public boolean onOptionsItemSelected(MenuItem item) {
-      boolean consumeResult = super.onOptionsItemSelected(item); 
+      boolean consumeResult = super.onOptionsItemSelected(item);
       switch (item.getItemId()) {
          case R.id.quitOption:
             stopService(new Intent(this, ToggleSONR.class));
-            
+
             statusBarNotification(this, false);
-            
-            if (theclient == null) {
-               theclient.destroy();
+
+            if (client == null) {
+               client.destroy();
             }
-            
+
             finish();
             consumeResult = true;
             break;
@@ -370,18 +302,80 @@ public class SONR
             consumeResult = false;
             break;
       }
-      return consumeResult; 
+      return consumeResult;
    }
 
-   
+   /**
+    * Public because it's invoked reflectively.
+    */
+   public void buttonOK(View view) {
+      try {
+         if (!Common.get(this, PLAYER_SELECTED, false) && !Common.get(this, DEFAULT_PLAYER_SELECTED, false)) {
+            DialogCommon.quickPopoutDialog(this, false, SELECT_PLAYER, OK_TXT);
+         } else {
+            new CheckDockOnPlayerSelection(view).start();
+         }
+      } catch (RuntimeException e) {
+         e.printStackTrace();
+         ErrorReporter.getInstance().handleException(e);
+      }
+   }
 
-   private static List<ApplicationInfo> convert(Context c, Collection<ResolveInfo> infos) {
+   private boolean isFirstLaunch() {
+      // Restore preferences
+      return Common.get(this, FIRST_LAUNCH, true);
+   }
+
+   private void statusBarNotification(Context ctx) {
+      statusBarNotification(ctx, true);
+   }
+
+   private void statusBarNotification(Context ctx, boolean show) {
+      NotificationManager notificationManager = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
+   
+      if (show) {
+         int icon = R.drawable.sonr_icon;
+         long when = System.currentTimeMillis();
+   
+         Notification notification = new Notification(icon, ctx.getString(R.string.tickerText), when);
+         notification.flags |= Notification.FLAG_NO_CLEAR;
+   
+         Intent notificationIntent = new Intent(ctx, SONR.class);
+         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+   
+         PendingIntent contentIntent = PendingIntent.getActivity(ctx, 0, notificationIntent, 0);
+   
+         notification.setLatestEventInfo(ctx, TAG, ctx.getString(R.string.notificationText), contentIntent);
+         notificationManager.notify(SONR_ID, notification);
+      } else {
+         notificationManager.cancel(SONR_ID);
+      }
+   }
+
+   private void doStart(Context context, boolean defaultplayer) {
+      Common.save(context, DEFAULT_PLAYER_SELECTED, defaultplayer);
+
+      on = true;
+      statusBarNotification(context);
+
+      if (Common.get(context, PLAYER_SELECTED, false)) {
+         flurryParams.put("MediaPlayer", APP_FULL_NAME);
+         FlurryAgent.logEvent("APP_FULL_NAME", flurryParams);
+         Intent mediaApp = new Intent();
+         mediaApp.setClassName(Common.get(context, APP_PACKAGE_NAME, Common.N_A),
+                               Common.get(context, APP_FULL_NAME, Common.N_A));
+         mediaApp.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+         context.startActivity(mediaApp);
+      }
+   }
+
+   private List<ApplicationInfo> convert(Context c, Collection<ResolveInfo> activities) {
       final List<ApplicationInfo> result = new ArrayList<ApplicationInfo>();
 
       final Set<ApplicationInfo> apps = new HashSet<ApplicationInfo>();
-      for (ResolveInfo resolveInfo : infos) {
+      for (ResolveInfo resolveInfo : activities) {
 
-         if (!Common.get(c, SONR.DEFAULT_PLAYER_SELECTED, false)) {
+         if (!Common.get(c, DEFAULT_PLAYER_SELECTED, false)) {
 
             String[] appNames = c.getResources().getStringArray(R.array.mediaAppsNames);
 
@@ -394,8 +388,8 @@ public class SONR
                }
             }
          } else {
-            String packageName = Common.get(c, SONR.APP_PACKAGE_NAME, Common.N_A);
-            String appName = Common.get(c, SONR.APP_FULL_NAME, Common.N_A);
+            String packageName = Common.get(c, APP_PACKAGE_NAME, Common.N_A);
+            String appName = Common.get(c, APP_FULL_NAME, Common.N_A);
 
             if (packageName.equals(resolveInfo.activityInfo.packageName) && appName.equals(resolveInfo.activityInfo.name)) {
                result.add(resolveInfo.activityInfo.applicationInfo);
@@ -409,7 +403,29 @@ public class SONR
       return result;
    }
 
-   private static Collection<ResolveInfo> findActivities(Context context) {
+   private List<ResolveInfo> findActivitiesForPackage(Context context, String packageName) {
+      final PackageManager packageManager = context.getPackageManager();
+   
+      final Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
+      mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+   
+      final List<ResolveInfo> apps = packageManager.queryIntentActivities(mainIntent, 0);
+      final List<ResolveInfo> matches = new ArrayList<ResolveInfo>();
+   
+      if (apps != null) {
+         // Find all activities that match the packageName
+         for (ResolveInfo info : apps) {
+            ActivityInfo activityInfo = info.activityInfo;
+            if (packageName.equals(activityInfo.packageName)) {
+               matches.add(info);
+            }
+         }
+      }
+   
+      return matches;
+   }
+
+   private Collection<ResolveInfo> findActivities(Context context) {
       Map<String, ResolveInfo> finalMap = new HashMap<String, ResolveInfo>();
 
       final PackageManager packageManager = context.getPackageManager();
@@ -439,9 +455,6 @@ public class SONR
       return finalMap.values();
    }
 
-   /**
-    *  TODO: replace this junk with javadoc for this class.
-    */
    private final class StopReceiver
          extends BroadcastReceiver {
       @Override
@@ -460,26 +473,26 @@ public class SONR
     */
    private abstract class DockChecker
          extends Thread {
-   
+
       private final View view;
-      
+
       DockChecker(View view) {
          setDaemon(true);
          this.view = view;
       }
-      
+
       @Override
       public void run() {
-         if (theclient != null && !theclient.foundDock()) {
-            theclient.searchSignal();
+         if (client != null && !client.foundDock()) {
+            client.searchSignal();
          }
          /*
           * Only the search runs in this thread. The response runs in the main
           * thread.
           */
          Runnable task;
-         if (theclient != null && theclient.foundDock()) {
-            theclient.startListener();
+         if (client != null && client.foundDock()) {
+            client.startListener();
             task = new Runnable() {
                @Override
                public void run() {
@@ -497,11 +510,11 @@ public class SONR
          }
          view.post(task);
       }
-      
+
       void dockFound() {
          Toast.makeText(getApplicationContext(), DOCK_FOUND, Toast.LENGTH_SHORT).show();
       }
-      
+
       void dockNotFound() {
          Toast.makeText(getApplicationContext(), DOCK_NOT_FOUND, Toast.LENGTH_SHORT).show();
          DialogCommon.quickPopoutDialog(SONR.this, false, DOCK_NOT_FOUND_TRY_AGAIN, OK_TXT);
@@ -510,7 +523,7 @@ public class SONR
 
    private class CheckDockOnPlayerSelection
          extends DockChecker {
-      
+
       CheckDockOnPlayerSelection(View view) {
          super(view);
       }
@@ -519,13 +532,13 @@ public class SONR
       void dockFound() {
          super.dockFound();
          final CheckBox checkBox = (CheckBox) findViewById(R.id.checkbox_default_player);
-         Start(SONR.this, checkBox.isChecked());
+         doStart(SONR.this, checkBox.isChecked());
       }
    }
 
    private class CheckDockOnNoneSelection
          extends DockChecker {
-      
+
       CheckDockOnNoneSelection(View view) {
          super(view);
       }
@@ -533,26 +546,26 @@ public class SONR
       @Override
       void dockFound() {
          super.dockFound();
-         SONR_ON = true;
+         on = true;
          statusBarNotification(getApplicationContext());
-         
+
          Intent startMain = new Intent(Intent.ACTION_MAIN);
          startMain.addCategory(Intent.CATEGORY_HOME);
          startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
          startActivity(startMain);
       }
-      
+
       @Override
       void dockNotFound() {
          // do nothing
       }
-   
+
    }
 
    private class AppInfoAdapter
          extends BaseAdapter {
-      
-      public final List<ApplicationInfo> ApplicationInfos = new ArrayList<ApplicationInfo>();
+
+      public final List<ApplicationInfo> appInformation = new ArrayList<ApplicationInfo>();
       private final LayoutInflater mInflater;
       private final PackageManager pm;
 
@@ -563,27 +576,27 @@ public class SONR
 
       public AppInfoAdapter(Context c, Collection<? extends ApplicationInfo> applicationInfos) {
          this(c);
-         this.ApplicationInfos.addAll(applicationInfos);
+         appInformation.addAll(applicationInfos);
       }
 
       @Override
       public int getCount() {
-         return this.ApplicationInfos.size();
+         return appInformation.size();
       }
 
       @Override
       public Object getItem(int position) {
-         return ApplicationInfos.get(position);
+         return appInformation.get(position);
       }
 
       @Override
       public long getItemId(int position) {
-         return this.ApplicationInfos.get(position).hashCode();
+         return appInformation.get(position).hashCode();
       }
 
       @Override
       public View getView(int position, View convertView, ViewGroup parent) {
-         ApplicationInfo info = this.ApplicationInfos.get(position);
+         ApplicationInfo info = appInformation.get(position);
 
          if (convertView == null) {
             convertView = mInflater.inflate(R.layout.manage_applications_item, null);
@@ -604,28 +617,30 @@ public class SONR
 
    }
 
-   public static void Start(Context context, boolean defaultplayer) {
-      Common.save(context, SONR.DEFAULT_PLAYER_SELECTED, defaultplayer);
 
-      SONR_ON = true;
-      statusBarNotification(context);
-
-      if (Common.get(context, SONR.PLAYER_SELECTED, false)) {
-         flurryParams.put("MediaPlayer", SONR.APP_FULL_NAME);
-         FlurryAgent.logEvent("APP_FULL_NAME", flurryParams);
-         Intent mediaApp = new Intent();
-         mediaApp.setClassName(Common.get(context, SONR.APP_PACKAGE_NAME, Common.N_A),
-                               Common.get(context, SONR.APP_FULL_NAME, Common.N_A));
-         mediaApp.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-         context.startActivity(mediaApp);
-      }
+   /*
+    * XXX Highly dubious access required by ToggleSONR.
+    * 
+    * Indicates the need for a refactoring.
+    */
+   static void setOn(boolean status) {
+      on = status;
    }
-   
-   private View.OnClickListener noneButtonListener = new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-         new CheckDockOnNoneSelection(v).start();
-      }
-   };
-   
+
+   static boolean isOn() {
+      return on;
+   }
+
+   static boolean neverStarted() {
+      return !mainScreen && !on;
+   }
+
+   /*
+    * Sometimes the context is a SONR instance, sometimes it's a ToggleSONR
+    * instance. Can that really be right?
+    */
+   static void startSonr(Context context, boolean defaultplayer) {
+      instance.doStart(context, defaultplayer);
+   }
+
 }

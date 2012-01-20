@@ -284,14 +284,16 @@ public class SONR
 
    @Override
    public boolean onOptionsItemSelected(MenuItem item) {
+      /* This value is unused. Is that by design? */
       boolean consumeResult = super.onOptionsItemSelected(item);
+      
       switch (item.getItemId()) {
          case R.id.quitOption:
             stopService(new Intent(this, ToggleSONR.class));
 
             statusBarNotification(this, false);
 
-            if (client == null) {
+            if (client != null) {
                client.destroy();
             }
 

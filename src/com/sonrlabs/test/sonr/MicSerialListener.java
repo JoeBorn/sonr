@@ -15,6 +15,7 @@ import android.util.Log;
 class MicSerialListener
       implements Runnable {
    private static final String TAG = "MicSerialListener";
+   private static final long SIGNAL_SEARCH_TIME_MILLIS = 5 * 1150;
 
    /*
     * Just one reusable thread since we only start a new one after killing the
@@ -27,11 +28,6 @@ class MicSerialListener
     * given time.  Is this safe?
     */
    private static final IDockDetector dockDetector = Factory.createDockDetector();
-
-   static void  startNewListener(MicSerialListener listener) {
-      executor.execute(listener);
-   }
-   private static final long SIGNAL_SEARCH_TIME_MILLIS = 1150; // 1.15 seconds
 
    private boolean running;
    private boolean foundDock;
@@ -108,20 +104,23 @@ class MicSerialListener
       synchronized (searchLock) {
          if (inStream != null) {
             inStream.release();
+            foundDock = false;
          }
       }
       Log.d(TAG, "STOPPED");
    }
 
    void searchSignal() {
+      if (inStream == null) {
+         return;
+      }
       ISampleBuffer buffer = bufferPool.getBuffer(bufferSize);
       short[] samples = buffer.getArray();
+      long endTime = SystemClock.elapsedRealtime() + SIGNAL_SEARCH_TIME_MILLIS;
+      boolean problem = false;
       try {
-         long startTime = SystemClock.elapsedRealtime();
-         long endTime = startTime + SIGNAL_SEARCH_TIME_MILLIS;
-         boolean problem = false;
          synchronized (searchLock) {
-            while (inStream != null && !foundDock && SystemClock.elapsedRealtime() <= endTime) {
+            while (!foundDock && SystemClock.elapsedRealtime() <= endTime) {
                int count = inStream.read(samples, 0, bufferSize);
                if (count > 0) {
                   foundDock = dockDetector.findDock(samples, count);
@@ -140,5 +139,9 @@ class MicSerialListener
       } finally {
          buffer.release();
       }
+   }
+
+   static void startNewListener(MicSerialListener listener) {
+      executor.execute(listener);
    }
 }

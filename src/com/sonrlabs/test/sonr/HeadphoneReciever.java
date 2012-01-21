@@ -23,7 +23,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-/*
+/**
  * 
  * This class receives the HEADSET_PLUG intent, passes back to the service
  * for handling.

@@ -144,7 +144,7 @@ public class ToggleSONR
                            theclient.destroy();
                            startForeground(1337, notification);
 
-                           return START_FLAG_REDELIVERY; //START_STICKY;
+                           return Service.START_STICKY;
                         }
                         theclient.destroy();
                      } // end if sonr main screen

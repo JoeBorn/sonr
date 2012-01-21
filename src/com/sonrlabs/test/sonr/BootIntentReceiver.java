@@ -9,13 +9,13 @@ import android.util.Log;
 
 public class BootIntentReceiver
       extends BroadcastReceiver {
-   private static final String TAG = "BootIntentReceiver";
+   
+   private static final String TAG = BootIntentReceiver.class.getSimpleName();
 
    @Override
    public void onReceive(Context context, Intent intent) {
       try {
-         if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED")) {
-            /* LogFile.MakeLog("Boot Intent Received"); */
+         if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
             Log.d(TAG, "Boot Intent Received");
             // Intent i = new Intent(context, BootIntentHandler.class);
             // context.startActivity(i);

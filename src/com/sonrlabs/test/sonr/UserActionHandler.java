@@ -234,25 +234,24 @@ class UserActionHandler
    }
 
    private void sendbroadcast(int keyEvent) {
-      // Intent i = null;
-      // if(theKeyEvent == PLAY || theKeyEvent == PAUSE || theKeyEvent ==
-      // FAST_FORWARD || theKeyEvent == REWIND || theKeyEvent == NEXT_TRACK ||
-      // theKeyEvent == PREVIOUS_TRACK) {
-      Intent i = new Intent(Intent.ACTION_MEDIA_BUTTON);     
-      String selectedMediaPlayer =  Common.get(context, SONR.APP_PACKAGE_NAME, null);
-      Log.d("BROADCAST PLAYER", selectedMediaPlayer);
-      i.setPackage(selectedMediaPlayer);
-   
+     
       synchronized (this) {
-         i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, keyEvent));
-         context.sendOrderedBroadcast(i, null);
-   
-         i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, keyEvent));
-         context.sendOrderedBroadcast(i, null);
+
+         Intent i = new Intent(Intent.ACTION_MEDIA_BUTTON);     
+         String selectedMediaPlayer =  Common.get(context, SONR.APP_PACKAGE_NAME, null);
+
+         if (selectedMediaPlayer != null) {
+            Log.d("BROADCAST PLAYER", selectedMediaPlayer);
+            i.setPackage(selectedMediaPlayer);
+
+            i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, keyEvent));
+            context.sendBroadcast(i, null);
+
+            i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, keyEvent));
+            context.sendBroadcast(i, null);
+
+         }
       }
-      // }
-      // else i = new Intent(Intent.);
-      // (new
-      // Instrumentation()).sendCharacterSync(KeyEvent.KEYCODE_DPAD_RIGHT);
+      
    }
 }

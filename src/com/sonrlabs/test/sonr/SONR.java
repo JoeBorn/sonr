@@ -181,13 +181,11 @@ public class SONR
       try {
          unregisterReceiver(stopReceiver);
          super.onDestroy();
+         
          if (audio != null) {
             audio.release();
          }
 
-         if (audio != null) {
-            audio.release();
-         }
          if (client != null) {
             client.onDestroy();
          }

@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.acra.ErrorReporter;
+//import org.acra.ErrorReporter;
 
 import android.app.ListActivity;
 import android.app.Notification;
@@ -45,7 +45,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.flurry.android.FlurryAgent;
+//import com.flurry.android.FlurryAgent;
 import com.sonrlabs.test.sonr.common.Common;
 import com.sonrlabs.test.sonr.common.DialogCommon;
 import com.sonrlabs.test.sonr.signal.AudioProcessor;
@@ -71,7 +71,7 @@ public class SONR
    private static final String PLAYER_SELECTED = "PLAYER_SELECTED";
    private static final String FIRST_LAUNCH = "FIRST_LAUNCH";
    private static final String TAG = SONR.class.getSimpleName();
-   private static final Map<String, String> flurryParams = new HashMap<String, String>();
+   //private static final Map<String, String> Params = new HashMap<String, String>();
 
    private static SONR instance;
    
@@ -160,20 +160,20 @@ public class SONR
          // startActivity(intent);
       } catch (RuntimeException e) {
          e.printStackTrace();
-         ErrorReporter.getInstance().handleException(e);
+         //ErrorReporter.getInstance().handleException(e);
       }
    }
 
    @Override
    protected void onStart() {
       super.onStart();
-      FlurryAgent.onStartSession(this, "NNCR41GZ52ZYBXPZPTGT");
+      //FlurryAgent.onStartSession(this, "NNCR41GZ52ZYBXPZPTGT");
    }
 
    @Override
    protected void onStop() {
       super.onStop();
-      FlurryAgent.onEndSession(this);
+      //FlurryAgent.onEndSession(this);
    }
 
    @Override
@@ -200,7 +200,7 @@ public class SONR
          mWakeLock.release();
       } catch (RuntimeException e) {
          e.printStackTrace();
-         ErrorReporter.getInstance().handleException(e);
+         //ErrorReporter.getInstance().handleException(e);
       }
    }
 
@@ -319,7 +319,7 @@ public class SONR
          }
       } catch (RuntimeException e) {
          e.printStackTrace();
-         ErrorReporter.getInstance().handleException(e);
+         //ErrorReporter.getInstance().handleException(e);
       }
    }
 
@@ -361,8 +361,8 @@ public class SONR
       statusBarNotification(context);
 
       if (Common.get(context, PLAYER_SELECTED, false)) {
-         flurryParams.put("MediaPlayer", APP_FULL_NAME);
-         FlurryAgent.logEvent("APP_FULL_NAME", flurryParams);
+         //flurryParams.put("MediaPlayer", APP_FULL_NAME);
+         //FlurryAgent.logEvent("APP_FULL_NAME", flurryParams);
          Intent mediaApp = new Intent();
          mediaApp.setClassName(Common.get(context, APP_PACKAGE_NAME, Common.N_A),
                                Common.get(context, APP_FULL_NAME, Common.N_A));

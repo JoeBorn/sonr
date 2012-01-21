@@ -1,6 +1,6 @@
 package com.sonrlabs.test.sonr;
 
-import org.acra.ErrorReporter;
+//import org.acra.ErrorReporter;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -53,7 +53,7 @@ public class SONRClient
             MicSerialListener.startNewListener(singletonListener);
          } catch (RuntimeException e) {
             e.printStackTrace();
-            ErrorReporter.getInstance().handleException(e);
+            //ErrorReporter.getInstance().handleException(e);
          }
       }
    }
@@ -78,7 +78,7 @@ public class SONRClient
          }
       } catch (RuntimeException e) {
          e.printStackTrace();
-         ErrorReporter.getInstance().handleException(e);
+         //ErrorReporter.getInstance().handleException(e);
       }
    }
    
@@ -105,7 +105,7 @@ public class SONRClient
          }
       } catch (RuntimeException e) {
          e.printStackTrace();
-         ErrorReporter.getInstance().handleException(e);
+         //ErrorReporter.getInstance().handleException(e);
       }
    }
 

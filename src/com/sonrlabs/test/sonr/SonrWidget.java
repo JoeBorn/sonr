@@ -16,7 +16,7 @@
 
 package com.sonrlabs.test.sonr;
 
-import org.acra.ErrorReporter;
+//import org.acra.ErrorReporter;
 
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
@@ -41,7 +41,7 @@ public class SonrWidget
          context.startService(new Intent(context, ToggleSONR.class));
       } catch (RuntimeException e) {
          e.printStackTrace();
-         ErrorReporter.getInstance().handleException(e);
+         //ErrorReporter.getInstance().handleException(e);
       }
    }
 }

@@ -3,7 +3,7 @@ package com.sonrlabs.test.sonr;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.acra.ErrorReporter;
+//import org.acra.ErrorReporter;
 
 import com.sonrlabs.test.sonr.signal.Factory;
 import com.sonrlabs.test.sonr.signal.IDockDetector;
@@ -47,7 +47,7 @@ class MicSerialListener
             inStream.startRecording();
          } catch (RuntimeException e) {
             e.printStackTrace();
-            ErrorReporter.getInstance().handleException(e);
+            //ErrorReporter.getInstance().handleException(e);
          }
          searchSignal();
       } else {
@@ -86,7 +86,7 @@ class MicSerialListener
          }
       } catch (RuntimeException e) {
          e.printStackTrace();
-         ErrorReporter.getInstance().handleException(e);
+         //ErrorReporter.getInstance().handleException(e);
       }
       Log.d("MicSerialListener", "LISTENER ENDED");
    }
@@ -131,11 +131,11 @@ class MicSerialListener
          }
          if (problem) {
             Log.d("MicSerialListener", "Mic input was unavailable to be read");
-            ErrorReporter.getInstance().putCustomData("MicSerialListener", "Mic input was unavailable to be read");
+            //ErrorReporter.getInstance().putCustomData("MicSerialListener", "Mic input was unavailable to be read");
          }
       } catch (RuntimeException e) {
          e.printStackTrace();
-         ErrorReporter.getInstance().handleException(e);
+         //ErrorReporter.getInstance().handleException(e);
       } finally {
          buffer.release();
       }

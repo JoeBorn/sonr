@@ -1,8 +1,8 @@
 package com.sonrlabs.test.sonr;
 
-import org.acra.ErrorReporter;
+//import org.acra.ErrorReporter;
 
-import com.flurry.android.FlurryAgent;
+//import com.flurry.android.FlurryAgent;
 import com.sonrlabs.test.sonr.common.Common;
 import com.sonrlabs.test.sonr.signal.SpuriousSignalException;
 
@@ -72,7 +72,7 @@ class UserActionHandler
          processUserCommand(receivedByte);
       } catch (RuntimeException e) {
          e.printStackTrace();
-         ErrorReporter.getInstance().handleException(e);
+         //ErrorReporter.getInstance().handleException(e);
       }
    }
 
@@ -86,25 +86,25 @@ class UserActionHandler
                key = KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE;
                lastPlayTime = SystemClock.elapsedRealtime();
                Log.d(TAG, "PLAY");
-               FlurryAgent.logEvent("PLAY_PRESSED");
+               //FlurryAgent.logEvent("PLAY_PRESSED");
             }
             break;
          case FAST_FORWARD:
             key = KeyEvent.KEYCODE_MEDIA_FAST_FORWARD;
             Log.d(TAG, "FAST_FORWARD");
-            FlurryAgent.logEvent("FAST_FORWARD_PRESSED");
+            //FlurryAgent.logEvent("FAST_FORWARD_PRESSED");
             break;
          case REWIND:
             key = KeyEvent.KEYCODE_MEDIA_REWIND;
             Log.d(TAG, "REWIND");
-            FlurryAgent.logEvent("REWIND_PRESSED");
+            //FlurryAgent.logEvent("REWIND_PRESSED");
             break;
          case NEXT_TRACK:
             if (lastSkipTime < SystemClock.elapsedRealtime() - SKIP_TIME) {
                key = KeyEvent.KEYCODE_MEDIA_NEXT;
                lastSkipTime = SystemClock.elapsedRealtime();
                Log.d(TAG, "NEXT_TRACK");
-               FlurryAgent.logEvent("NEXT_TRACK_PRESSED");
+               //FlurryAgent.logEvent("NEXT_TRACK_PRESSED");
             }
             break;
          case PREVIOUS_TRACK:
@@ -112,7 +112,7 @@ class UserActionHandler
                key = KeyEvent.KEYCODE_MEDIA_PREVIOUS;
                lastBackTime = SystemClock.elapsedRealtime();
                Log.d(TAG, "PREVIOUS_TRACK");
-               FlurryAgent.logEvent("PREVIOUS_TRACK_PRESSED");
+               //FlurryAgent.logEvent("PREVIOUS_TRACK_PRESSED");
             }
             break;
          case VOLUME_UP:
@@ -121,7 +121,7 @@ class UserActionHandler
                                                   AudioManager.FLAG_SHOW_UI);
                lastVolumeTime = SystemClock.elapsedRealtime();
                Log.d(TAG, "VOLUME_UP");
-               FlurryAgent.logEvent("VOLUME_UP_PRESSED");
+               //FlurryAgent.logEvent("VOLUME_UP_PRESSED");
             }
             break;
          case VOLUME_DOWN:
@@ -130,7 +130,7 @@ class UserActionHandler
                                                   AudioManager.FLAG_SHOW_UI);
                lastVolumeTime = SystemClock.elapsedRealtime();
                Log.d(TAG, "VOLUME_DOWN");
-               FlurryAgent.logEvent("VOLUME_DOWN_PRESSED");
+               //FlurryAgent.logEvent("VOLUME_DOWN_PRESSED");
             }
             break;
          case MUTE:
@@ -147,57 +147,57 @@ class UserActionHandler
                }
                lastMuteTime = SystemClock.elapsedRealtime();
                Log.d(TAG, "MUTE");
-               FlurryAgent.logEvent("MUTE_PRESSED");
+               //FlurryAgent.logEvent("MUTE_PRESSED");
             }
             break;
          case THUMBS_UP:
             Log.d(TAG, "THUMBS_UP");
-            FlurryAgent.logEvent("THUMBS_UP_PRESSED");
+            //FlurryAgent.logEvent("THUMBS_UP_PRESSED");
             break;
          case THUMBS_DOWN:
             Log.d(TAG, "THUMBS_DOWN");
-            FlurryAgent.logEvent("THUMBS_DOWN_PRESSED");
+            //FlurryAgent.logEvent("THUMBS_DOWN_PRESSED");
             break;
          case FAVORITE:
             Log.d(TAG, "FAVORITE");
-            FlurryAgent.logEvent("FAVORITE_PRESSED");
+            //FlurryAgent.logEvent("FAVORITE_PRESSED");
             break;
          case UP:
             key = KeyEvent.KEYCODE_DPAD_UP;
             Log.d(TAG, "UP");
-            FlurryAgent.logEvent("KEYCODE_DPAD_UP_PRESSED");
+            //FlurryAgent.logEvent("KEYCODE_DPAD_UP_PRESSED");
             break;
          case DOWN:
             key = KeyEvent.KEYCODE_DPAD_DOWN;
             Log.d(TAG, "DOWN");
-            FlurryAgent.logEvent("KEYCODE_DPAD_DOWN_PRESSED");
+            //FlurryAgent.logEvent("KEYCODE_DPAD_DOWN_PRESSED");
             break;
          case LEFT:
             key = KeyEvent.KEYCODE_DPAD_LEFT;
             Log.d(TAG, "LEFT");
-            FlurryAgent.logEvent("KEYCODE_DPAD_LEFT_PRESSED");
+            //FlurryAgent.logEvent("KEYCODE_DPAD_LEFT_PRESSED");
             break;
          case RIGHT:
             key = KeyEvent.KEYCODE_DPAD_RIGHT;
             Log.d(TAG, "RIGHT");
-            FlurryAgent.logEvent("KEYCODE_DPAD_RIGHT_PRESSED");
+            //FlurryAgent.logEvent("KEYCODE_DPAD_RIGHT_PRESSED");
             break;
          case SELECT:
             key = KeyEvent.KEYCODE_DPAD_CENTER;
             Log.d(TAG, "SELECT");
-            FlurryAgent.logEvent("KEYCODE_DPAD_CENTER_PRESSED");
+            //FlurryAgent.logEvent("KEYCODE_DPAD_CENTER_PRESSED");
             break;
          case POWER_ON:
             Log.d(TAG, "POWER_ON");
-            FlurryAgent.logEvent("POWER_ON_PRESSED");
+            //FlurryAgent.logEvent("POWER_ON_PRESSED");
             break;
          case POWER_OFF:
             Log.d(TAG, "POWER_OFF");
-            FlurryAgent.logEvent("POWER_OFF_PRESSED");
+            //FlurryAgent.logEvent("POWER_OFF_PRESSED");
             break;
          case SONR_HOME:
             Log.d(TAG, "HOME");
-            FlurryAgent.logEvent("HOME_PRESSED");
+            //FlurryAgent.logEvent("HOME_PRESSED");
             Intent i = new Intent(context, SONR.class);
             Log.d("CONTEXT", context.getPackageName());
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

@@ -1,6 +1,6 @@
 package com.sonrlabs.test.sonr;
 
-import org.acra.ErrorReporter;
+//import org.acra.ErrorReporter;
 
 import android.app.Activity;
 import android.app.NotificationManager;
@@ -29,7 +29,7 @@ public class StopSONR
          finish();
       } catch (RuntimeException e) {
          e.printStackTrace();
-         ErrorReporter.getInstance().handleException(e);
+         //ErrorReporter.getInstance().handleException(e);
       }
    }
 }

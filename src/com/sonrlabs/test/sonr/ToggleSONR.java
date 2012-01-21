@@ -3,7 +3,7 @@ package com.sonrlabs.test.sonr;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import org.acra.ErrorReporter;
+//import org.acra.ErrorReporter;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -197,7 +197,7 @@ public class ToggleSONR
          }
       } catch (RuntimeException e) {
          e.printStackTrace();
-         ErrorReporter.getInstance().handleException(e);
+         //ErrorReporter.getInstance().handleException(e);
       }
    }
 

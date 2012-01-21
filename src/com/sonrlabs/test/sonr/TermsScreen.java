@@ -1,6 +1,6 @@
 package com.sonrlabs.test.sonr;
 
-import org.acra.ErrorReporter;
+//import org.acra.ErrorReporter;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -23,7 +23,7 @@ public class TermsScreen
          terms.setMovementMethod(new ScrollingMovementMethod());
       } catch (RuntimeException e) {
          e.printStackTrace();
-         ErrorReporter.getInstance().handleException(e);
+         //ErrorReporter.getInstance().handleException(e);
       }
    }
 
@@ -44,7 +44,7 @@ public class TermsScreen
          finish();
       } catch (RuntimeException e) {
          e.printStackTrace();
-         ErrorReporter.getInstance().handleException(e);
+         //ErrorReporter.getInstance().handleException(e);
       }
    }
 }

@@ -2,7 +2,7 @@ package com.sonrlabs.test.sonr.signal;
 
 import java.util.List;
 
-import org.acra.ErrorReporter;
+//import org.acra.ErrorReporter;
 
 import android.media.AudioFormat;
 import android.media.AudioRecord;
@@ -38,7 +38,7 @@ public final class AudioProcessor
             preprocessor.nextSample(buffer);
          } catch (RuntimeException e) {
             e.printStackTrace();
-            ErrorReporter.getInstance().handleException(e);
+            //ErrorReporter.getInstance().handleException(e);
          } finally {
             buffer.release();
          }

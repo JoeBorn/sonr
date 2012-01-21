@@ -3,7 +3,7 @@ package com.sonrlabs.test.sonr;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.acra.ErrorReporter;
+//import org.acra.ErrorReporter;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -46,7 +46,7 @@ public class IntroScreen
          t2.setMovementMethod(LinkMovementMethod.getInstance());
       } catch (RuntimeException e) {
          Log.d("IntroScreen", e.toString());
-         ErrorReporter.getInstance().handleException(e);
+         //ErrorReporter.getInstance().handleException(e);
       }
    }
 

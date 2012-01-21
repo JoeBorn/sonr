@@ -16,7 +16,7 @@
 
 package com.sonrlabs.test.sonr;
 
-import org.acra.ErrorReporter;
+//import org.acra.ErrorReporter;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -51,7 +51,7 @@ public class HeadphoneReciever
          context.startService(serviceIntent);
       } catch (RuntimeException e) {
          e.printStackTrace();
-         ErrorReporter.getInstance().handleException(e);
+         //ErrorReporter.getInstance().handleException(e);
       }
    }
 }

@@ -22,14 +22,14 @@
    		android:weightSum="1.0" >
 			  
 	  	<Button android:id="@+id/disagree"
-	  		android:text="Disagree" 
+	  		android:text="@string/disagree" 
 	 		android:layout_height="wrap_content"
 	    	android:layout_width="fill_parent"
 	    	android:layout_weight=".5"
 	    	android:onClick="declineTerms"/>
 	
 		<Button android:id="@+id/agree"
-			android:text="Agree"
+			android:text="@string/agree"
 	 		android:layout_height="wrap_content"
 	    	android:layout_width="fill_parent"
 	    	android:layout_weight=".5"

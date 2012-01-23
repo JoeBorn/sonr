@@ -2,18 +2,15 @@ package com.sonrlabs.test.sonr;
 
 //import org.acra.ErrorReporter;
 
-import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.AudioRecord;
-import android.os.IBinder;
 import android.util.Log;
 
-public class SONRClient
-      extends Service {
+public class SONRClient {
 
    /*
     * This is a static because we can create multiple clients but we only want one listener.
@@ -28,7 +25,16 @@ public class SONRClient
    private final int bufferSize;
    private final Context ctx;
 
-   private BroadcastReceiver clientStopReceiver;
+   private BroadcastReceiver clientStopReceiver = new BroadcastReceiver() {
+      @Override
+      public void onReceive(Context context, Intent intent) {
+         // Handle receiver
+         String mAction = intent.getAction();
+         if (SONR.DISCONNECT_ACTION.equals(mAction)) {
+            destroy();
+         }
+      }
+   };
 
 
    SONRClient(Context c, AudioRecord ar, AudioManager am) {
@@ -58,7 +64,6 @@ public class SONRClient
       }
    }
 
-   @Override
    public void onCreate() {
       createListener();
    }
@@ -83,16 +88,9 @@ public class SONRClient
    }
    
 
-   @Override
-   public IBinder onBind(Intent arg0) {
-      return null;
-   }
-
-   @Override
    public void onDestroy() {
       // LogFile.MakeLog("SONRClient DESTROY\n\n");
       destroy();
-      super.onDestroy();
    }
 
    void destroy() {
@@ -110,31 +108,17 @@ public class SONRClient
    }
 
    private void registerReceiver() {
-      clientStopReceiver = new BroadcastReceiver() {
-         @Override
-         public void onReceive(Context context, Intent intent) {
-            // Handle reciever
-            String mAction = intent.getAction();
-            if (SONR.DISCONNECT_ACTION.equals(mAction)) {
-               destroy();
-            }
-         }
-      };
       ctx.registerReceiver(clientStopReceiver, new IntentFilter(SONR.DISCONNECT_ACTION));
       Log.i(getClass().getName(), "Registered broadcast receiver " + clientStopReceiver + " in context " + ctx);
    }
 
    private void unregisterReceiver() {
-      if (clientStopReceiver != null) {
-         try {
-            ctx.unregisterReceiver(clientStopReceiver);
-            Log.i(getClass().getName(), "Unregistered broadcast receiver " + clientStopReceiver + " in context " + ctx);
-            clientStopReceiver = null;
-         } catch (RuntimeException e) {
-            Log.i(getClass().getName(), "Failed to unregister broadcast receiver " + clientStopReceiver + " in context " + ctx, e);
-         }
-      } else {
-         Log.i(getClass().getName(), "No broadcast receiver to unregister in context " + ctx);
+      try {
+         ctx.unregisterReceiver(clientStopReceiver);
+         Log.i(getClass().getName(), "Unregistered broadcast receiver " + clientStopReceiver + " in context " + ctx);
+         clientStopReceiver = null;
+      } catch (RuntimeException e) {
+         Log.i(getClass().getName(), "Failed to unregister broadcast receiver " + clientStopReceiver + " in context " + ctx, e);
       }
    }
 }

@@ -27,7 +27,7 @@ import android.util.Log;
 public class SonrWidget
       extends AppWidgetProvider {
 
-   private static final String TAG = SonrWidget.class.getName();
+   private static final String TAG = SonrWidget.class.getSimpleName();
 
    /**
     * Called when appwidget is loaded

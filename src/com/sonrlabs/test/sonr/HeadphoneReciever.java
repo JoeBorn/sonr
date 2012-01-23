@@ -31,23 +31,17 @@ import android.util.Log;
  * @author Dan Walkes
  *
  */
-
 public class HeadphoneReciever
       extends BroadcastReceiver {
-   private static final String TAG = HeadphoneReciever.class.getName();
+   private static final String TAG = HeadphoneReciever.class.getSimpleName();
 
    @Override
    public void onReceive(Context context, Intent intent) {
       try {
          Log.d(TAG, "Receive intent= " + intent);
          Intent serviceIntent = new Intent(context, ToggleSONR.class);
-         if (intent.getAction() != null) {
-            serviceIntent.setAction(intent.getAction());
-         }
-
-         if (intent.getExtras() != null) {
-            serviceIntent.putExtras(intent.getExtras());
-         }
+         serviceIntent.setAction(intent.getAction());
+         serviceIntent.putExtras(intent.getExtras());
          context.startService(serviceIntent);
       } catch (RuntimeException e) {
          e.printStackTrace();

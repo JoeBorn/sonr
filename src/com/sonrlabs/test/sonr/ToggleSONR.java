@@ -142,8 +142,8 @@ public class ToggleSONR
                            // LogFile.MakeLog("DOCK NOT FOUND");
                            Log.d(TAG, SONR.DOCK_NOT_FOUND);
                            theclient.destroy();
-                           startForeground(1337, notification);
-
+                           
+                           startForeground(SONR.SONR_ID, notification);
                            return Service.START_STICKY;
                         }
                         theclient.destroy();
@@ -179,8 +179,8 @@ public class ToggleSONR
          e.printStackTrace();
       }
       
-      startForeground(1337, notification);
-      return START_FLAG_REDELIVERY; //START_STICKY;
+      startForeground(SONR.SONR_ID, notification);
+      return Service.START_STICKY;
    } // end onstart
 
    /**

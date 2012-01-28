@@ -3,8 +3,6 @@ package com.sonrlabs.test.sonr;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-//import org.acra.ErrorReporter;
-
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -13,8 +11,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.media.AudioManager;
+import android.media.AudioRecord;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
@@ -53,14 +51,6 @@ public class ToggleSONR
       Notification notification = new Notification();
 
       try {
-         // LogFile.MakeLog("ToggleSONR triggered");
-         Log.d(TAG, "onStart");
-
-         String action = "";
-         if (intent != null && intent.getAction() != null) {
-            Log.d(TAG, "Received " + intent.getAction());
-            action = intent.getAction();
-         }
          
          SERVICE_ON = true;
 
@@ -80,7 +70,12 @@ public class ToggleSONR
             registerReceiver(headsetReceiver, powerDisconnectedFilter);
          }
 
-         if (intent != null && !action.equals("")) {
+         if (intent != null) {
+            
+            Log.d(TAG, "onStart");
+
+            String action = intent.getAction();
+            Log.d(TAG, "Received " + action);
 
             if (INTENT_USER_TOGGLE_REQUEST.equals(action)) {
 
@@ -110,43 +105,45 @@ public class ToggleSONR
                          * running the app already, don't do autostart, that
                          * would be a mess
                          */
+                        AudioRecord audioRecord = AudioProcessor.findAudioRecord();
                         SONRClient theclient =
-                              new SONRClient(this, AudioProcessor.findAudioRecord(), (AudioManager) this.getSystemService(Context.AUDIO_SERVICE));
+                              new SONRClient(this, audioRecord, (AudioManager) getSystemService(Context.AUDIO_SERVICE));
                         theclient.createListener();
                         
                         /*
                          * XXX Really call searchSignal again? The createListener call above just did that.
                          */
-                        theclient.searchSignal();
+                        //theclient.searchSignal();
                         
                         boolean found = theclient.foundDock();
-                        Log.d(TAG, "made it past search signal");
                         if (found) {
                            // LogFile.MakeLog(SONR.DOCK_FOUND);
                            Log.d(TAG, SONR.DOCK_FOUND);
                            SONR.setOn(true);
 
                            if (Common.get(this, SONR.DEFAULT_PLAYER_SELECTED, false)) {
-                              Log.d(TAG, "DEFAULT MEDIA PLAYER FOUND");
+                              Log.d(TAG, SONR.DEFAULT_MEDIA_PLAYER_FOUND);
                               theclient.startListener();
                               SONR.startSonr(this, true);
                            } else {
-                              Log.d(TAG, "NO DEFAULT MEDIA PLAYER");
+                              Log.d(TAG, SONR.NO_DEFAULT_MEDIA_PLAYER);
                               Intent i = new Intent(this, SONR.class);
-                              i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                              this.startActivity(i);
+                              i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                              startActivity(i);
                            }
 
                            updateIconON();
                         } else { // dock not found, probably headphones
                            // LogFile.MakeLog("DOCK NOT FOUND");
                            Log.d(TAG, SONR.DOCK_NOT_FOUND);
-                           theclient.destroy();
+                           audioRecord.release();
+                           theclient.onDestroy();
                            
                            startForeground(SONR.SONR_ID, notification);
                            return Service.START_STICKY;
                         }
-                        theclient.destroy();
+                        audioRecord.release();
+                        theclient.onDestroy();
                      } // end if sonr main screen
                   }
                } else { // end if state != 0
@@ -221,8 +218,7 @@ public class ToggleSONR
       AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
       
       //Restore notification volume
-      SharedPreferences sharedPrefs = ctx.getSharedPreferences(SONR.SHARED_PREFERENCES, 0);
-      int savedNotificationVolume = sharedPrefs.getInt("sharedNotificationVolume", 10);
+      int savedNotificationVolume = Common.get(ctx, SONR.SAVED_NOTIFICATION_VOLUME, 10);
       manager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, savedNotificationVolume, AudioManager.FLAG_VIBRATE);
       
       if (Build.VERSION.SDK_INT == Build.VERSION_CODES.DONUT) {

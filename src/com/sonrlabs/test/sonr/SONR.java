@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-//import org.acra.ErrorReporter;
-
 import android.app.ListActivity;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -18,7 +16,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -45,27 +42,31 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-//import com.flurry.android.FlurryAgent;
 import com.sonrlabs.test.sonr.common.Common;
 import com.sonrlabs.test.sonr.common.DialogCommon;
 import com.sonrlabs.test.sonr.signal.AudioProcessor;
 
-// This is what happens when you open the SONR app on the home screen.
-public class SONR
-      extends ListActivity {
+public class SONR extends ListActivity {
 
    public static final int SONR_ID = 1;
    public static final String DOCK_NOT_FOUND = "DOCK NOT FOUND";
    public static final String DOCK_FOUND = "DOCK FOUND";
+   
+   public static final String DEFAULT_MEDIA_PLAYER_FOUND = "DEFAULT MEDIA PLAYER FOUND";
+   public static final String NO_DEFAULT_MEDIA_PLAYER = "NO DEFAULT MEDIA PLAYER";
+   
    public static final String DEFAULT_PLAYER_SELECTED = "DEFAULT_PLAYER_SELECTED";
    public static final String APP_PACKAGE_NAME = "APP_PACKAGE_NAME";
    public static final String DISCONNECT_ACTION = "android.intent.action.DISCONNECT_DOCK";
    public static final String SHARED_PREFERENCES = "SONRSharedPreferences";
+   
+   public static final String CLIENT_STOP_RECEIVER_REGISTERED = "CLIENT_STOP_RECEIVER_REGISTERED";
+   public static final String SAVED_NOTIFICATION_VOLUME = "SAVED_NOTIFICATION_VOLUME";
 
    private static final String SAMPLE_URI = "\\";
    private static final String AUDIO_MIME_TYPE = "audio/*";
    private static final String DOCK_NOT_FOUND_TRY_AGAIN = "Dock not detected, check connections and try again";
-   private static final String OK_TXT = "Ok";
+   private static final String OK_TXT = "OK";
    private static final String SELECT_PLAYER = "Please select a music player";
    private static final String APP_FULL_NAME = "APP_FULL_NAME";
    private static final String PLAYER_SELECTED = "PLAYER_SELECTED";
@@ -124,46 +125,49 @@ public class SONR
 
          AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
          int savedNotificationVolume = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION);
-         SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFERENCES, 0);
-         sharedPreferences.edit().putInt("savedNotificationVolume", savedNotificationVolume).commit();
+         
+         Common.save(this, SONR.SAVED_NOTIFICATION_VOLUME, savedNotificationVolume);
 
          if (!ToggleSONR.SERVICE_ON) {
             Intent i = new Intent(this, ToggleSONR.class);
             startService(i);
          }
 
-         audio = AudioProcessor.findAudioRecord();
-         client = new SONRClient(this, audio, audioManager);
-         client.onCreate();
+         newUpAudioAndClient(audioManager);
 
          Button noneButton = (Button) findViewById(R.id.noneButton);
          noneButton.setOnClickListener(noneButtonListener);
 
-         final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
          mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, TAG);
          mWakeLock.acquire();
 
-         // Intent intent;
-         if (Common.get(this, DEFAULT_PLAYER_SELECTED, false)) {
-
-            if (client != null) {
-               client.onDestroy();
-            }
-
-            if (audio != null) {
-               audio.release();
-            }
-            // intent = new Intent(this, DefaultAppScreen.class);
-         } else {
-            // intent = new Intent(this, IntroScreen.class);
-         }
-         // startActivity(intent);
       } catch (RuntimeException e) {
          e.printStackTrace();
          //ErrorReporter.getInstance().handleException(e);
       }
    }
 
+   private void newUpAudioAndClient(AudioManager audioManager) {
+      if (audio == null || client == null) {
+         audio = AudioProcessor.findAudioRecord();
+         client = new SONRClient(this, audio, audioManager);
+         client.createListener();
+      }
+   }
+
+   private void cleanAudioAndClient() {
+      if (client != null) {
+         client.onDestroy();
+         client = null;
+      }
+
+      if (audio != null) {
+         audio.release();
+         audio = null;
+      }
+   }
+   
    @Override
    protected void onStart() {
       super.onStart();
@@ -182,13 +186,7 @@ public class SONR
          unregisterReceiver(stopReceiver);
          super.onDestroy();
          
-         if (audio != null) {
-            audio.release();
-         }
-
-         if (client != null) {
-            client.onDestroy();
-         }
+         cleanAudioAndClient();
 
          mainScreen = false;
          on = false;
@@ -219,13 +217,7 @@ public class SONR
       AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
       audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 1, AudioManager.FLAG_VIBRATE);
 
-      if (audio == null) {
-         audio = AudioProcessor.findAudioRecord();
-         if (client == null) {
-            client = new SONRClient(this, audio, audioManager);
-            client.onCreate();
-         }
-      }
+      newUpAudioAndClient(audioManager);
    }
 
    @Override
@@ -289,9 +281,7 @@ public class SONR
 
             statusBarNotification(this, false);
 
-            if (client != null) {
-               client.destroy();
-            }
+            cleanAudioAndClient();
 
             finish();
             consumeResult = true;
@@ -299,9 +289,6 @@ public class SONR
       return consumeResult;
    }
 
-   /**
-    * Public because it's invoked reflectively.
-    */
    public void buttonOK(View view) {
       try {
          if (!Common.get(this, PLAYER_SELECTED, false) && !Common.get(this, DEFAULT_PLAYER_SELECTED, false)) {
@@ -358,7 +345,7 @@ public class SONR
          Intent mediaApp = new Intent();
          mediaApp.setClassName(Common.get(context, APP_PACKAGE_NAME, Common.N_A),
                                Common.get(context, APP_FULL_NAME, Common.N_A));
-         mediaApp.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+         mediaApp.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
          context.startActivity(mediaApp);
       }
    }

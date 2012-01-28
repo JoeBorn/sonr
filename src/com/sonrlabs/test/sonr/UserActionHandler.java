@@ -50,7 +50,7 @@ class UserActionHandler
    private static final int VOL_TIME = 100;
 
    private final AudioManager manager;
-   private final Context context;
+   private final Context applicationContext;
    
    private long lastPlayTime = 0;
    private long lastMuteTime = 0;
@@ -60,9 +60,9 @@ class UserActionHandler
    private int volume = -1;
    private boolean muted = false;
    
-   UserActionHandler(AudioManager manager, Context ctx) {
+   UserActionHandler(AudioManager manager, Context appliactionContext) {
       this.manager = manager;
-      this.context = ctx;
+      this.applicationContext = appliactionContext;
    }
 
    @Override
@@ -196,12 +196,10 @@ class UserActionHandler
             //FlurryAgent.logEvent("POWER_OFF_PRESSED");
             break;
          case SONR_HOME:
-            Log.d(TAG, "HOME");
-            //FlurryAgent.logEvent("HOME_PRESSED");
-            Intent i = new Intent(context, SONR.class);
-            Log.d("CONTEXT", context.getPackageName());
-            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.getApplicationContext().startActivity(i);
+            Log.d(TAG, "SONR HOME");
+            Intent launchSonrHome = new Intent(applicationContext, SONR.class);
+            launchSonrHome.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            applicationContext.startActivity(launchSonrHome);
             break;
          case SEARCH:
             Log.d(TAG, "SEARCH");
@@ -236,18 +234,19 @@ class UserActionHandler
    private void sendbroadcast(int keyEvent) {
      
       synchronized (this) {
-         Intent i = new Intent(Intent.ACTION_MEDIA_BUTTON);     
-         String selectedMediaPlayer = Common.get(context, SONR.APP_PACKAGE_NAME, null);
+         String selectedMediaPlayer = Common.get(applicationContext, SONR.APP_PACKAGE_NAME, null);
 
          if (selectedMediaPlayer != null) {
             Log.d("BROADCAST PLAYER", selectedMediaPlayer);
+
+            Intent i = new Intent(Intent.ACTION_MEDIA_BUTTON);     
             i.setPackage(selectedMediaPlayer);
 
             i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, keyEvent));
-            context.sendOrderedBroadcast(i, null);
+            applicationContext.sendOrderedBroadcast(i, null);
 
             i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, keyEvent));
-            context.sendOrderedBroadcast(i, null);
+            applicationContext.sendOrderedBroadcast(i, null);
          }
       }
       

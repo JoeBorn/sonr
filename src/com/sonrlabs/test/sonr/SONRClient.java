@@ -2,6 +2,8 @@ package com.sonrlabs.test.sonr;
 
 //import org.acra.ErrorReporter;
 
+import com.sonrlabs.test.sonr.common.Common;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -12,18 +14,20 @@ import android.util.Log;
 
 public class SONRClient {
 
+   private final static String TAG = SONRClient.class.getSimpleName();
+   
    /*
     * This is a static because we can create multiple clients but we only want one listener.
     * Possibly the creation of multiple clients is incorrect?
     * 
     */
    private static MicSerialListener singletonListener;
-   
+
 
    private final AudioManager theAudioManager;
    private final AudioRecord theaudiorecord;
    private final int bufferSize;
-   private final Context ctx;
+   private final Context applicationContext;
 
    private BroadcastReceiver clientStopReceiver = new BroadcastReceiver() {
       @Override
@@ -31,19 +35,19 @@ public class SONRClient {
          // Handle receiver
          String mAction = intent.getAction();
          if (SONR.DISCONNECT_ACTION.equals(mAction)) {
-            destroy();
+            onDestroy();
          }
       }
    };
 
 
-   SONRClient(Context c, AudioRecord ar, AudioManager am) {
+   SONRClient(Context applicationContext, AudioRecord ar, AudioManager am) {
       theAudioManager = am;
       theaudiorecord = ar;
       bufferSize = com.sonrlabs.test.sonr.signal.AudioProcessor.getAudioBufferSize();
-      ctx = c;
+      this.applicationContext = applicationContext;
    }
-   
+
    boolean foundDock() {
       return singletonListener != null && singletonListener.foundDock();
    }
@@ -64,17 +68,13 @@ public class SONRClient {
       }
    }
 
-   public void onCreate() {
-      createListener();
-   }
-
-   void createListener() {
+   public  void createListener() {
       try {
          synchronized (this) {
             // LogFile.MakeLog("\n\nSONRClient CREATED");
             unregisterReceiver();
             registerReceiver();
-            IUserActionHandler controller = new UserActionHandler(theAudioManager,ctx);
+            IUserActionHandler controller = new UserActionHandler(theAudioManager, applicationContext);
             AudioProcessorQueue.setUserActionHandler(controller);
             if (singletonListener != null) {
                singletonListener.stopRunning();
@@ -86,14 +86,9 @@ public class SONRClient {
          //ErrorReporter.getInstance().handleException(e);
       }
    }
-   
+
 
    public void onDestroy() {
-      // LogFile.MakeLog("SONRClient DESTROY\n\n");
-      destroy();
-   }
-
-   void destroy() {
       try {
          synchronized (this) {
             unregisterReceiver();
@@ -108,17 +103,20 @@ public class SONRClient {
    }
 
    private void registerReceiver() {
-      ctx.registerReceiver(clientStopReceiver, new IntentFilter(SONR.DISCONNECT_ACTION));
-      Log.i(getClass().getName(), "Registered broadcast receiver " + clientStopReceiver + " in context " + ctx);
+      Common.save(applicationContext, SONR.CLIENT_STOP_RECEIVER_REGISTERED, true);
+      applicationContext.registerReceiver(clientStopReceiver, new IntentFilter(SONR.DISCONNECT_ACTION));
+      Log.i(TAG, "Registered broadcast receiver " + clientStopReceiver + " in context " + applicationContext);
    }
 
    private void unregisterReceiver() {
       try {
-         ctx.unregisterReceiver(clientStopReceiver);
-         Log.i(getClass().getName(), "Unregistered broadcast receiver " + clientStopReceiver + " in context " + ctx);
-         clientStopReceiver = null;
+         if (Common.get(applicationContext, SONR.CLIENT_STOP_RECEIVER_REGISTERED, false)) {
+            Common.save(applicationContext, SONR.CLIENT_STOP_RECEIVER_REGISTERED, false);
+            applicationContext.unregisterReceiver(clientStopReceiver);
+            Log.i(TAG, "Unregistered broadcast receiver " + clientStopReceiver + " in context " + applicationContext);
+         }
       } catch (RuntimeException e) {
-         Log.i(getClass().getName(), "Failed to unregister broadcast receiver " + clientStopReceiver + " in context " + ctx, e);
+         Log.i(TAG, "Failed to unregister broadcast receiver " + clientStopReceiver + " in context " + applicationContext, e);
       }
    }
 }

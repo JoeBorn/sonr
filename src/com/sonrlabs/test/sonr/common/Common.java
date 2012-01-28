@@ -111,6 +111,17 @@ public final class Common {
       SharedPreferences settings = c.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
       return settings.getBoolean(key, defaultValue);
    }
+   
+   public static void save(Context c, String key, int value) {
+      SharedPreferences.Editor editor = c.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE).edit();
+      editor.putInt(key, value);
+      editor.commit();
+   }
+
+   public static int get(Context c, String key, int defaultValue) {
+      SharedPreferences settings = c.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
+      return settings.getInt(key, defaultValue);
+   }
 
    /**
     * Stores boolean array to SharedPreferences.

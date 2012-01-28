@@ -236,7 +236,6 @@ class UserActionHandler
    private void sendbroadcast(int keyEvent) {
      
       synchronized (this) {
-
          Intent i = new Intent(Intent.ACTION_MEDIA_BUTTON);     
          String selectedMediaPlayer =  Common.get(context, SONR.APP_PACKAGE_NAME, null);
 
@@ -245,10 +244,10 @@ class UserActionHandler
             i.setPackage(selectedMediaPlayer);
 
             i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, keyEvent));
-            context.sendBroadcast(i, null);
+            context.sendOrderedBroadcast(i, null);
 
             i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, keyEvent));
-            context.sendBroadcast(i, null);
+            context.sendOrderedBroadcast(i, null);
 
          }
       }

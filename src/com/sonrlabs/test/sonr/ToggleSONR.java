@@ -48,8 +48,6 @@ public class ToggleSONR
 
    @Override
    public int onStartCommand(Intent intent, int flags, int startId) {
-      Notification notification = new Notification();
-
       try {
          
          SERVICE_ON = true;
@@ -98,7 +96,7 @@ public class ToggleSONR
 
                   // LogFile.MakeLog("ToggleSONR routing headset");
 
-                  if (isRoutingHeadset(this)) {
+                  if (isRoutingHeadset()) {
                      // LogFile.MakeLog("ToggleSONR headset has mic");
                      if (SONR.neverStarted()) { // if
                         /*
@@ -133,15 +131,12 @@ public class ToggleSONR
                            }
 
                            updateIconON();
+                           
                         } else { // dock not found, probably headphones
                            // LogFile.MakeLog("DOCK NOT FOUND");
                            Log.d(TAG, SONR.DOCK_NOT_FOUND);
-                           audioRecord.release();
-                           theclient.onDestroy();
-                           
-                           startForeground(SONR.SONR_ID, notification);
-                           return Service.START_STICKY;
                         }
+                        //this is not correct as it should be maintained in 1 place
                         audioRecord.release();
                         theclient.onDestroy();
                      } // end if sonr main screen
@@ -176,7 +171,7 @@ public class ToggleSONR
          e.printStackTrace();
       }
       
-      startForeground(SONR.SONR_ID, notification);
+      startForeground(SONR.SONR_ID, new Notification());
       return Service.START_STICKY;
    } // end onstart
 
@@ -274,14 +269,14 @@ public class ToggleSONR
     * 
     * @return true if routing to headset, false if routing somewhere else
     */
-   private static boolean isRoutingHeadset(Context ctx) {
+   private boolean isRoutingHeadset() {
       boolean isRoutingHeadset = false;
 
       if (Build.VERSION.SDK_INT == Build.VERSION_CODES.DONUT) {
          /*
           * The code that works and is tested for Donut...
           */
-         AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
+         AudioManager manager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
          int routing = manager.getRouting(AudioManager.MODE_NORMAL);
          Log.d(TAG, "getRouting returns " + routing);
@@ -360,9 +355,9 @@ public class ToggleSONR
    void updateIcon() {
       Log.d(TAG, "updateIcon");
 
-      RemoteViews view = new RemoteViews(this.getPackageName(), R.layout.toggle_apwidget);
+      RemoteViews view = new RemoteViews(getPackageName(), R.layout.toggle_apwidget);
 
-      if (isRoutingHeadset(this)) {
+      if (isRoutingHeadset()) {
          Log.d(TAG, "Headset is routed");
          view.setImageViewResource(R.id.Icon, R.drawable.sonr_on);
       } else {

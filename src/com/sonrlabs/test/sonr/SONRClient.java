@@ -27,12 +27,14 @@ public class SONRClient {
    private final int bufferSize;
    private final Context applicationContext;
 
+   private boolean mClientStopReceiverRegistered;
+   
    private BroadcastReceiver clientStopReceiver = new BroadcastReceiver() {
       @Override
       public void onReceive(Context context, Intent intent) {
          // Handle receiver
-         String mAction = intent.getAction();
-         if (SONR.DISCONNECT_ACTION.equals(mAction)) {
+         String action = intent.getAction();
+         if (SONR.DISCONNECT_ACTION.equals(action)) {
             onDestroy();
          }
       }
@@ -44,7 +46,7 @@ public class SONRClient {
       theaudiorecord = ar;
       bufferSize = com.sonrlabs.test.sonr.signal.AudioProcessor.getAudioBufferSize();
       this.applicationContext = applicationContext;
-      Preferences.savePreference(applicationContext, SONR.CLIENT_STOP_RECEIVER_REGISTERED, false);
+      mClientStopReceiverRegistered = false;
    }
 
    boolean foundDock() {
@@ -102,15 +104,15 @@ public class SONRClient {
    }
 
    private void registerReceiver() {
-      Preferences.savePreference(applicationContext, SONR.CLIENT_STOP_RECEIVER_REGISTERED, true);
       applicationContext.registerReceiver(clientStopReceiver, new IntentFilter(SONR.DISCONNECT_ACTION));
+      mClientStopReceiverRegistered = true;
       Log.i(TAG, "Registered broadcast receiver " + clientStopReceiver + " in context " + applicationContext);
    }
 
    private void unregisterReceiver() {
       try {
-         if (Preferences.getPreference(applicationContext, SONR.CLIENT_STOP_RECEIVER_REGISTERED, false)) {
-            Preferences.savePreference(applicationContext, SONR.CLIENT_STOP_RECEIVER_REGISTERED, false);
+         if (mClientStopReceiverRegistered) {
+            mClientStopReceiverRegistered = false;
             applicationContext.unregisterReceiver(clientStopReceiver);
             Log.i(TAG, "Unregistered broadcast receiver " + clientStopReceiver + " in context " + applicationContext);
          }

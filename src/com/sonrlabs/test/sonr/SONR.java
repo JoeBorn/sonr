@@ -58,7 +58,6 @@ public class SONR extends ListActivity {
    public static final String DISCONNECT_ACTION = "android.intent.action.DISCONNECT_DOCK";
    public static final String SHARED_PREFERENCES = "SONRSharedPreferences";
    
-   public static final String CLIENT_STOP_RECEIVER_REGISTERED = "CLIENT_STOP_RECEIVER_REGISTERED";
    public static final String SAVED_NOTIFICATION_VOLUME = "SAVED_NOTIFICATION_VOLUME";
 
    private static final String SAMPLE_URI = "\\";
@@ -434,14 +433,13 @@ public class SONR extends ListActivity {
       return finalMap.values();
    }
 
-   private final class StopReceiver
-         extends BroadcastReceiver {
+   private final class StopReceiver extends BroadcastReceiver {
       @Override
       public void onReceive(Context context, Intent intent) {
          // Handle reciever
-         String mAction = intent.getAction();
+         String action = intent.getAction();
 
-         if (DISCONNECT_ACTION.equals(mAction)) {
+         if (SONR.DISCONNECT_ACTION.equals(action)) {
             finish();
          }
       }

@@ -20,8 +20,7 @@ import android.widget.RemoteViews;
 
 import com.sonrlabs.test.sonr.signal.AudioProcessor;
 
-public class ToggleSONR
-      extends Service {
+public class ToggleSONR extends Service {
 
    private static final String TAG = ToggleSONR.class.getSimpleName();
 //   public static final String INTENT_UPDATE_ICON = "INTENT_UPDATE_ICON";
@@ -37,20 +36,31 @@ public class ToggleSONR
    private static final int DEVICE_STATE_AVAILABLE = 1;
    
    public static boolean SERVICE_ON = false;
+   
+   private static HeadphoneReciever headsetReceiver = null;
+   private boolean registeredHeadsetReciver;
 
    @Override
    public IBinder onBind(Intent arg0) {
       return null;
    }
 
-   private static HeadphoneReciever headsetReceiver = null;
-
    @Override
    public int onStartCommand(Intent intent, int flags, int startId) {
+      
+      /**
+       * Will only execute when we get killed during start.
+       */
+      if ((flags & Service.START_FLAG_REDELIVERY) != 0) {
+         if (registeredHeadsetReciver) {
+            unRegisterHeadsetReceiver();
+         }
+      }
+      
       try {
          
          SERVICE_ON = true;
-
+         
          if (headsetReceiver == null) {
             /**
              * Since HEADSET_PLUG uses FLAG_RECIEVER_REGISTERED_ONLY we need to
@@ -65,6 +75,8 @@ public class ToggleSONR
 
             IntentFilter powerDisconnectedFilter = new IntentFilter(Intent.ACTION_POWER_DISCONNECTED);
             registerReceiver(headsetReceiver, powerDisconnectedFilter);
+            
+            registeredHeadsetReciver = true;
          }
 
          if (intent != null) {
@@ -72,7 +84,7 @@ public class ToggleSONR
             Log.d(TAG, "onStart");
 
             String action = intent.getAction();
-            Log.d(TAG, "Received " + action);
+            Log.d(TAG, "Received action: " + action);
 
             if (INTENT_USER_TOGGLE_REQUEST.equals(action)) {
 
@@ -183,15 +195,21 @@ public class ToggleSONR
       try {
          SERVICE_ON = false;
          Log.i(TAG, "onDestroy");
-         if (headsetReceiver != null) {
-            unregisterReceiver(headsetReceiver);
-         }
+         unRegisterHeadsetReceiver();
       } catch (RuntimeException e) {
          e.printStackTrace();
          //ErrorReporter.getInstance().handleException(e);
       }
    }
 
+   private void unRegisterHeadsetReceiver() {
+      if (headsetReceiver != null && registeredHeadsetReciver) {
+         unregisterReceiver(headsetReceiver);
+         registeredHeadsetReciver = false;
+         headsetReceiver = null;
+      }
+   }
+   
    private static void route_headset(Context ctx) {
       Log.d(TAG, "route to headset");
       AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);

@@ -9,7 +9,6 @@ import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.TextView;
 
-import com.sonrlabs.test.sonr.common.Common;
 
 public class TermsScreen
       extends Activity {
@@ -33,7 +32,7 @@ public class TermsScreen
    }
 
    public void acceptTerms(View view) {
-      Common.save(this, SONR.DEFAULT_PLAYER_SELECTED, false);
+      Preferences.savePreference(this, SONR.DEFAULT_PLAYER_SELECTED, false);
       finish();
    }
 

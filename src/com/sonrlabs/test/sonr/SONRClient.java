@@ -46,6 +46,7 @@ public class SONRClient {
       theaudiorecord = ar;
       bufferSize = com.sonrlabs.test.sonr.signal.AudioProcessor.getAudioBufferSize();
       this.applicationContext = applicationContext;
+      Common.save(applicationContext, SONR.CLIENT_STOP_RECEIVER_REGISTERED, false);
    }
 
    boolean foundDock() {

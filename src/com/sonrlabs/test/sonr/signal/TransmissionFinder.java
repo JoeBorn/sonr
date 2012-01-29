@@ -13,6 +13,11 @@ import android.util.Log;
 final class TransmissionFinder
       extends SignalConstructor {
    
+   @Override
+   String debugTag() {
+      return "TransmissionFinder";
+   }
+
    void nextSample(ISampleBuffer buffer, int sampleCount, int[] sampleStartIndices) {
       short[] samples = buffer.getArray();
       int startpos = sampleStartIndices[0];

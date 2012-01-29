@@ -1,20 +1,19 @@
-package com.sonrlabs.test.sonr.common;
+package com.sonrlabs.test.sonr;
 
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 
-public class DialogCommon {
+class Dialogs {
 
    private static final DialogInterface.OnClickListener doNothingListener = new DialogInterface.OnClickListener() {
       @Override
       public void onClick(DialogInterface dialog, int id) {
-         //do nothing
       }
    };
 
-   public static void quickPopoutDialog(Context c, boolean cancellable, String msg, String buttonText) {
-      AlertDialog.Builder builder = new AlertDialog.Builder(c);
+   static void quickPopoutDialog(Context context, boolean cancellable, String msg, String buttonText) {
+      AlertDialog.Builder builder = new AlertDialog.Builder(context);
       builder.setMessage(msg);
       builder.setCancelable(cancellable);
       builder.setNeutralButton(buttonText, doNothingListener);

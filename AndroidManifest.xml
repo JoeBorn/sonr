@@ -32,14 +32,6 @@
             </intent-filter>
         </activity>
         
-        <service android:name=".SONRClient">
-			<receiver android:name=".clientStopReceiver">
-            	<intent-filter>
-               		 <action android:name="android.intent.action.DISCONNECT_DOC"></action>
-            	</intent-filter>
-        	</receiver>
-        </service>
-     
 		<receiver android:name=".SonrWidget" android:label="@string/widget_name" >
 		    <intent-filter>
 		        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -65,7 +57,6 @@
 			</intent-filter>
 		</receiver>
 	     
-	    <activity android:name=".DefaultAppScreen"/>
 	    <activity android:name=".ConfigurationActivity"/>
 	    <activity android:name=".TermsScreen">
 		    <intent-filter>

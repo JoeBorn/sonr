@@ -56,8 +56,7 @@ public class SONR extends ListActivity {
    public static final String DEFAULT_PLAYER_SELECTED = "DEFAULT_PLAYER_SELECTED";
    public static final String APP_PACKAGE_NAME = "APP_PACKAGE_NAME";
    public static final String DISCONNECT_ACTION = "android.intent.action.DISCONNECT_DOCK";
-   public static final String SHARED_PREFERENCES = "SONRSharedPreferences";
-   
+
    public static final String CLIENT_STOP_RECEIVER_REGISTERED = "CLIENT_STOP_RECEIVER_REGISTERED";
    public static final String SAVED_NOTIFICATION_VOLUME = "SAVED_NOTIFICATION_VOLUME";
 
@@ -86,7 +85,7 @@ public class SONR extends ListActivity {
    private boolean isRegistered = false;
    private PowerManager.WakeLock mWakeLock;
 
-   private View.OnClickListener noneButtonListener = new View.OnClickListener() {
+   private final View.OnClickListener noneButtonListener = new View.OnClickListener() {
       @Override
       public void onClick(View v) {
          new CheckDockOnNoneSelection(v).start();

@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.sonrlabs.test.sonr.common.Common;
+import com.sonrlabs.test.sonr.signal.AudioProcessor;
+
 import android.app.ListActivity;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -41,10 +44,6 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.sonrlabs.test.sonr.common.Common;
-import com.sonrlabs.test.sonr.common.DialogCommon;
-import com.sonrlabs.test.sonr.signal.AudioProcessor;
 
 public class SONR extends ListActivity {
 
@@ -292,7 +291,7 @@ public class SONR extends ListActivity {
    public void buttonOK(View view) {
       try {
          if (!Common.get(this, PLAYER_SELECTED, false) && !Common.get(this, DEFAULT_PLAYER_SELECTED, false)) {
-            DialogCommon.quickPopoutDialog(this, false, SELECT_PLAYER, OK_TXT);
+            Dialogs.quickPopoutDialog(this, false, SELECT_PLAYER, OK_TXT);
          } else {
             new CheckDockOnPlayerSelection(view).start();
          }
@@ -498,7 +497,7 @@ public class SONR extends ListActivity {
 
       void dockNotFound() {
          Toast.makeText(getApplicationContext(), DOCK_NOT_FOUND, Toast.LENGTH_SHORT).show();
-         DialogCommon.quickPopoutDialog(SONR.this, false, DOCK_NOT_FOUND_TRY_AGAIN, OK_TXT);
+         Dialogs.quickPopoutDialog(SONR.this, false, DOCK_NOT_FOUND_TRY_AGAIN, OK_TXT);
       }
    }
 

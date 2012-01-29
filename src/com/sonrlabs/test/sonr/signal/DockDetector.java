@@ -19,6 +19,11 @@ class DockDetector
    private static final String TAG = DockDetector.class.getSimpleName();
    
    @Override
+   String debugTag() {
+      return TAG;
+   }
+   
+   @Override
    public boolean findDock(short[] samples, int count) {
 
       int startpos = SAMPLE_LENGTH;

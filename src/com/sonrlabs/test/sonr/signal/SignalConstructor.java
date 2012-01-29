@@ -19,14 +19,16 @@ import com.sonrlabs.test.sonr.AudioProcessorQueue;
 abstract class SignalConstructor
       implements AudioSupportConstants {
 
-   private static final String TAG = "SignalConstructor";
    private static final int MIN_MATCHES = 3;// how many of the three repetitions in the transmission required for valid data
 
+   /* Debugging aide */
+   private float previousSignalMax = Float.NaN;
+   
    /**
     * Used as the threshold to detect phase changes. It's computed by
     * {@link #computeSignalMax()}.
     */
-   private int signalMaxSum = 0;
+   private float signalMaxSum;
    
    // TODO: Document these
    private final int[] movingbuf = new int[MOVING_SIZE];
@@ -37,6 +39,8 @@ abstract class SignalConstructor
     * value for a given index is computed by {@link #constructSignal(int index)}.
     */
    private final int[] signals = new int[SAMPLES_PER_BUFFER];
+   
+   abstract String debugTag();
 
    /**
     * Look for at least {@value #MIN_MATCHES} matches of the values in {@link #signals}.
@@ -64,13 +68,13 @@ abstract class SignalConstructor
                String msg = "Detected signal " 
                      + Integer.toBinaryString(baseSignal) + " [0x" + Integer.toHexString(baseSignal) + "] with "
                      + matchCount + " matches";
-               Log.d(TAG, msg);
+               Log.d(debugTag(), msg);
                return;
             } else if (matchCount > 1) {
                String msg = "Ignoring signal " 
                      + Integer.toBinaryString(baseSignal) + " [0x" + Integer.toHexString(baseSignal) + "] with "
                      + matchCount + " matches";
-               Log.d(TAG, msg);
+               Log.d(debugTag(), msg);
             }
          }
       }
@@ -154,8 +158,12 @@ abstract class SignalConstructor
 
          movingsum[0] = movingsum[1];
       }
-
       signalMaxSum /= 1.375;
+      
+      if (Float.isNaN(previousSignalMax) || Math.abs(previousSignalMax - signalMaxSum) > 0.001) {
+         Log.d(debugTag(), "New signal max " + signalMaxSum);
+         previousSignalMax = signalMaxSum;
+      }
    }
 
    void constructSignal(short[] samples, int[] sampleStartIndices) {

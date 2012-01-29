@@ -173,11 +173,10 @@ abstract class SignalConstructor
       for (int signalIndex = 0; signalIndex < SAMPLES_PER_BUFFER; signalIndex++) {
          if (sampleStartIndices[signalIndex] != 0) {
             int index = 0;
-            movingsum[0] = 0;
             for (int i = 0; i < MOVING_SIZE; i++) {
                short value = samples[i + sampleStartIndices[signalIndex]];
                movingbuf[i] = value;
-               movingsum[0] += value;
+               movingsum[i] = 0;
             }
             for (int i = MOVING_SIZE; i < TRANSMISSION_LENGTH; i++) {
                movingsum[i] = movingsum[i - 1] - movingbuf[index];

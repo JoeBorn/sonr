@@ -27,7 +27,7 @@ public class SONRClient {
    private final int bufferSize;
    private final Context applicationContext;
 
-   private BroadcastReceiver clientStopReceiver = new BroadcastReceiver() {
+   private final BroadcastReceiver clientStopReceiver = new BroadcastReceiver() {
       @Override
       public void onReceive(Context context, Intent intent) {
          // Handle receiver

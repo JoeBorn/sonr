@@ -18,7 +18,6 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-import com.sonrlabs.test.sonr.common.Common;
 import com.sonrlabs.test.sonr.signal.AudioProcessor;
 
 public class ToggleSONR
@@ -119,7 +118,7 @@ public class ToggleSONR
                            Log.d(TAG, SONR.DOCK_FOUND);
                            SONR.setOn(true);
 
-                           if (Common.get(this, SONR.DEFAULT_PLAYER_SELECTED, false)) {
+                           if (Preferences.getPreference(this, SONR.DEFAULT_PLAYER_SELECTED, false)) {
                               Log.d(TAG, SONR.DEFAULT_MEDIA_PLAYER_FOUND);
                               theclient.startListener();
                               SONR.startSonr(this, true);
@@ -213,7 +212,7 @@ public class ToggleSONR
       AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
       
       //Restore notification volume
-      int savedNotificationVolume = Common.get(ctx, SONR.SAVED_NOTIFICATION_VOLUME, 10);
+      int savedNotificationVolume = Preferences.getPreference(ctx, SONR.SAVED_NOTIFICATION_VOLUME, 10);
       manager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, savedNotificationVolume, AudioManager.FLAG_VIBRATE);
       
       if (Build.VERSION.SDK_INT == Build.VERSION_CODES.DONUT) {

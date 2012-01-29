@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.sonrlabs.test.sonr.common.Common;
 import com.sonrlabs.test.sonr.signal.AudioProcessor;
 
 import android.app.ListActivity;
@@ -102,13 +101,13 @@ public class SONR extends ListActivity {
    protected void onCreate(Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
       try {
-         Common.save(this, PLAYER_SELECTED, false);
+         Preferences.savePreference(this, PLAYER_SELECTED, false);
          mainScreen = true;
          currentlySelectedApplicationInfoIndex = -1;
          setContentView(R.layout.music_select_main);
          if (isFirstLaunch()) {
             // Show Intro screen
-            Common.save(this, FIRST_LAUNCH, false);
+            Preferences.savePreference(this, FIRST_LAUNCH, false);
             Intent intent = new Intent(this, IntroScreen.class);
             startActivity(intent);
          }
@@ -125,7 +124,7 @@ public class SONR extends ListActivity {
          AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
          int savedNotificationVolume = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION);
          
-         Common.save(this, SONR.SAVED_NOTIFICATION_VOLUME, savedNotificationVolume);
+         Preferences.savePreference(this, SONR.SAVED_NOTIFICATION_VOLUME, savedNotificationVolume);
 
          if (!ToggleSONR.SERVICE_ON) {
             Intent i = new Intent(this, ToggleSONR.class);
@@ -238,9 +237,9 @@ public class SONR extends ListActivity {
       List<ResolveInfo> rinfos = findActivitiesForPackage(this, ai.packageName);
       ResolveInfo ri = rinfos.get(0);
    
-      Common.save(this, APP_PACKAGE_NAME, ri.activityInfo.packageName);
-      Common.save(this, APP_FULL_NAME, ri.activityInfo.name);
-      Common.save(this, PLAYER_SELECTED, true);
+      Preferences.savePreference(this, APP_PACKAGE_NAME, ri.activityInfo.packageName);
+      Preferences.savePreference(this, APP_FULL_NAME, ri.activityInfo.name);
+      Preferences.savePreference(this, PLAYER_SELECTED, true);
    
       currentlySelectedApplicationInfoIndex = position;
       listView.invalidateViews();
@@ -290,7 +289,7 @@ public class SONR extends ListActivity {
 
    public void buttonOK(View view) {
       try {
-         if (!Common.get(this, PLAYER_SELECTED, false) && !Common.get(this, DEFAULT_PLAYER_SELECTED, false)) {
+         if (!Preferences.getPreference(this, PLAYER_SELECTED, false) && !Preferences.getPreference(this, DEFAULT_PLAYER_SELECTED, false)) {
             Dialogs.quickPopoutDialog(this, false, SELECT_PLAYER, OK_TXT);
          } else {
             new CheckDockOnPlayerSelection(view).start();
@@ -303,7 +302,7 @@ public class SONR extends ListActivity {
 
    private boolean isFirstLaunch() {
       // Restore preferences
-      return Common.get(this, FIRST_LAUNCH, true);
+      return Preferences.getPreference(this, FIRST_LAUNCH, true);
    }
 
    private void statusBarNotification(Context ctx) {
@@ -333,17 +332,17 @@ public class SONR extends ListActivity {
    }
 
    private void doStart(Context context, boolean defaultplayer) {
-      Common.save(context, DEFAULT_PLAYER_SELECTED, defaultplayer);
+      Preferences.savePreference(context, DEFAULT_PLAYER_SELECTED, defaultplayer);
 
       on = true;
       statusBarNotification(context);
 
-      if (Common.get(context, PLAYER_SELECTED, false)) {
+      if (Preferences.getPreference(context, PLAYER_SELECTED, false)) {
          //flurryParams.put("MediaPlayer", APP_FULL_NAME);
          //FlurryAgent.logEvent("APP_FULL_NAME", flurryParams);
          Intent mediaApp = new Intent();
-         mediaApp.setClassName(Common.get(context, APP_PACKAGE_NAME, Common.N_A),
-                               Common.get(context, APP_FULL_NAME, Common.N_A));
+         mediaApp.setClassName(Preferences.getPreference(context, APP_PACKAGE_NAME, Preferences.N_A),
+                               Preferences.getPreference(context, APP_FULL_NAME, Preferences.N_A));
          mediaApp.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
          context.startActivity(mediaApp);
       }
@@ -355,7 +354,7 @@ public class SONR extends ListActivity {
       final Set<ApplicationInfo> apps = new HashSet<ApplicationInfo>();
       for (ResolveInfo resolveInfo : activities) {
 
-         if (!Common.get(c, DEFAULT_PLAYER_SELECTED, false)) {
+         if (!Preferences.getPreference(c, DEFAULT_PLAYER_SELECTED, false)) {
 
             String[] appNames = c.getResources().getStringArray(R.array.mediaAppsNames);
 
@@ -368,8 +367,8 @@ public class SONR extends ListActivity {
                }
             }
          } else {
-            String packageName = Common.get(c, APP_PACKAGE_NAME, Common.N_A);
-            String appName = Common.get(c, APP_FULL_NAME, Common.N_A);
+            String packageName = Preferences.getPreference(c, APP_PACKAGE_NAME, Preferences.N_A);
+            String appName = Preferences.getPreference(c, APP_FULL_NAME, Preferences.N_A);
 
             if (packageName.equals(resolveInfo.activityInfo.packageName) && appName.equals(resolveInfo.activityInfo.name)) {
                result.add(resolveInfo.activityInfo.applicationInfo);

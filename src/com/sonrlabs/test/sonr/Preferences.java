@@ -27,6 +27,11 @@ class Preferences {
       SharedPreferences settings = getPreferences(context);
       return settings.getBoolean(key, defaultValue);
    }
+   
+   static int getPreference(Context context, String key, int defaultValue) {
+      SharedPreferences settings = getPreferences(context);
+      return settings.getInt(key, defaultValue);
+   }
 
    static void savePreference(Context context, String key, String value) {
       SharedPreferences.Editor editor = getEditor(context);
@@ -37,6 +42,12 @@ class Preferences {
    static void savePreference(Context context, String key, boolean value) {
       SharedPreferences.Editor editor = getEditor(context);
       editor.putBoolean(key, value);
+      editor.commit();
+   }
+   
+   static void savePreference(Context context, String key, int value) {
+      SharedPreferences.Editor editor = getEditor(context);
+      editor.putInt(key, value);
       editor.commit();
    }
    

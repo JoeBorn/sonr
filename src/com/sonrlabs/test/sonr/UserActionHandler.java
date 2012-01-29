@@ -3,7 +3,6 @@ package com.sonrlabs.test.sonr;
 //import org.acra.ErrorReporter;
 
 //import com.flurry.android.FlurryAgent;
-import com.sonrlabs.test.sonr.common.Common;
 import com.sonrlabs.test.sonr.signal.SpuriousSignalException;
 
 import android.content.Context;
@@ -234,7 +233,7 @@ class UserActionHandler
    private void sendbroadcast(int keyEvent) {
      
       synchronized (this) {
-         String selectedMediaPlayer = Common.get(applicationContext, SONR.APP_PACKAGE_NAME, null);
+         String selectedMediaPlayer = Preferences.getPreference(applicationContext, SONR.APP_PACKAGE_NAME, null);
 
          if (selectedMediaPlayer != null) {
             Log.d("BROADCAST PLAYER", selectedMediaPlayer);

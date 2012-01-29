@@ -2,8 +2,6 @@ package com.sonrlabs.test.sonr;
 
 //import org.acra.ErrorReporter;
 
-import com.sonrlabs.test.sonr.common.Common;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -46,7 +44,7 @@ public class SONRClient {
       theaudiorecord = ar;
       bufferSize = com.sonrlabs.test.sonr.signal.AudioProcessor.getAudioBufferSize();
       this.applicationContext = applicationContext;
-      Common.save(applicationContext, SONR.CLIENT_STOP_RECEIVER_REGISTERED, false);
+      Preferences.savePreference(applicationContext, SONR.CLIENT_STOP_RECEIVER_REGISTERED, false);
    }
 
    boolean foundDock() {
@@ -104,15 +102,15 @@ public class SONRClient {
    }
 
    private void registerReceiver() {
-      Common.save(applicationContext, SONR.CLIENT_STOP_RECEIVER_REGISTERED, true);
+      Preferences.savePreference(applicationContext, SONR.CLIENT_STOP_RECEIVER_REGISTERED, true);
       applicationContext.registerReceiver(clientStopReceiver, new IntentFilter(SONR.DISCONNECT_ACTION));
       Log.i(TAG, "Registered broadcast receiver " + clientStopReceiver + " in context " + applicationContext);
    }
 
    private void unregisterReceiver() {
       try {
-         if (Common.get(applicationContext, SONR.CLIENT_STOP_RECEIVER_REGISTERED, false)) {
-            Common.save(applicationContext, SONR.CLIENT_STOP_RECEIVER_REGISTERED, false);
+         if (Preferences.getPreference(applicationContext, SONR.CLIENT_STOP_RECEIVER_REGISTERED, false)) {
+            Preferences.savePreference(applicationContext, SONR.CLIENT_STOP_RECEIVER_REGISTERED, false);
             applicationContext.unregisterReceiver(clientStopReceiver);
             Log.i(TAG, "Unregistered broadcast receiver " + clientStopReceiver + " in context " + applicationContext);
          }

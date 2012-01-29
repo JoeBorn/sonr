@@ -3,7 +3,6 @@ package com.sonrlabs.test.sonr;
 //import org.acra.ErrorReporter;
 
 //import com.flurry.android.FlurryAgent;
-import com.sonrlabs.test.sonr.common.Common;
 import com.sonrlabs.test.sonr.signal.SpuriousSignalException;
 
 import android.content.Context;
@@ -216,7 +215,7 @@ class UserActionHandler
       }
 
       if (key != Integer.MIN_VALUE) {
-         sendbroadcast(key);
+         broadcastEvent(key);
       }
    }
 
@@ -233,23 +232,18 @@ class UserActionHandler
       }
    }
 
-   private void sendbroadcast(int keyEvent) {
-     
-      synchronized (this) {
-         Intent i = new Intent(Intent.ACTION_MEDIA_BUTTON);     
-         String selectedMediaPlayer = Common.get(context, SONR.APP_PACKAGE_NAME, null);
-
+   private void broadcastEvent(int keyEvent) {
+         String selectedMediaPlayer = Preferences.getPreference(context, SONR.APP_PACKAGE_NAME, null);
          if (selectedMediaPlayer != null) {
+            Intent intent = new Intent(Intent.ACTION_MEDIA_BUTTON);     
             Log.d("BROADCAST PLAYER", selectedMediaPlayer);
-            i.setPackage(selectedMediaPlayer);
+            intent.setPackage(selectedMediaPlayer);
 
-            i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, keyEvent));
-            context.sendOrderedBroadcast(i, null);
+            intent.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, keyEvent));
+            context.sendOrderedBroadcast(intent, null);
 
-            i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, keyEvent));
-            context.sendOrderedBroadcast(i, null);
+            intent.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, keyEvent));
+            context.sendOrderedBroadcast(intent, null);
          }
-      }
-      
    }
 }

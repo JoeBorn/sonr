@@ -20,7 +20,6 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-import com.sonrlabs.test.sonr.common.Common;
 import com.sonrlabs.test.sonr.signal.AudioProcessor;
 
 public class ToggleSONR
@@ -126,7 +125,7 @@ public class ToggleSONR
                            Log.d(TAG, SONR.DOCK_FOUND);
                            SONR.setOn(true);
 
-                           if (Common.get(this, SONR.DEFAULT_PLAYER_SELECTED, false)) {
+                           if (Preferences.getPreference(this, SONR.DEFAULT_PLAYER_SELECTED, false)) {
                               Log.d(TAG, "DEFAULT MEDIA PLAYER FOUND");
                               theclient.startListener();
                               SONR.startSonr(this, true);

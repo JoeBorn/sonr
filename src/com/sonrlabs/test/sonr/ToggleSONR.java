@@ -18,7 +18,7 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-import com.sonrlabs.test.sonr.signal.AudioProcessor;
+import com.sonrlabs.test.sonr.signal.AudioUtils;
 
 public class ToggleSONR
       extends Service {
@@ -102,7 +102,7 @@ public class ToggleSONR
                          * running the app already, don't do autostart, that
                          * would be a mess
                          */
-                        AudioRecord audioRecord = AudioProcessor.findAudioRecord();
+                        AudioRecord audioRecord = AudioUtils.findAudioRecord();
                         SONRClient theclient =
                               new SONRClient(this, audioRecord, (AudioManager) getSystemService(Context.AUDIO_SERVICE));
                         theclient.createListener();

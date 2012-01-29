@@ -2,6 +2,8 @@ package com.sonrlabs.test.sonr;
 
 //import org.acra.ErrorReporter;
 
+import com.sonrlabs.test.sonr.signal.AudioUtils;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -42,7 +44,7 @@ public class SONRClient {
    SONRClient(Context applicationContext, AudioRecord ar, AudioManager am) {
       theAudioManager = am;
       theaudiorecord = ar;
-      bufferSize = com.sonrlabs.test.sonr.signal.AudioProcessor.getAudioBufferSize();
+      bufferSize = AudioUtils.getAudioBufferSize();
       this.applicationContext = applicationContext;
       Preferences.savePreference(applicationContext, SONR.CLIENT_STOP_RECEIVER_REGISTERED, false);
    }

@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.sonrlabs.test.sonr.signal.AudioProcessor;
+import com.sonrlabs.test.sonr.signal.AudioUtils;
 
 import android.app.ListActivity;
 import android.app.Notification;
@@ -147,7 +147,7 @@ public class SONR extends ListActivity {
 
    private void newUpAudioAndClient(AudioManager audioManager) {
       if (audio == null || client == null) {
-         audio = AudioProcessor.findAudioRecord();
+         audio = AudioUtils.findAudioRecord();
          client = new SONRClient(this, audio, audioManager);
          client.createListener();
       }

@@ -46,19 +46,19 @@ import android.widget.Toast;
 
 public class SONR extends ListActivity {
 
-   public static final int SONR_ID = 1;
-   public static final String DOCK_NOT_FOUND = "DOCK NOT FOUND";
-   public static final String DOCK_FOUND = "DOCK FOUND";
+   static final int SONR_ID = 1;
+   static final String DOCK_NOT_FOUND = "DOCK NOT FOUND";
+   static final String DOCK_FOUND = "DOCK FOUND";
    
-   public static final String DEFAULT_MEDIA_PLAYER_FOUND = "DEFAULT MEDIA PLAYER FOUND";
-   public static final String NO_DEFAULT_MEDIA_PLAYER = "NO DEFAULT MEDIA PLAYER";
+   static final String DEFAULT_MEDIA_PLAYER_FOUND = "DEFAULT MEDIA PLAYER FOUND";
+   static final String NO_DEFAULT_MEDIA_PLAYER = "NO DEFAULT MEDIA PLAYER";
    
-   public static final String DEFAULT_PLAYER_SELECTED = "DEFAULT_PLAYER_SELECTED";
-   public static final String APP_PACKAGE_NAME = "APP_PACKAGE_NAME";
-   public static final String DISCONNECT_ACTION = "android.intent.action.DISCONNECT_DOCK";
+   static final String DEFAULT_PLAYER_SELECTED = "DEFAULT_PLAYER_SELECTED";
+   static final String APP_PACKAGE_NAME = "APP_PACKAGE_NAME";
+   static final String DISCONNECT_ACTION = "android.intent.action.DISCONNECT_DOCK";
 
-   public static final String CLIENT_STOP_RECEIVER_REGISTERED = "CLIENT_STOP_RECEIVER_REGISTERED";
-   public static final String SAVED_NOTIFICATION_VOLUME = "SAVED_NOTIFICATION_VOLUME";
+   static final String CLIENT_STOP_RECEIVER_REGISTERED = "CLIENT_STOP_RECEIVER_REGISTERED";
+   static final String SAVED_NOTIFICATION_VOLUME = "SAVED_NOTIFICATION_VOLUME";
 
    private static final String SAMPLE_URI = "\\";
    private static final String AUDIO_MIME_TYPE = "audio/*";

@@ -35,7 +35,7 @@ public class ToggleSONR extends Service {
    private static final int DEVICE_STATE_UNAVAILABLE = 0;
    private static final int DEVICE_STATE_AVAILABLE = 1;
    
-   public static boolean SERVICE_ON = false;
+   static boolean SERVICE_ON = false;
    
    private static HeadphoneReciever headsetReceiver = null;
    private boolean registeredHeadsetReciver;

@@ -12,7 +12,7 @@ import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.util.Log;
 
-public class SONRClient {
+class SONRClient {
 
    private final static String TAG = SONRClient.class.getSimpleName();
    

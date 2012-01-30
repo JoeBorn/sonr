@@ -31,7 +31,7 @@ import android.util.Log;
  * @author Dan Walkes
  *
  */
-public class HeadphoneReciever extends BroadcastReceiver {
+class HeadphoneReciever extends BroadcastReceiver {
    private static final String TAG = HeadphoneReciever.class.getSimpleName();
 
    @Override

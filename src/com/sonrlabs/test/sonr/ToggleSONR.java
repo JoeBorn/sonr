@@ -37,7 +37,7 @@ public class ToggleSONR extends Service {
    
    static boolean SERVICE_ON = false;
    
-   private static HeadphoneReciever headsetReceiver = null;
+   private static HeadphoneReceiver headsetReceiver = null;
    private boolean registeredHeadsetReciver;
 
    @Override
@@ -66,7 +66,7 @@ public class ToggleSONR extends Service {
              * Since HEADSET_PLUG uses FLAG_RECIEVER_REGISTERED_ONLY we need to
              * register and unregister the broadcast receiver in the service
              */
-            headsetReceiver = new HeadphoneReciever();
+            headsetReceiver = new HeadphoneReceiver();
             IntentFilter plugIntentFilter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
             registerReceiver(headsetReceiver, plugIntentFilter);
 

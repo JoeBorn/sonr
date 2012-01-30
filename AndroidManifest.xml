@@ -40,7 +40,7 @@
 		               android:resource="@xml/toggle_appwidget_info" />
 		</receiver>
 		
-		<receiver android:name=".HeadphoneReciever">
+		<receiver android:name=".HeadphoneReceiver">
 			<intent-filter>
 				<action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
 			</intent-filter>

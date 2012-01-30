@@ -7,7 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-class BootIntentReceiver
+public class BootIntentReceiver
       extends BroadcastReceiver {
    
    private static final String TAG = BootIntentReceiver.class.getSimpleName();

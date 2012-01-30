@@ -37,7 +37,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -242,6 +241,16 @@ public class SONR extends ListActivity {
    
       currentlySelectedApplicationInfoIndex = position;
       listView.invalidateViews();
+      
+      try {
+         if (!Preferences.getPreference(this, PLAYER_SELECTED, false) && !Preferences.getPreference(this, DEFAULT_PLAYER_SELECTED, false)) {
+            Dialogs.quickPopoutDialog(this, false, SELECT_PLAYER, OK_TXT);
+         } else {
+            new CheckDockOnPlayerSelection(clickedView).start();
+         }
+      } catch (RuntimeException e) {
+         e.printStackTrace();
+      }
    }
 
    @Override
@@ -284,19 +293,6 @@ public class SONR extends ListActivity {
             consumeResult = true;
       }
       return consumeResult;
-   }
-
-   public void buttonOK(View view) {
-      try {
-         if (!Preferences.getPreference(this, PLAYER_SELECTED, false) && !Preferences.getPreference(this, DEFAULT_PLAYER_SELECTED, false)) {
-            Dialogs.quickPopoutDialog(this, false, SELECT_PLAYER, OK_TXT);
-         } else {
-            new CheckDockOnPlayerSelection(view).start();
-         }
-      } catch (RuntimeException e) {
-         e.printStackTrace();
-         //ErrorReporter.getInstance().handleException(e);
-      }
    }
 
    private boolean isFirstLaunch() {
@@ -508,9 +504,8 @@ public class SONR extends ListActivity {
 
       @Override
       void dockFound() {
-         super.dockFound();
-         final CheckBox checkBox = (CheckBox) findViewById(R.id.checkbox_default_player);
-         doStart(SONR.this, checkBox.isChecked());
+         super.dockFound();         
+         doStart(SONR.this, false);
       }
    }
 

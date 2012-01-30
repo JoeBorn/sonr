@@ -2,6 +2,8 @@ package com.sonrlabs.test.sonr;
 
 //import org.acra.ErrorReporter;
 
+import com.sonrlabs.test.sonr.signal.AudioUtils;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -27,14 +29,12 @@ public class SONRClient {
    private final int bufferSize;
    private final Context applicationContext;
 
-   private boolean mClientStopReceiverRegistered;
-   
-   private BroadcastReceiver clientStopReceiver = new BroadcastReceiver() {
+   private final BroadcastReceiver clientStopReceiver = new BroadcastReceiver() {
       @Override
       public void onReceive(Context context, Intent intent) {
          // Handle receiver
-         String action = intent.getAction();
-         if (SONR.DISCONNECT_ACTION.equals(action)) {
+         String mAction = intent.getAction();
+         if (SONR.DISCONNECT_ACTION.equals(mAction)) {
             onDestroy();
          }
       }
@@ -44,9 +44,9 @@ public class SONRClient {
    SONRClient(Context applicationContext, AudioRecord ar, AudioManager am) {
       theAudioManager = am;
       theaudiorecord = ar;
-      bufferSize = com.sonrlabs.test.sonr.signal.AudioProcessor.getAudioBufferSize();
+      bufferSize = AudioUtils.getAudioBufferSize();
       this.applicationContext = applicationContext;
-      mClientStopReceiverRegistered = false;
+      Preferences.savePreference(applicationContext, SONR.CLIENT_STOP_RECEIVER_REGISTERED, false);
    }
 
    boolean foundDock() {
@@ -104,15 +104,15 @@ public class SONRClient {
    }
 
    private void registerReceiver() {
+      Preferences.savePreference(applicationContext, SONR.CLIENT_STOP_RECEIVER_REGISTERED, true);
       applicationContext.registerReceiver(clientStopReceiver, new IntentFilter(SONR.DISCONNECT_ACTION));
-      mClientStopReceiverRegistered = true;
       Log.i(TAG, "Registered broadcast receiver " + clientStopReceiver + " in context " + applicationContext);
    }
 
    private void unregisterReceiver() {
       try {
-         if (mClientStopReceiverRegistered) {
-            mClientStopReceiverRegistered = false;
+         if (Preferences.getPreference(applicationContext, SONR.CLIENT_STOP_RECEIVER_REGISTERED, false)) {
+            Preferences.savePreference(applicationContext, SONR.CLIENT_STOP_RECEIVER_REGISTERED, false);
             applicationContext.unregisterReceiver(clientStopReceiver);
             Log.i(TAG, "Unregistered broadcast receiver " + clientStopReceiver + " in context " + applicationContext);
          }

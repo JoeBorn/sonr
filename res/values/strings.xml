@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">RNOS Test App v0.75</string>
+    <string name="app_name">RNOS Test App v0.77</string>
     <string name="empty_list_msg">No Applications</string>
     <string name="notificationText">Show SONR Menu</string>
     <string name="tickerText">SONR Connected</string>

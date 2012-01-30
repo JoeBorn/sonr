@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.sonrlabs.test.sonr.signal.AudioProcessor;
+import com.sonrlabs.test.sonr.signal.AudioUtils;
 
 import android.app.ListActivity;
 import android.app.Notification;
@@ -56,8 +56,8 @@ public class SONR extends ListActivity {
    public static final String DEFAULT_PLAYER_SELECTED = "DEFAULT_PLAYER_SELECTED";
    public static final String APP_PACKAGE_NAME = "APP_PACKAGE_NAME";
    public static final String DISCONNECT_ACTION = "android.intent.action.DISCONNECT_DOCK";
-   public static final String SHARED_PREFERENCES = "SONRSharedPreferences";
-   
+
+   public static final String CLIENT_STOP_RECEIVER_REGISTERED = "CLIENT_STOP_RECEIVER_REGISTERED";
    public static final String SAVED_NOTIFICATION_VOLUME = "SAVED_NOTIFICATION_VOLUME";
 
    private static final String SAMPLE_URI = "\\";
@@ -85,7 +85,7 @@ public class SONR extends ListActivity {
    private boolean isRegistered = false;
    private PowerManager.WakeLock mWakeLock;
 
-   private View.OnClickListener noneButtonListener = new View.OnClickListener() {
+   private final View.OnClickListener noneButtonListener = new View.OnClickListener() {
       @Override
       public void onClick(View v) {
          new CheckDockOnNoneSelection(v).start();
@@ -147,7 +147,7 @@ public class SONR extends ListActivity {
 
    private void newUpAudioAndClient(AudioManager audioManager) {
       if (audio == null || client == null) {
-         audio = AudioProcessor.findAudioRecord();
+         audio = AudioUtils.findAudioRecord();
          client = new SONRClient(this, audio, audioManager);
          client.createListener();
       }
@@ -433,13 +433,14 @@ public class SONR extends ListActivity {
       return finalMap.values();
    }
 
-   private final class StopReceiver extends BroadcastReceiver {
+   private final class StopReceiver
+         extends BroadcastReceiver {
       @Override
       public void onReceive(Context context, Intent intent) {
          // Handle reciever
-         String action = intent.getAction();
+         String mAction = intent.getAction();
 
-         if (SONR.DISCONNECT_ACTION.equals(action)) {
+         if (DISCONNECT_ACTION.equals(mAction)) {
             finish();
          }
       }

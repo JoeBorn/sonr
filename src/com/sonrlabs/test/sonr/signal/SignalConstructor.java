@@ -41,36 +41,18 @@ abstract class SignalConstructor
    /**
     * Look for at least {@value #MIN_MATCHES} matches of the values in {@link #signals}.
     * If found, send that matching value off to the processor.
-    * 
-    * <p>
-    * 
-    * For now this is more convoluted than it has to be so we can log extra
-    * debugging information. Once we're past the detailed logging stage it
-    * should be simplified.
     */
    void processSignalIfMatch()
          throws SpuriousSignalException {
-      for (int i = 0; i < signals.length; i++) {
+      for (int i = 0; i <= signals.length-MIN_MATCHES; i++) {
          int baseSignal = signals[i];
          if (baseSignal != 0 && baseSignal != BOUNDARY) {
             int matchCount = 1;
             for (int j = i + 1; j < signals.length; j++) {
-               if (baseSignal == signals[j]) {
-                  ++matchCount;
+               if (baseSignal == signals[j] && ++matchCount == MIN_MATCHES) {
+                  AudioProcessorQueue.processAction(baseSignal);
+                  return;
                }
-            }
-            if (matchCount >= MIN_MATCHES) {
-               AudioProcessorQueue.processAction(baseSignal);
-               String msg = "Detected signal " 
-                     + Integer.toBinaryString(baseSignal) + " [0x" + Integer.toHexString(baseSignal) + "] with "
-                     + matchCount + " matches";
-               //Log.d(debugTag(), msg);
-               return;
-            } else if (matchCount > 1) {
-               String msg = "Ignoring signal " 
-                     + Integer.toBinaryString(baseSignal) + " [0x" + Integer.toHexString(baseSignal) + "] with "
-                     + matchCount + " matches";
-               //Log.d(debugTag(), msg);
             }
          }
       }

@@ -23,6 +23,7 @@ import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+import com.sonrlabs.prod.sonr.R;
 
 public class SonrWidget
       extends AppWidgetProvider {

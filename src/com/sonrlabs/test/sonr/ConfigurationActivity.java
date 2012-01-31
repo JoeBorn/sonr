@@ -10,6 +10,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.sonrlabs.prod.sonr.R;
 
 public class ConfigurationActivity
       extends ListActivity {

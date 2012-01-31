@@ -18,6 +18,7 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import com.sonrlabs.prod.sonr.R;
 import com.sonrlabs.test.sonr.signal.AudioUtils;
 
 public class ToggleSONR extends Service {

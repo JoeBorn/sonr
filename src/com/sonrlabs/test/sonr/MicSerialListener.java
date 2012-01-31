@@ -5,6 +5,7 @@ import java.util.concurrent.Executors;
 
 //import org.acra.ErrorReporter;
 
+import com.sonrlabs.prod.sonr.R;
 import com.sonrlabs.test.sonr.signal.Factory;
 import com.sonrlabs.test.sonr.signal.IDockDetector;
 

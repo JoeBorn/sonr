@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="com.sonrlabs.test.sonr"
+      package="com.sonrlabs.prod.sonr"
       android:versionCode="80"
-      android:versionName="0.80-test">
+      android:versionName="0.80">
 
 	<uses-sdk android:minSdkVersion="4" />
 	<uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -13,8 +13,8 @@
 	<uses-permission android:name="android.permission.WAKE_LOCK" />
 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
-    <application android:icon="@drawable/sonr_icon" android:label="@string/app_name" android:debuggable="true" android:name="SONRApplication">
-        <activity android:name=".SONR"
+    <application android:icon="@drawable/sonr_icon" android:label="@string/app_name" android:debuggable="true" android:name="com.sonrlabs.test.sonr.SONRApplication">
+        <activity android:name="com.sonrlabs.test.sonr.SONR"
                   android:label="@string/app_name">
                   
             <receiver android:name="com.sonrlabs.sonr.StopReceiver">
@@ -32,7 +32,7 @@
             </intent-filter>
         </activity>
         
-		<receiver android:name=".SonrWidget" android:label="@string/widget_name" >
+		<receiver android:name="com.sonrlabs.test.sonr.SonrWidget" android:label="@string/widget_name" >
 		    <intent-filter>
 		        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
 		    </intent-filter>
@@ -40,7 +40,7 @@
 		               android:resource="@xml/toggle_appwidget_info" />
 		</receiver>
 		
-		<receiver android:name=".HeadphoneReceiver">
+		<receiver android:name="com.sonrlabs.test.sonr.HeadphoneReceiver">
 			<intent-filter>
 				<action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
 			</intent-filter>
@@ -49,7 +49,7 @@
 			</intent-filter>
 		</receiver>
 		
-		<receiver android:name=".MediaButtonReceiver">
+		<receiver android:name="com.sonrlabs.test.sonr.MediaButtonReceiver">
 			<intent-filter android:priority="1000000">
 				<action android:name="android.intent.action.MEDIA_BUTTON" />
 			</intent-filter>
@@ -63,15 +63,15 @@
 			</intent-filter>
 		</receiver>
 	     
-	    <activity android:name=".ConfigurationActivity"/>
-	    <activity android:name=".TermsScreen">
+	    <activity android:name="com.sonrlabs.test.sonr.ConfigurationActivity"/>
+	    <activity android:name="com.sonrlabs.test.sonr.TermsScreen">
 		    <intent-filter>
 	    		<category android:name="android.intent.category.DEFAULT" />
 	    		<action android:name="android.intent.action.VIEW" />
 	    		<data android:scheme="com.sonrlabs.sonr.TermsScreen" />  
 			</intent-filter>
 	    </activity> 
-	    <activity android:name=".IntroScreen"/>
+	    <activity android:name="com.sonrlabs.test.sonr.IntroScreen"/>
 	    <activity android:name="com.sonrlabs.test.sonr.StopSONR"/>
     </application>
 </manifest>

@@ -54,6 +54,7 @@ public class SONR extends ListActivity {
    
    static final String DEFAULT_PLAYER_SELECTED = "DEFAULT_PLAYER_SELECTED";
    static final String APP_PACKAGE_NAME = "APP_PACKAGE_NAME";
+   static final String APP_FULL_NAME = "APP_FULL_NAME";
    static final String DISCONNECT_ACTION = "android.intent.action.DISCONNECT_DOCK";
 
    static final String CLIENT_STOP_RECEIVER_REGISTERED = "CLIENT_STOP_RECEIVER_REGISTERED";
@@ -64,7 +65,6 @@ public class SONR extends ListActivity {
    private static final String DOCK_NOT_FOUND_TRY_AGAIN = "Dock not detected, check connections and try again";
    private static final String OK_TXT = "OK";
    private static final String SELECT_PLAYER = "Please select a music player";
-   private static final String APP_FULL_NAME = "APP_FULL_NAME";
    private static final String PLAYER_SELECTED = "PLAYER_SELECTED";
    private static final String FIRST_LAUNCH = "FIRST_LAUNCH";
    private static final String TAG = SONR.class.getSimpleName();

@@ -5,6 +5,7 @@ package com.sonrlabs.test.sonr;
 //import com.flurry.android.FlurryAgent;
 import com.sonrlabs.test.sonr.signal.SpuriousSignalException;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
@@ -17,7 +18,6 @@ class UserActionHandler
    
    private static final String TAG = "SONR audio processor";
 
-   
    // SONR commands ******************
    private static final int PLAY_PAUSE = 0x1e;
    private static final int FAST_FORWARD = -2;
@@ -237,13 +237,13 @@ class UserActionHandler
    private void sendbroadcast(int keyEvent) {
      
       synchronized (this) {
-         String selectedMediaPlayer = Preferences.getPreference(applicationContext, SONR.APP_PACKAGE_NAME, null);
+         String playerPackage = Preferences.getPreference(applicationContext, SONR.APP_PACKAGE_NAME, null);
 
-         if (selectedMediaPlayer != null) {
-            Log.d("BROADCAST PLAYER", selectedMediaPlayer);
+         if (playerPackage != null) {
+            Log.d("BROADCAST PLAYER", playerPackage);
 
             Intent i = new Intent(Intent.ACTION_MEDIA_BUTTON);     
-            i.setPackage(selectedMediaPlayer);
+            i.setPackage(playerPackage);
 
             i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, keyEvent));
             applicationContext.sendOrderedBroadcast(i, null);

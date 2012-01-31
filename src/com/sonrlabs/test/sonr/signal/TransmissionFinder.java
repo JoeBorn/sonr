@@ -36,7 +36,7 @@ final class TransmissionFinder
       try {
          processSignalIfMatch();
       } catch (SpuriousSignalException e) {
-         Log.d("TransmissionFinder", "Spurious Signal");
+         //Log.d("TransmissionFinder", "Spurious Signal");
       }
    }
 }

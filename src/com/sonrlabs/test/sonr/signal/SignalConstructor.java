@@ -69,13 +69,13 @@ abstract class SignalConstructor
                String msg = "Detected signal " 
                      + Integer.toBinaryString(baseSignal) + " [0x" + Integer.toHexString(baseSignal) + "] with "
                      + matchCount + " matches";
-               Log.d(debugTag(), msg);
+               //Log.d(debugTag(), msg);
                return;
             } else if (matchCount > 1) {
                String msg = "Ignoring signal " 
                      + Integer.toBinaryString(baseSignal) + " [0x" + Integer.toHexString(baseSignal) + "] with "
                      + matchCount + " matches";
-               Log.d(debugTag(), msg);
+               //Log.d(debugTag(), msg);
             }
          }
       }
@@ -164,7 +164,7 @@ abstract class SignalConstructor
       signalMaxSum /= 1.375;
       
       if (Float.isNaN(previousSignalMax) || Math.abs(previousSignalMax - signalMaxSum) > INTERESTING_MAX_DIFF) {
-         Log.d(debugTag(), "New signal max " + signalMaxSum);
+         //Log.d(debugTag(), "New signal max " + signalMaxSum);
          previousSignalMax = signalMaxSum;
       }
    }

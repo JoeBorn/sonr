@@ -49,6 +49,12 @@
 			</intent-filter>
 		</receiver>
 		
+		<receiver android:name=".MediaButtonReceiver">
+			<intent-filter android:priority="1000000">
+				<action android:name="android.intent.action.MEDIA_BUTTON" />
+			</intent-filter>
+		</receiver>
+		
 		<service android:name="com.sonrlabs.test.sonr.ToggleSONR"/>
 		
 		<receiver android:name="com.sonrlabs.test.sonr.BootIntentReceiver">

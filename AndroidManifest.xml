@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="com.sonrlabs.prod.sonr"
+      package="com.sonrlabs.test.sonr"
       android:versionCode="80"
-      android:versionName="0.80">
+      android:versionName="0.80-test">
 
 	<uses-sdk android:minSdkVersion="4" />
 	<uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -13,10 +13,11 @@
 	<uses-permission android:name="android.permission.WAKE_LOCK" />
 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
-    <application android:icon="@drawable/sonr_icon" android:label="@string/app_name" android:debuggable="true" android:name="com."com.sonrlabs.test.sonr.SONRApplication"r.SONRApplication">
-        <acti"com.sonrlabs.test.sonr.SONR"droid:name="com.sonrlabs.test.sonr.SONR"
+    <application android:icon="@drawable/sonr_icon" android:label="@string/app_name" android:debuggable="true" android:name="SONRApplication">
+        <activity android:name=".SONR"
                   android:label="@string/app_name">
-              "com.sonrlabs.sonr.StopReceiver"id:name="com.sonrlabs.sonr.StopReceiver">
+                  
+            <receiver android:name="com.sonrlabs.sonr.StopReceiver">
             	<intent-filter>
                		 <action android:name="android.intent.action.DISCONNECT_DOC"></action>
             	</intent-filter>  	
@@ -29,42 +30,48 @@
             <intent-filter>
             	<action android:name="android.intent.action.ACTION_VOICE_COMMAND" />
             </intent-filter>
-        </acti"com.sonrlabs.test.sonr.SonrWidget" 
-		<receiver android:name="com.sonrlabs.test.sonr.SonrWidget" android:label="@string/widget_name" >
+        </activity>
+        
+		<receiver android:name=".SonrWidget" android:label="@string/widget_name" >
 		    <intent-filter>
 		        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
 		    </intent-filter>
 		    <meta-data android:name="android.appwidget.provider"
-		               android:resource="@xml/toggle"com.sonrlabs.test.sonr.HeadphoneReceiver"		</receiver>
+		               android:resource="@xml/toggle_appwidget_info" />
+		</receiver>
 		
-		<receiver android:name="com.sonrlabs.test.sonr.HeadphoneReceiver">
+		<receiver android:name=".HeadphoneReceiver">
 			<intent-filter>
 				<action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
 			</intent-filter>
 			<intent-filter>
-				<action android:name="android.intent.action.ACTION_P"com.sonrlabs.test.sonr.MediaButtonReceiver"			</intent-filter>
+				<action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
+			</intent-filter>
 		</receiver>
 		
-		<receiver android:name="com.sonrlabs.test.sonr.MediaButtonReceiver">
+		<receiver android:name=".MediaButtonReceiver">
 			<intent-filter android:priority="1000000">
-				<action android:"com.sonrlabs.test.sonr.ToggleSONR"UTTON" />
+				<action android:name="android.intent.action.MEDIA_BUTTON" />
 			</intent-filter>
-	"com.sonrlabs.test.sonr.BootIntentReceiver"m.sonrlabs.test.sonr.ToggleSONR"/>
+		</receiver>
+		
+		<service android:name="com.sonrlabs.test.sonr.ToggleSONR"/>
 		
 		<receiver android:name="com.sonrlabs.test.sonr.BootIntentReceiver">
 			<intent-filter>
-				<action android:name="and"com.sonrlabs.test.sonr.ConfigurationActivity"COMPLETED"/>
-			</intent-filter"com.sonrlabs.test.sonr.TermsScreen">
+				<action android:name="android.intent.action.BOOT_COMPLETED"/>
+			</intent-filter>
+		</receiver>
 	     
-	    <activity android:name="com.sonrlabs.test.sonr.ConfigurationActivity"/>
-	    <activity android:name="com.sonrlabs.test.sonr.TermsScreen">
+	    <activity android:name=".ConfigurationActivity"/>
+	    <activity android:name=".TermsScreen">
 		    <intent-filter>
 	    		<category android:name="android.intent.category.DEFAULT" />
-	    		<action android:name="android.inte"com.sonrlabs.test.sonr.IntroScreen"" />
-	    		<data android:schem"com.sonrlabs.test.sonr.StopSONR" />  
+	    		<action android:name="android.intent.action.VIEW" />
+	    		<data android:scheme="com.sonrlabs.sonr.TermsScreen" />  
 			</intent-filter>
 	    </activity> 
-	    <activity android:name="com.sonrlabs.test.sonr.IntroScreen"/>
+	    <activity android:name=".IntroScreen"/>
 	    <activity android:name="com.sonrlabs.test.sonr.StopSONR"/>
     </application>
 </manifest>

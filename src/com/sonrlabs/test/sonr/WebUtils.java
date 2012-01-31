@@ -1,6 +1,5 @@
 package com.sonrlabs.test.sonr;
 
-import com.sonrlabs.prod.sonr.R;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;

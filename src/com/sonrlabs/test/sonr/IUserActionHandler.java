@@ -1,6 +1,5 @@
 package com.sonrlabs.test.sonr;
 
-import com.sonrlabs.prod.sonr.R;
 import com.sonrlabs.test.sonr.signal.SpuriousSignalException;
 
 /**

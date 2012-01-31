@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.TextView;
-import com.sonrlabs.prod.sonr.R;
 
 
 public class TermsScreen

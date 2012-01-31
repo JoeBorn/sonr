@@ -8,7 +8,6 @@ package com.sonrlabs.test.sonr;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import com.sonrlabs.prod.sonr.R;
 
 
 /**

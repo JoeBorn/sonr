@@ -16,7 +16,6 @@ import android.text.util.Linkify.TransformFilter;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
-import com.sonrlabs.prod.sonr.R;
 
 
 public class IntroScreen

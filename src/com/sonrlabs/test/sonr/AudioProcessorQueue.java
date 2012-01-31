@@ -10,7 +10,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-import com.sonrlabs.prod.sonr.R;
 import com.sonrlabs.test.sonr.signal.Factory;
 import com.sonrlabs.test.sonr.signal.IAudioProcessor;
 import com.sonrlabs.test.sonr.signal.SpuriousSignalException;

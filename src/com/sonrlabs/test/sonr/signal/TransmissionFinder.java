@@ -8,8 +8,6 @@ package com.sonrlabs.test.sonr.signal;
 
 import com.sonrlabs.test.sonr.ISampleBuffer;
 
-import android.util.Log;
-
 final class TransmissionFinder
       extends SignalConstructor {
    

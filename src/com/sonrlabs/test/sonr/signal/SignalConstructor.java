@@ -1,7 +1,5 @@
 package com.sonrlabs.test.sonr.signal;
 
-import android.util.Log;
-
 import com.sonrlabs.test.sonr.AudioProcessorQueue;
 
 /**
@@ -19,11 +17,8 @@ import com.sonrlabs.test.sonr.AudioProcessorQueue;
 abstract class SignalConstructor
       implements AudioSupportConstants {
 
-   private static final int MIN_MATCHES = 3;// how many of the three repetitions in the transmission required for valid data
-
-   /* Debugging aide */
-   private static final float INTERESTING_MAX_DIFF = 50.0f;
-   private float previousSignalMax = Float.NaN;
+   // how many repetitions in the transmission required for valid data
+   private static final int MIN_MATCHES = 3;
    
    /**
     * Used as the threshold to detect phase changes. It's computed by
@@ -162,11 +157,6 @@ abstract class SignalConstructor
       
       /* What is the significance of this magic number? */
       signalMaxSum /= 1.375;
-      
-      if (Float.isNaN(previousSignalMax) || Math.abs(previousSignalMax - signalMaxSum) > INTERESTING_MAX_DIFF) {
-         //Log.d(debugTag(), "New signal max " + signalMaxSum);
-         previousSignalMax = signalMaxSum;
-      }
    }
 
    void constructSignal(short[] samples, int[] sampleStartIndices) {

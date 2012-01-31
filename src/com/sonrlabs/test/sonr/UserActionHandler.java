@@ -59,6 +59,9 @@ class UserActionHandler
    private int volume = -1;
    private boolean muted = false;
    
+   private static final String CURRENT_VOLUME = "CURRENT_VOLUME";
+
+   
    UserActionHandler(AudioManager manager, Context appliactionContext) {
       this.manager = manager;
       this.applicationContext = appliactionContext;
@@ -135,11 +138,12 @@ class UserActionHandler
          case MUTE:
             if (lastMuteTime < SystemClock.elapsedRealtime() - REPEAT_TIME) {
                if (muted) {
-                  volume = manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 2;
+                  volume = Preferences.getPreference(applicationContext, CURRENT_VOLUME, manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 2); //manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 2;
                   manager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, AudioManager.FLAG_SHOW_UI);
                   muted = false;
                } else {
-                  // volume = theAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+                  volume = manager.getStreamVolume(AudioManager.STREAM_MUSIC);
+                  Preferences.savePreference(applicationContext, CURRENT_VOLUME, volume);
                   volume = 0;
                   manager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, AudioManager.FLAG_SHOW_UI);
                   muted = true;

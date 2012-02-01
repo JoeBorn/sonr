@@ -14,6 +14,7 @@ import android.app.ListActivity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -83,7 +84,9 @@ public class SONR extends ListActivity {
    private final BroadcastReceiver stopReceiver = new StopReceiver();
    private boolean isRegistered = false;
    private PowerManager.WakeLock mWakeLock;
-
+   
+   private ProgressDialog progressDialog;
+   
    private final View.OnClickListener noneButtonListener = new View.OnClickListener() {
       @Override
       public void onClick(View v) {
@@ -99,10 +102,20 @@ public class SONR extends ListActivity {
    protected void onCreate(Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
       try {
+
+         if (progressDialog == null) {
+            progressDialog = new ProgressDialog(this);
+            progressDialog.setMessage(getString(R.string.connectingToSonrDock));
+         }
+         
          Preferences.savePreference(this, PLAYER_SELECTED, false);
+         
          mainScreen = true;
+         
          currentlySelectedApplicationInfoIndex = -1;
+         
          setContentView(R.layout.music_select_main);
+         
          if (isFirstLaunch()) {
             // Show Intro screen
             Preferences.savePreference(this, FIRST_LAUNCH, false);
@@ -144,6 +157,40 @@ public class SONR extends ListActivity {
       }
    }
 
+   @Override
+   protected void onListItemClick(ListView listView, View clickedView, int position, long id) {
+      super.onListItemClick(listView, clickedView, position, id);
+      
+      if (infos.size() > position) {
+         
+         progressDialog.show();
+         
+         ApplicationInfo ai = infos.get(position);
+         List<ResolveInfo> rinfos = findActivitiesForPackage(this, ai.packageName);
+         
+         if (!rinfos.isEmpty()) {
+            ResolveInfo ri = rinfos.get(0);
+            
+            Preferences.savePreference(this, APP_PACKAGE_NAME, ri.activityInfo.packageName);
+            Preferences.savePreference(this, APP_FULL_NAME, ri.activityInfo.name);
+            Preferences.savePreference(this, PLAYER_SELECTED, true);
+            
+            currentlySelectedApplicationInfoIndex = position;
+            listView.invalidateViews();
+            
+            try {
+               if (!Preferences.getPreference(this, PLAYER_SELECTED, false) && !Preferences.getPreference(this, DEFAULT_PLAYER_SELECTED, false)) {
+                  Dialogs.quickPopoutDialog(this, false, SELECT_PLAYER, OK_TXT);
+               } else {
+                  new CheckDockOnPlayerSelection(clickedView).start();
+               }
+            } catch (RuntimeException e) {
+               e.printStackTrace();
+            }
+         }
+      }
+   }
+   
    private void newUpAudioAndClient(AudioManager audioManager) {
       if (audio == null || client == null) {
          audio = AudioUtils.findAudioRecord();
@@ -223,41 +270,6 @@ public class SONR extends ListActivity {
       if (!isRegistered) {
          registerReceiver(stopReceiver, new IntentFilter(DISCONNECT_ACTION));
          isRegistered = true;
-      }
-   }
-
-   @Override
-   protected void onListItemClick(ListView listView, View clickedView, int position, long id) {
-      super.onListItemClick(listView, clickedView, position, id);
-   
-      ApplicationInfo ai;
-      ai = infos.get(position);
-      List<ResolveInfo> rinfos = findActivitiesForPackage(this, ai.packageName);
-      ResolveInfo ri = rinfos.get(0);
-   
-      Preferences.savePreference(this, APP_PACKAGE_NAME, ri.activityInfo.packageName);
-      Preferences.savePreference(this, APP_FULL_NAME, ri.activityInfo.name);
-      Preferences.savePreference(this, PLAYER_SELECTED, true);
-   
-      currentlySelectedApplicationInfoIndex = position;
-      listView.invalidateViews();
-      
-      try {
-         if (!Preferences.getPreference(this, PLAYER_SELECTED, false) && !Preferences.getPreference(this, DEFAULT_PLAYER_SELECTED, false)) {
-            Dialogs.quickPopoutDialog(this, false, SELECT_PLAYER, OK_TXT);
-         } else {
-            new CheckDockOnPlayerSelection(clickedView).start();
-         }
-      } catch (RuntimeException e) {
-         e.printStackTrace();
-      }
-   }
-
-   @Override
-   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-      super.onActivityResult(requestCode, resultCode, data);
-      if (resultCode == 0) {
-         finish();
       }
    }
 
@@ -464,25 +476,25 @@ public class SONR extends ListActivity {
           * Only the search runs in this thread. The response runs in the main
           * thread.
           */
-         Runnable task;
-         if (client != null && client.foundDock()) {
+         final boolean okToStartListener = client != null && client.foundDock();
+         
+         if (okToStartListener) {
             client.startListener();
-            task = new Runnable() {
-               @Override
-               public void run() {
+         }
+         
+         Runnable task = new Runnable() {
+            @Override
+            public void run() {
+               if (okToStartListener) {
                   dockFound();
-               }
-            };
-            view.post(task);
-         } else {
-            task = new Runnable() {
-               @Override
-               public void run() {
+               } else {
                   dockNotFound();
                }
-            };
-         }
-         view.post(task);
+               progressDialog.dismiss();
+            }
+         };
+         
+         view.post(task); 
       }
 
       void dockFound() {

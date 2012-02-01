@@ -37,6 +37,7 @@ class UserActionHandler
    private static final int POWER_ON = 0x1;
    private static final int POWER_OFF = 0x5;
    private static final int SONR_HOME = 0x22;
+   private static final int SHARE = 0x2B;
    private static final int SEARCH = 0x24;
    // end SONR commands
    // ****************************************************************************************************************
@@ -188,6 +189,10 @@ class UserActionHandler
             key = KeyEvent.KEYCODE_DPAD_CENTER;
             Log.d(TAG, "SELECT");
             //FlurryAgent.logEvent("KEYCODE_DPAD_CENTER_PRESSED");
+            break;
+         case SHARE:
+            Log.d(TAG, "SHARE");
+            //FlurryAgent.logEvent("SHARE_PRESSED");
             break;
          case POWER_ON:
             Log.d(TAG, "POWER_ON");

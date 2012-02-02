@@ -37,7 +37,7 @@ class UserActionHandler
    private static final int POWER_ON = 0x1;
    private static final int POWER_OFF = 0x5;
    private static final int SONR_HOME = 0x22;
-   private static final int SHARE = 0x2B;
+   private static final int SHARE = 0x28; //0x2b;
    private static final int SEARCH = 0x24;
    // end SONR commands
    // ****************************************************************************************************************
@@ -82,6 +82,7 @@ class UserActionHandler
          throws SpuriousSignalException {
       checkAutoUnmute(receivedByte);
       int key = Integer.MIN_VALUE;
+         
       switch (receivedByte) {
          case PLAY_PAUSE:
             if (lastPlayTime < SystemClock.elapsedRealtime() - REPEAT_TIME) {

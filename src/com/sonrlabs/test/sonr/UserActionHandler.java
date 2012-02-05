@@ -3,6 +3,7 @@ package com.sonrlabs.test.sonr;
 //import org.acra.ErrorReporter;
 
 //import com.flurry.android.FlurryAgent;
+import com.sonrlabs.prod.sonr.R;
 import com.sonrlabs.test.sonr.signal.SpuriousSignalException;
 
 import android.content.Context;

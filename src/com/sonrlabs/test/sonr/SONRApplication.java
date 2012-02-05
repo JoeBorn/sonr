@@ -5,6 +5,7 @@ package com.sonrlabs.test.sonr;
 //import org.acra.annotation.ReportsCrashes;
 
 import android.app.Application;
+import com.sonrlabs.prod.sonr.R;
 
 //@ReportsCrashes(formKey = "dGROUU9tcVNBY3lRSmdPMW5uQzBNMHc6MQ", mode = ReportingInteractionMode.TOAST, forceCloseDialogAfterToast = false, resToastText = R.string.crash_toast_text)
 public class SONRApplication

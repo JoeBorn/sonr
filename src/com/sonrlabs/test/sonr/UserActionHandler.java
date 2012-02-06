@@ -6,6 +6,7 @@ package com.sonrlabs.test.sonr;
 import com.sonrlabs.prod.sonr.R;
 import com.sonrlabs.test.sonr.signal.SpuriousSignalException;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
@@ -246,7 +247,7 @@ class UserActionHandler
          String playerPackage = Preferences.getPreference(applicationContext, SONR.APP_PACKAGE_NAME, null);
 
          if (playerPackage != null) {
-            Log.d("BROADCAST PLAYER", playerPackage);
+            Log.d(TAG, playerPackage);
 
             Intent i = new Intent(Intent.ACTION_MEDIA_BUTTON);     
             i.setPackage(playerPackage);

@@ -3,7 +3,6 @@ package com.sonrlabs.test.sonr;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import com.sonrlabs.prod.sonr.R;
 
 class Dialogs {
 

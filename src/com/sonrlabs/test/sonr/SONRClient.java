@@ -2,7 +2,6 @@ package com.sonrlabs.test.sonr;
 
 //import org.acra.ErrorReporter;
 
-import com.sonrlabs.prod.sonr.R;
 import com.sonrlabs.test.sonr.signal.AudioUtils;
 
 import android.content.BroadcastReceiver;

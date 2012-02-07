@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="com.sonrlabs.prod.sonr"
-      android:versionCode="81"
-      android:versionName="0.81-test">
+      android:versionCode="82"
+      android:versionName="0.82-test">
 
 	<uses-sdk android:minSdkVersion="4" />
 	<uses-permission android:name="android.permission.RECORD_AUDIO" />

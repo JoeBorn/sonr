@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">SONR Beta v0.81</string>
+    <string name="app_name">SONR Beta v0.82</string>
     <string name="empty_list_msg">No Applications</string>
     <string name="notificationText">Show SONR Menu</string>
     <string name="tickerText">SONR Connected</string>

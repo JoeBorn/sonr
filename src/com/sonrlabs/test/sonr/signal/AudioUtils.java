@@ -13,13 +13,14 @@ import android.util.Log;
 /**
  *  Static utility methods.
  */
-public class AudioUtils implements AudioSupportConstants {
+public class AudioUtils
+      implements AudioSupportConstants {
    
    private static final String TAG = "AudioUtils";
    
+   
    private static final short[] FORMATS = {
-      AudioFormat.ENCODING_PCM_16BIT,
-      //AudioFormat.ENCODING_DEFAULT,
+      AudioFormat.ENCODING_PCM_16BIT
       // AudioRecord.java:467 PCM_8BIT not supported at the moment
    };
 
@@ -40,45 +41,28 @@ public class AudioUtils implements AudioSupportConstants {
     * Utility method to find the right audio format for a given phone.
     * @return a suitable record, or null if none found.
     */
-   public static AudioRecord findAudioRecord(String callingClassName) {
-
-      AudioRecord audioRecorder = null;
-      
+   public static AudioRecord findAudioRecord() {
       for (short audioFormat : FORMATS) {
          for (short channelConfig : CHANNEL_CONFIGS) {
-            Log.d(TAG, callingClassName + " Attempting rate " + SAMPLE_RATE + "Hz, bits: " + audioFormat + ", channel: " + channelConfig);
-            
+            Log.d(TAG, "Attempting rate " + SAMPLE_RATE + "Hz, bits: " + audioFormat + ", channel: " + channelConfig);
             try {
-                  int bsize = SAMPLES_PER_BUFFER * AudioRecord.getMinBufferSize(SAMPLE_RATE, channelConfig, audioFormat);
-                  
-                  if (bsize != AudioRecord.ERROR_BAD_VALUE) {
-                     // check if we can instantiate and have a success
-                     audioRecorder = new AudioRecord(AudioSource.DEFAULT, SAMPLE_RATE, channelConfig, audioFormat, bsize);
-                     
-                     switch (audioRecorder.getState()) {
-                        case AudioRecord.STATE_INITIALIZED:
-                           bufferSize = bsize;
-                           return audioRecorder;
-                           //break;
-                        case AudioRecord.STATE_UNINITIALIZED:
-                        default:
-                           audioRecorder.release();
-                           audioRecorder = null;
-                           break;
-                     }
+               int bsize = SAMPLES_PER_BUFFER * AudioRecord.getMinBufferSize(SAMPLE_RATE, channelConfig, audioFormat);
+               if (bsize != AudioRecord.ERROR_BAD_VALUE) {
+                  // check if we can instantiate and have a success
+                  AudioRecord recorder = new AudioRecord(AudioSource.DEFAULT, SAMPLE_RATE, channelConfig, audioFormat, bsize);
+
+                  if (recorder.getState() == AudioRecord.STATE_INITIALIZED) {
+                     bufferSize = bsize;
+                     return recorder;
                   }
-               
-            } catch (Exception e) {
-               Log.e(TAG, callingClassName + " unable to allocate for: " + SAMPLE_RATE + "Hz, bits: " + audioFormat + ", channel: " + channelConfig);
+               }
+            } catch (RuntimeException e) {
+               Log.v(TAG, "Unable to allocate for: " + SAMPLE_RATE + "Hz, bits: " + audioFormat + ", channel: " + channelConfig);
                Log.e(TAG, "Exception " + e);
             }
          }
       }
-      if (audioRecorder == null) {
-         Log.e(TAG, callingClassName + " returning null AudioRecord...");
-      }
-      
-      return audioRecorder;
+      return null;
    }
 
 }

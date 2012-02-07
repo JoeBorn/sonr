@@ -245,7 +245,7 @@ class UserActionHandler
          String playerPackage = Preferences.getPreference(applicationContext, SONR.APP_PACKAGE_NAME, null);
 
          if (playerPackage != null) {
-            Log.d(TAG, playerPackage);
+            Log.d("BROADCAST PLAYER", playerPackage);
 
             Intent i = new Intent(Intent.ACTION_MEDIA_BUTTON);     
             i.setPackage(playerPackage);

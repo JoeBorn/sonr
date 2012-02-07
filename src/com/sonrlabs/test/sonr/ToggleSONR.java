@@ -12,12 +12,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
+import android.media.AudioRecord;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.RemoteViews;
 
 import com.sonrlabs.prod.sonr.R;
+import com.sonrlabs.test.sonr.signal.AudioUtils;
 
 public class ToggleSONR extends Service {
 
@@ -113,9 +115,15 @@ public class ToggleSONR extends Service {
                          * running the app already, don't do autostart, that
                          * would be a mess
                          */
+                        AudioRecord audioRecord = AudioUtils.findAudioRecord();
                         SONRClient theclient =
-                              new SONRClient(this, (AudioManager) getSystemService(Context.AUDIO_SERVICE));
+                              new SONRClient(this, audioRecord, (AudioManager) getSystemService(Context.AUDIO_SERVICE));
                         theclient.createListener();
+                        
+                        /*
+                         * XXX Really call searchSignal again? The createListener call above just did that.
+                         */
+                        //theclient.searchSignal();
                         
                         boolean found = theclient.foundDock();
                         if (found) {
@@ -140,7 +148,8 @@ public class ToggleSONR extends Service {
                            // LogFile.MakeLog("DOCK NOT FOUND");
                            Log.d(TAG, SONR.DOCK_NOT_FOUND);
                         }
-
+                        //this is not correct as it should be maintained in 1 place
+                        audioRecord.release();
                         theclient.onDestroy();
                      } // end if sonr main screen
                   }

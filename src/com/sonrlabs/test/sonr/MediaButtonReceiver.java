@@ -3,6 +3,7 @@ package com.sonrlabs.test.sonr;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import com.sonrlabs.prod.sonr.R;
 
 /**
  * This receiver intercepts non specific button events from other apps.

@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sonrlabs.prod.sonr.R;
-import com.sonrlabs.test.sonr.signal.AudioUtils;
 
 import android.app.ListActivity;
 import android.app.Notification;

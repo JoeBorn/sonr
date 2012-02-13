@@ -10,7 +10,6 @@ import com.sonrlabs.test.sonr.SonrLog;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder.AudioSource;
-import android.util.Log;
 
 /**
  *  Static utility methods.

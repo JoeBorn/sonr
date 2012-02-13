@@ -5,7 +5,6 @@
 
 package com.sonrlabs.test.sonr;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -20,9 +19,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.media.AudioManager;
 import android.net.Uri;
-import android.os.Build;
 import android.provider.MediaStore;
 
 import com.sonrlabs.prod.sonr.R;
@@ -59,7 +56,7 @@ class AppUtils {
       final PackageManager packageManager = context.getPackageManager();
 
       final Intent musicPlayerIntent = new Intent(MediaStore.INTENT_ACTION_MUSIC_PLAYER, null);
-      final Intent musicPlayFromSearchIntent = new Intent(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH, null);
+      //final Intent musicPlayFromSearchIntent = new Intent(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH, null);
       final Intent mediaSearchIntent = new Intent(MediaStore.INTENT_ACTION_MEDIA_SEARCH, null);
       final Intent viewIntent = new Intent(Intent.ACTION_VIEW, null);
       viewIntent.setDataAndType(Uri.parse(context.getString(R.string.SAMPLE_URI)), context.getString(R.string.AUDIO_MIME_TYPE));
@@ -69,7 +66,7 @@ class AppUtils {
 
       List<ResolveInfo> queryResults = new ArrayList<ResolveInfo>();
       queryResults.addAll(packageManager.queryIntentActivities(musicPlayerIntent, 0));
-      queryResults.addAll(packageManager.queryIntentActivities(musicPlayFromSearchIntent, 0));
+      //queryResults.addAll(packageManager.queryIntentActivities(musicPlayFromSearchIntent, 0));
       queryResults.addAll(packageManager.queryIntentActivities(mediaSearchIntent, 0));
       queryResults.addAll(packageManager.queryIntentActivities(viewIntent, 0));
       queryResults.addAll(packageManager.queryIntentActivities(allLauncherAppsIntent, 0));

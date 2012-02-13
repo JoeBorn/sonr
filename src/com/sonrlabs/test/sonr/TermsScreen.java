@@ -10,15 +10,13 @@ import android.view.View;
 import android.widget.TextView;
 import com.sonrlabs.prod.sonr.R;
 
+public class TermsScreen extends Activity {
 
-public class TermsScreen
-      extends Activity {
    @Override
    public void onCreate(Bundle savedInstanceState) {
+      super.onCreate(savedInstanceState);
       try {
-         super.onCreate(savedInstanceState);
          setContentView(R.layout.terms);
-
          TextView terms = (TextView) findViewById(R.id.text_terms);
          terms.setMovementMethod(new ScrollingMovementMethod());
       } catch (RuntimeException e) {
@@ -32,19 +30,15 @@ public class TermsScreen
       // do nothing
    }
 
-   public void acceptTerms(View view) {
-      Preferences.savePreference(this, SONR.DEFAULT_PLAYER_SELECTED, false);
-      finish();
-   }
-
-   public void declineTerms(View view) {
-      try {
-         Intent i = new Intent(this, StopSONR.class);
-         startActivity(i);
-         finish();
-      } catch (RuntimeException e) {
-         e.printStackTrace();
-         //ErrorReporter.getInstance().handleException(e);
+   public void terms(View view) {
+      switch (view.getId()) {
+         case R.id.agree:
+            Preferences.savePreference(this, getString(R.string.DEFAULT_PLAYER_SELECTED), false);
+            break;
+         case R.id.disagree:
+            startActivity(new Intent(this, StopSONR.class));
+            break;
       }
+      finish();
    }
 }

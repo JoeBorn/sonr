@@ -11,13 +11,12 @@ import com.sonrlabs.test.sonr.signal.AudioUtils;
 import com.sonrlabs.test.sonr.signal.Factory;
 import com.sonrlabs.test.sonr.signal.IDockDetector;
 
-class MicSerialListener
-      implements Runnable {
+class MicSerialListener implements Runnable {
    
-   private static final String MIC_INPUT_UNAVAIL = "Mic input was unavailable to be read";
-   private static final String TAG = "MicSerialListener";
-//   private static final long SIGNAL_SEARCH_TIME_MILLIS = 5 * 1150;
-   private static final long SIGNAL_SEARCH_TIME_MILLIS = 10 * 1150;
+   static final String MIC_INPUT_UNAVAIL = "Mic input was unavailable to be read";
+   static final String TAG = MicSerialListener.class.getSimpleName();
+// static final long SIGNAL_SEARCH_TIME_MILLIS = 5 * 1150;
+   static final long SIGNAL_SEARCH_TIME_MILLIS = 10 * 1150;
 
    /*
     * Just one reusable thread since we only start a new one after killing the
@@ -39,15 +38,12 @@ class MicSerialListener
    private Object searchLock = new Object();
 
    MicSerialListener() {
-      Log.d(TAG, "STARTED");
-      
       init();
       
-      if (inStream != null) {
-         searchSignal();
-      } else {
-         // LogFile.MakeLog("Failed to initialize AudioRecord");
-         Log.d(TAG, "Failed to initialize AudioRecord");
+      searchSignal();
+      
+      if (inStream == null) {
+         SonrLog.d(TAG, "Failed to initialize AudioRecord");
       }
    }
 
@@ -61,6 +57,7 @@ class MicSerialListener
          switch (inStream.getState()) {
             case AudioRecord.STATE_INITIALIZED:
                inStream.startRecording();
+               SonrLog.d(TAG, "AudioRecord.startRecording()");
                break;
             case AudioRecord.STATE_UNINITIALIZED:
                //TODO: if this happens, no point in continuing in the future
@@ -70,10 +67,10 @@ class MicSerialListener
       }
    }
    
-   @Override
-   /*
+   /**
     * Reads in from mic and dispatches an audio rocessor to process the data
     */
+   @Override
    public void run() {
 //      synchronized (searchLock) {
          if (inStream != null) {
@@ -167,7 +164,7 @@ class MicSerialListener
                } else {
                   problem = true;
                   errorCode = count;
-                  //ErrorReporter.getInstance().putCustomData(TAG, MIC_INPUT_UNAVAIL);
+                  //SonrLog.e ErrorReporter.getInstance().putCustomData(TAG, MIC_INPUT_UNAVAIL);
                }
                
             }
@@ -185,10 +182,9 @@ class MicSerialListener
                      errorMsg = MIC_INPUT_UNAVAIL;
                      break;
                }
-               Log.e(TAG, errorMsg);
-               //ErrorReporter.getInstance().putCustomData(TAG, errorMsg);
+               SonrLog.e(TAG, errorMsg);
+               //SonrLog.e ErrorReporter.getInstance().putCustomData(TAG, errorMsg);
             }
-            
          }
       } catch (RuntimeException e) {
          e.printStackTrace();

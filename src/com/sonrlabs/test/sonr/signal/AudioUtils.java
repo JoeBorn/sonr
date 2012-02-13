@@ -5,6 +5,8 @@
 
 package com.sonrlabs.test.sonr.signal;
 
+import com.sonrlabs.test.sonr.SonrLog;
+
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder.AudioSource;
@@ -46,7 +48,7 @@ public class AudioUtils implements AudioSupportConstants {
       
       for (short audioFormat : FORMATS) {
          for (short channelConfig : CHANNEL_CONFIGS) {
-            Log.d(TAG, callingClassName + " Attempting rate " + SAMPLE_RATE + "Hz, bits: " + audioFormat + ", channel: " + channelConfig);
+            SonrLog.d(TAG, callingClassName + " Attempting rate " + SAMPLE_RATE + "Hz, bits: " + audioFormat + ", channel: " + channelConfig);
             
             try {
                   int bsize = SAMPLES_PER_BUFFER * AudioRecord.getMinBufferSize(SAMPLE_RATE, channelConfig, audioFormat);
@@ -69,13 +71,13 @@ public class AudioUtils implements AudioSupportConstants {
                   }
                
             } catch (Exception e) {
-               Log.e(TAG, callingClassName + " unable to allocate for: " + SAMPLE_RATE + "Hz, bits: " + audioFormat + ", channel: " + channelConfig);
-               Log.e(TAG, "Exception " + e);
+               SonrLog.e(TAG, callingClassName + " unable to allocate for: " + SAMPLE_RATE + "Hz, bits: " + audioFormat + ", channel: " + channelConfig);
+               SonrLog.e(TAG, "Exception " + e);
             }
          }
       }
       if (audioRecorder == null) {
-         Log.e(TAG, callingClassName + " returning null AudioRecord...");
+         SonrLog.e(TAG, callingClassName + " returning null AudioRecord...");
       }
       
       return audioRecorder;

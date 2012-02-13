@@ -1,9 +1,9 @@
 package com.sonrlabs.test.sonr;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
@@ -13,170 +13,309 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
-import android.util.Log;
+import android.os.Looper;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.PowerManager;
+import android.os.RemoteException;
 import android.widget.RemoteViews;
 
 import com.sonrlabs.prod.sonr.R;
 
 public class ToggleSONR extends Service {
 
+   /**
+    * state             - 0 for unplugged, 1 for plugged. 
+    * name              - Headset type, human readable string
+    * microphone        - 1 if headset has a microphone, 0 otherwise
+    */
+   static final int UN_PLUGGED                          = 20;
+   static final int PLUGGED_IN                          = 30;
+
+   static final int START_SELECTED_PLAYER               = 2;
+   
+   static final int SONR_ID                             = 1;
+   
+   private boolean mSonrServiceCreated;
+   private boolean mSonrServiceStarted;
+
    private static final String TAG = ToggleSONR.class.getSimpleName();
-//   public static final String INTENT_UPDATE_ICON = "INTENT_UPDATE_ICON";
    private static final String INTENT_USER_TOGGLE_REQUEST = "INTENT_TOGGLE_HEADSET";
 
-   /*
-   * Constants determined from AudioSystem source
-   */
-   private static final int DEVICE_IN_WIRED_HEADSET = 0x400000;
-   private static final int DEVICE_OUT_EARPIECE = 0x1;
-   private static final int DEVICE_OUT_WIRED_HEADSET = 0x4;
-   private static final int DEVICE_STATE_UNAVAILABLE = 0;
-   private static final int DEVICE_STATE_AVAILABLE = 1;
-   
-   static boolean SERVICE_ON = false;
-   
+   static final int DEVICE_IN_WIRED_HEADSET = 0x400000;
+   static final int DEVICE_OUT_EARPIECE = 0x1;
+   static final int DEVICE_OUT_WIRED_HEADSET = 0x4;
+   static final int DEVICE_STATE_UNAVAILABLE = 0;
+   static final int DEVICE_STATE_AVAILABLE = 1;
+
    private static HeadphoneReceiver headsetReceiver = null;
-   private boolean registeredHeadsetReciver;
+
+   private PowerManager.WakeLock mWakeLock;
+
+   class ServiceHandler extends Handler {
+      public ServiceHandler(Looper looper) {
+         super(looper);
+      }
+
+      @Override
+      public void handleMessage(Message msg) {
+         switch (msg.what) {
+            case PLUGGED_IN:
+               SonrLog.d(TAG, "ServiceHandler plugged processing...");
+               startSonrService();
+               break;
+            case UN_PLUGGED:
+               SonrLog.d(TAG, "ServiceHandler unplugged processing...");
+               stopSonrService();
+               break;
+            default:
+               break;
+         }
+         
+         switch (msg.arg1) {
+            case START_SELECTED_PLAYER:
+               SonrLog.d(TAG, "Starting selected music player...");
+               if (mClient == null || !mClient.foundDock()) {
+                  Messenger messenger = msg.replyTo;
+                  Message messageToTarget = Message.obtain();
+                  try {
+                     messenger.send(messageToTarget);
+                  } catch (RemoteException e) {
+                     SonrLog.e(TAG, e.toString());
+                  }
+               } else {
+                  AppUtils.doStart(ToggleSONR.this, false);
+               }
+               break;
+            default:
+               break;
+         }
+      }
+   }
+
+   private ServiceHandler mServiceHandler;
+
+   private Messenger mMessenger;
+   private Looper mServiceLooper;
+
+   private SONRClient mClient;
+
+   private Notification mNotification;
 
    @Override
-   public IBinder onBind(Intent arg0) {
-      return null;
+   public void onCreate() {
+      SonrLog.d(TAG, "onCreate()");
+      sonrServiceInternalInit();
    }
 
    @Override
+   public IBinder onBind(Intent intent) {
+      SonrLog.d(TAG, "onBind()");
+      sonrServiceInternalInit();
+      return mMessenger.getBinder();
+   }
+
+   private void sonrServiceInternalInit() {
+      if (headsetReceiver == null) {
+         /**
+          * Since HEADSET_PLUG uses FLAG_RECIEVER_REGISTERED_ONLY we need to
+          * register and unregister the broadcast receiver in the service
+          */
+         headsetReceiver = new HeadphoneReceiver();
+         IntentFilter plugIntentFilter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
+         registerReceiver(headsetReceiver, plugIntentFilter);
+
+         IntentFilter powerConnectedFilter = new IntentFilter(Intent.ACTION_POWER_CONNECTED);
+         registerReceiver(headsetReceiver, powerConnectedFilter);
+
+         IntentFilter powerDisconnectedFilter = new IntentFilter(Intent.ACTION_POWER_DISCONNECTED);
+         registerReceiver(headsetReceiver, powerDisconnectedFilter);
+      }
+
+      if (!mSonrServiceCreated) {
+         HandlerThread handlerThread = new HandlerThread("SONR_HandlerThread");
+         handlerThread.start();
+
+         mServiceLooper = handlerThread.getLooper();
+
+         mServiceHandler = new ServiceHandler(mServiceLooper);
+         mMessenger = new Messenger(mServiceHandler);
+         
+         mSonrServiceCreated = true;
+      }
+   }
+   
+   /**
+    * Called when all clients have disconnected from a particular interface
+    * published by the service. The default implementation does nothing and
+    * returns false. Parameters intent The Intent that was used to bind to this
+    * service, as given to Context.bindService. Note that any extras that were
+    * included with the Intent at that point will not be seen here. 
+    * 
+    * @return true if you would like to have the service's onRebind(Intent)
+    * method later called when new clients bind to it.
+    */
+//   @Override
+//   public boolean onUnbind(Intent intent) {
+//      //if (mClient != null && !mClient.foundDock()) {
+//      //        cleanup, reset mServiceStatus etc
+//      //    TODO: HEADSET_PLUG with UN_PLUGGED intent will destroy the service...
+//      //}
+//      return super.onUnbind(intent);
+//   }
+   
+   @Override
    public int onStartCommand(Intent intent, int flags, int startId) {
-      
-      /**
-       * Will only execute when we get killed during start.
-       */
-      if ((flags & Service.START_FLAG_REDELIVERY) != 0) {
-         if (registeredHeadsetReciver) {
-            unRegisterHeadsetReceiver();
+      SonrLog.d(TAG, "onStartCommand()");
+
+      if (intent != null) {
+         String action = intent.getAction();
+         SonrLog.d(TAG, "Received action: " + action);
+
+         if (INTENT_USER_TOGGLE_REQUEST.equals(action)) {
+
+            Intent i = new Intent(this, SONR.class);
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(i);
+
+         } else if (Intent.ACTION_HEADSET_PLUG.equals(action)) {
+            
+            Message msg = mServiceHandler.obtainMessage();
+            
+            int state = intent.getExtras().getInt("state");
+            switch (state) {
+               case 0: //0 for unplugged
+                  msg.what = UN_PLUGGED;
+                  SonrLog.d(TAG, "Headset plug intent recieved, state " + state + " UN_PLUGGED");
+                  break;
+               case 1: //1 for plugged
+                  msg.what = PLUGGED_IN;
+                  SonrLog.d(TAG, "Headset plug intent recieved, state " + state + " PLUGGED_IN");
+                  break;
+               default:
+                  break;
+            }
+            mServiceHandler.sendMessage(msg);
+            
+         } else if (Intent.ACTION_POWER_CONNECTED.equals(action)) {
+            /**
+             * Do nothing - but this intent should wake the service up and
+             * allow us to catch HEADSET_PLUG
+             */
+            SonrLog.d(TAG, "Caught POWER_CONNECTED_INTENT");
+         } else if (Intent.ACTION_POWER_CONNECTED.equals(action)) {
+            /**
+             * Do nothing - but this intent should wake the service up and
+             * allow us to refresh the icon if we were previously asleep
+             */
+            SonrLog.d(TAG, "Caught POWER_DISCONNECTED_INTENT");
          }
       }
-      
-      try {
-         
-         SERVICE_ON = true;
-         
-         if (headsetReceiver == null) {
-            /**
-             * Since HEADSET_PLUG uses FLAG_RECIEVER_REGISTERED_ONLY we need to
-             * register and unregister the broadcast receiver in the service
-             */
-            headsetReceiver = new HeadphoneReceiver();
-            IntentFilter plugIntentFilter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
-            registerReceiver(headsetReceiver, plugIntentFilter);
 
-            IntentFilter powerConnectedFilter = new IntentFilter(Intent.ACTION_POWER_CONNECTED);
-            registerReceiver(headsetReceiver, powerConnectedFilter);
+      return Service.START_STICKY;
+   } 
 
-            IntentFilter powerDisconnectedFilter = new IntentFilter(Intent.ACTION_POWER_DISCONNECTED);
-            registerReceiver(headsetReceiver, powerDisconnectedFilter);
+   private void startSonrService() {
+      if (!mSonrServiceStarted) {
+
+            newUpClient();
             
-            registeredHeadsetReciver = true;
-         }
-
-         if (intent != null) {
+            mClient.startListener();
             
-            Log.d(TAG, "onStart");
+            if (mClient.foundDock()) {
+               SonrLog.d(TAG, getString(R.string.DOCK_FOUND));
+               
+               statusBarNotification(this);
+               
+               PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+               mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, TAG);
+               mWakeLock.acquire();
+               
+               SonrLog.d(TAG, "ToggleSONR routing headset");
+               route_headset(this);
+               
+               boolean headsetRouted = isRoutingHeadset(); 
+               if (headsetRouted) {
+                  if (Preferences.getPreference(this, getString(R.string.DEFAULT_PLAYER_SELECTED), false)) {
+                     SonrLog.d(TAG, getString(R.string.DEFAULT_MEDIA_PLAYER_FOUND));
 
-            String action = intent.getAction();
-            Log.d(TAG, "Received action: " + action);
-
-            if (INTENT_USER_TOGGLE_REQUEST.equals(action)) {
-
-               Intent i = new Intent(this, SONR.class);
-               i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-               startActivity(i);
-
-            } else if (Intent.ACTION_HEADSET_PLUG.equals(action)) {
-               int state = intent.getExtras().getInt("state");
-
-               Log.d(TAG, "Headset plug intent recieved, state " + Integer.toString(state));
-               /**
-                * Found by log and source code examine - state 2 is the state on
-                * the multi-function adapter where the 3.5mm audio jack is
-                * plugged in
-                */
-
-               if (state != 0) {
-                  route_headset(this);
-
-                  // LogFile.MakeLog("ToggleSONR routing headset");
-
-                  if (isRoutingHeadset()) {
-                     // LogFile.MakeLog("ToggleSONR headset has mic");
-                     if (SONR.neverStarted()) { // if
-                        /*
-                         * running the app already, don't do autostart, that
-                         * would be a mess
-                         */
-                        SONRClient theclient =
-                              new SONRClient(this, (AudioManager) getSystemService(Context.AUDIO_SERVICE));
-                        theclient.createListener();
-                        
-                        boolean found = theclient.foundDock();
-                        if (found) {
-                           // LogFile.MakeLog(SONR.DOCK_FOUND);
-                           Log.d(TAG, SONR.DOCK_FOUND);
-                           SONR.setOn(true);
-
-                           if (Preferences.getPreference(this, SONR.DEFAULT_PLAYER_SELECTED, false)) {
-                              Log.d(TAG, SONR.DEFAULT_MEDIA_PLAYER_FOUND);
-                              theclient.startListener();
-                              SONR.startSonr(this, true);
-                           } else {
-                              Log.d(TAG, SONR.NO_DEFAULT_MEDIA_PLAYER);
-                              Intent i = new Intent(this, SONR.class);
-                              i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                              startActivity(i);
-                           }
-
-                           updateIconON();
-                           
-                        } else { // dock not found, probably headphones
-                           // LogFile.MakeLog("DOCK NOT FOUND");
-                           Log.d(TAG, SONR.DOCK_NOT_FOUND);
-                        }
-
-                        theclient.onDestroy();
-                     } // end if sonr main screen
-                  }
-               } else { // end if state != 0
-                  unroute_headset(this);
-                  // LogFile.MakeLog("ToggleSONR unrouting headset");
-                  if (SONR.isOn()) {
-                     SONR.setOn(false);
-                     Intent stopintent = new Intent(this, StopSONR.class);
-                     stopintent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                     startActivity(stopintent);
+                     //TODO: this needs to be ironed out, when is user
+                     //selecting default player, on a long click-hold or?
+                     AppUtils.doStart(this, false); //true?
+                  } else {
+                     //start sonr music app list activity?
+//                     SonrLog.d(TAG, getString(R.string.NO_DEFAULT_MEDIA_PLAYER));
+//                     Intent i = new Intent(this, SONR.class);
+//                     i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+//                     startActivity(i);
                   }
                }
-
+               
+               updateIconON();
+               
+               SonrLog.i(TAG, "Started SONR Service");
+               mSonrServiceStarted = true;
+               startForeground(ToggleSONR.SONR_ID, mNotification);
+               
+            } else {
+               SonrLog.d(TAG, getString(R.string.DOCK_NOT_FOUND));
+               cleanUpClient();
+               
                updateIcon();
-            } else if (Intent.ACTION_POWER_CONNECTED.equals(action)) {
-               /**
-                * Do nothing - but this intent should wake the service up and
-                * allow us to catch HEADSET_PLUG
-                */
-               Log.d(TAG, "Caught POWER_CONNECTED_INTENT");
-            } else if (Intent.ACTION_POWER_CONNECTED.equals(action)) {
-               /**
-                * Do nothing - but this intent should wake the service up and
-                * allow us to refresh the icon if we were previously asleep
-                */
-               Log.d(TAG, "Caught POWER_DISCONNECTED_INTENT");
             }
-         }
-      } catch (RuntimeException e) {
-         e.printStackTrace();
+      } 
+   }
+   
+   private void stopSonrService() {
+      if (mSonrServiceStarted) {
+         SonrLog.i(TAG, "Stopping SONR Service");
+         
+         mSonrServiceStarted = false; 
+         
+         resetSonrService();
+      } else {
+         SonrLog.d(TAG, "Trying to shut down but sonr service not started");
       }
-      
-      startForeground(SONR.SONR_ID, new Notification());
-      return Service.START_STICKY;
-   } // end onstart
+   }
+   
+   // when headset intent meant UNPLUGGED
+   // SonrLogFile.SonrLog("ToggleSONR unrouting headset");
+   //         Intent stopintent = new Intent(this, StopSONR.class);
+   //         stopintent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+   //         startActivity(stopintent);
+
+   /**
+    * Don't call this unless you are sure.
+    */
+   private void resetSonrService() {
+      cleanUpClient();
+      stopForeground(true);
+      unroute_headset(this);
+
+      if (mWakeLock != null) {
+         mWakeLock.release();
+      }
+   }
+   
+   private void newUpClient() {
+      if (mClient == null) {
+         cleanUpClient();
+
+         mClient = new SONRClient(this, (AudioManager) getSystemService(Context.AUDIO_SERVICE));
+         mClient.createListener();
+      }
+   }
+
+   private void cleanUpClient() {
+      if (mClient != null) {
+         SonrLog.d(TAG, "releasing client");
+         mClient.onDestroy();
+         mClient = null;
+      }
+   }
 
    /**
     * Called when the service is destroyed (low memory conditions). We may miss
@@ -184,57 +323,22 @@ public class ToggleSONR extends Service {
     */
    @Override
    public void onDestroy() {
-      try {
-         SERVICE_ON = false;
-         Log.i(TAG, "onDestroy");
-         unRegisterHeadsetReceiver();
-      } catch (RuntimeException e) {
-         e.printStackTrace();
-         //ErrorReporter.getInstance().handleException(e);
-      }
+      mServiceLooper.quit();
+      
+      SonrLog.i(TAG, "Shutting down SONR Service");
+      cleanUpHeadsetReceiver();
+      
+      mSonrServiceCreated = false;
+      mSonrServiceStarted = false;
+      
+      resetSonrService();
    }
 
-   private void unRegisterHeadsetReceiver() {
-      if (headsetReceiver != null && registeredHeadsetReciver) {
+   private void cleanUpHeadsetReceiver() {
+      if (headsetReceiver != null) {
          unregisterReceiver(headsetReceiver);
-         registeredHeadsetReciver = false;
+         SonrLog.d(TAG, "unRegisterHeadsetReceiver()");
          headsetReceiver = null;
-      }
-   }
-   
-   private static void route_headset(Context ctx) {
-      Log.d(TAG, "route to headset");
-      AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
-      if (Build.VERSION.SDK_INT == Build.VERSION_CODES.DONUT) {
-         /*
-          * see AudioService.setRouting Use MODE_INVALID to force headset
-          * routing change
-          */
-         manager.setRouting(AudioManager.MODE_INVALID, AudioManager.ROUTE_HEADSET, AudioManager.ROUTE_HEADSET);
-      } else {
-         setDeviceConnectionState(DEVICE_IN_WIRED_HEADSET, DEVICE_STATE_AVAILABLE, "");
-         setDeviceConnectionState(DEVICE_OUT_WIRED_HEADSET, DEVICE_STATE_AVAILABLE, "");
-      }
-   }
-
-   private static void unroute_headset(Context ctx) {
-      Log.d(TAG, "unroute headset");
-      AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
-      
-      //Restore notification volume
-      int savedNotificationVolume = Preferences.getPreference(ctx, SONR.SAVED_NOTIFICATION_VOLUME, 10);
-      manager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, savedNotificationVolume, AudioManager.FLAG_VIBRATE);
-      
-      if (Build.VERSION.SDK_INT == Build.VERSION_CODES.DONUT) {
-         /*
-          * see AudioService.setRouting Use MODE_INVALID to force headset
-          * routing change
-          */
-         manager.setRouting(AudioManager.MODE_INVALID, 0, AudioManager.ROUTE_HEADSET);
-      } else {
-         setDeviceConnectionState(DEVICE_IN_WIRED_HEADSET, DEVICE_STATE_UNAVAILABLE, "");
-         setDeviceConnectionState(DEVICE_OUT_WIRED_HEADSET, DEVICE_STATE_UNAVAILABLE, "");
-         setDeviceConnectionState(DEVICE_OUT_EARPIECE, DEVICE_STATE_AVAILABLE, "");
       }
    }
 
@@ -242,36 +346,36 @@ public class ToggleSONR extends Service {
     * Toggles the current headset setting. If currently routed headset, routes
     * to speaker. If currently routed to speaker routes to headset
     */
-//   public static void toggleHeadset(Context ctx) {
-//      AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
-//      Log.d(TAG, "toggleHeadset");
-//      if (isRoutingHeadset(ctx)) {
-//         Log.d(TAG, "route to earpiece");
-//         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.DONUT) {
-//            /*
-//             * see AudioService.setRouting Use MODE_INVALID to force headset
-//             * routing change
-//             */
-//            manager.setRouting(AudioManager.MODE_INVALID, 0, AudioManager.ROUTE_HEADSET);
-//         } else {
-//            setDeviceConnectionState(DEVICE_IN_WIRED_HEADSET, DEVICE_STATE_UNAVAILABLE, "");
-//            setDeviceConnectionState(DEVICE_OUT_WIRED_HEADSET, DEVICE_STATE_UNAVAILABLE, "");
-//            setDeviceConnectionState(DEVICE_OUT_EARPIECE, DEVICE_STATE_AVAILABLE, "");
-//         }
-//      } else {
-//         Log.d(TAG, "route to headset");
-//         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.DONUT) {
-//            /*
-//             * see AudioService.setRouting Use MODE_INVALID to force headset
-//             * routing change
-//             */
-//            manager.setRouting(AudioManager.MODE_INVALID, AudioManager.ROUTE_HEADSET, AudioManager.ROUTE_HEADSET);
-//         } else {
-//            setDeviceConnectionState(DEVICE_IN_WIRED_HEADSET, DEVICE_STATE_AVAILABLE, "");
-//            setDeviceConnectionState(DEVICE_OUT_WIRED_HEADSET, DEVICE_STATE_AVAILABLE, "");
-//         }
-//      }
-//   }
+   //   public static void toggleHeadset(Context ctx) {
+   //      AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
+   //      SonrLog.d(TAG, "toggleHeadset");
+   //      if (isRoutingHeadset(ctx)) {
+   //         SonrLog.d(TAG, "route to earpiece");
+   //         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.DONUT) {
+   //            /*
+   //             * see AudioService.setRouting Use MODE_INVALID to force headset
+   //             * routing change
+   //             */
+   //            manager.setRouting(AudioManager.MODE_INVALID, 0, AudioManager.ROUTE_HEADSET);
+   //         } else {
+   //            setDeviceConnectionState(DEVICE_IN_WIRED_HEADSET, DEVICE_STATE_UNAVAILABLE, "");
+   //            setDeviceConnectionState(DEVICE_OUT_WIRED_HEADSET, DEVICE_STATE_UNAVAILABLE, "");
+   //            setDeviceConnectionState(DEVICE_OUT_EARPIECE, DEVICE_STATE_AVAILABLE, "");
+   //         }
+   //      } else {
+   //         SonrLog.d(TAG, "route to headset");
+   //         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.DONUT) {
+   //            /*
+   //             * see AudioService.setRouting Use MODE_INVALID to force headset
+   //             * routing change
+   //             */
+   //            manager.setRouting(AudioManager.MODE_INVALID, AudioManager.ROUTE_HEADSET, AudioManager.ROUTE_HEADSET);
+   //         } else {
+   //            setDeviceConnectionState(DEVICE_IN_WIRED_HEADSET, DEVICE_STATE_AVAILABLE, "");
+   //            setDeviceConnectionState(DEVICE_OUT_WIRED_HEADSET, DEVICE_STATE_AVAILABLE, "");
+   //         }
+   //      }
+   //   }
 
    /**
     * Checks whether we are currently routing to headset
@@ -288,7 +392,7 @@ public class ToggleSONR extends Service {
          AudioManager manager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
          int routing = manager.getRouting(AudioManager.MODE_NORMAL);
-         Log.d(TAG, "getRouting returns " + routing);
+         SonrLog.d(TAG, "getRouting returns " + routing);
          isRoutingHeadset = (routing & AudioManager.ROUTE_HEADSET) != 0;
       } else {
          /*
@@ -304,19 +408,11 @@ public class ToggleSONR extends Service {
             int retVal = (Integer) getDeviceConnectionState.invoke(audioSystem, DEVICE_IN_WIRED_HEADSET, "");
 
             isRoutingHeadset = retVal == 1;
-            Log.d(TAG, "getDeviceConnectionState " + retVal);
+            SonrLog.d(TAG, "getDeviceConnectionState " + retVal);
 
-         } catch (RuntimeException e) {
-            Log.e(TAG, "Could not determine status in isRoutingHeadset(): " + e);
-         } catch (ClassNotFoundException e) {
-            Log.e(TAG, "Could not determine status in isRoutingHeadset(): " + e);
-         } catch (NoSuchMethodException e) {
-            Log.e(TAG, "Could not determine status in isRoutingHeadset(): " + e);
-         } catch (IllegalAccessException e) {
-            Log.e(TAG, "Could not determine status in isRoutingHeadset(): " + e);
-         } catch (InvocationTargetException e) {
-            Log.e(TAG, "Could not determine status in isRoutingHeadset(): " + e);
-         }
+         } catch (Exception e) {
+            SonrLog.e(TAG, "Could not determine status in isRoutingHeadset(): " + e);
+         } 
       }
       return isRoutingHeadset;
    }
@@ -343,34 +439,34 @@ public class ToggleSONR extends Service {
       manager.updateAppWidget(thisWidget, view);
    }
 
-//   public void updateIconOFF() {
-//      RemoteViews view = new RemoteViews(this.getPackageName(), R.layout.toggle_apwidget);
-//      view.setImageViewResource(R.id.Icon, R.drawable.sonr_off);
-//
-//      // Create an Intent to launch toggle headset
-//      Intent toggleIntent = new Intent(this, ToggleSONR.class);
-//      toggleIntent.setAction(INTENT_USER_TOGGLE_REQUEST);
-//      PendingIntent pendingIntent = PendingIntent.getService(this, 0, toggleIntent, 0);
-//
-//      // Get the layout for the App Widget and attach an on-click listener to
-//      // the icon
-//      view.setOnClickPendingIntent(R.id.Icon, pendingIntent);
-//
-//      ComponentName thisWidget = new ComponentName(this, SonrWidget.class);
-//      AppWidgetManager manager = AppWidgetManager.getInstance(this);
-//      manager.updateAppWidget(thisWidget, view);
-//   }
+   //   public void updateIconOFF() {
+   //      RemoteViews view = new RemoteViews(this.getPackageName(), R.layout.toggle_apwidget);
+   //      view.setImageViewResource(R.id.Icon, R.drawable.sonr_off);
+   //
+   //      // Create an Intent to launch toggle headset
+   //      Intent toggleIntent = new Intent(this, ToggleSONR.class);
+   //      toggleIntent.setAction(INTENT_USER_TOGGLE_REQUEST);
+   //      PendingIntent pendingIntent = PendingIntent.getService(this, 0, toggleIntent, 0);
+   //
+   //      // Get the layout for the App Widget and attach an on-click listener to
+   //      // the icon
+   //      view.setOnClickPendingIntent(R.id.Icon, pendingIntent);
+   //
+   //      ComponentName thisWidget = new ComponentName(this, SonrWidget.class);
+   //      AppWidgetManager manager = AppWidgetManager.getInstance(this);
+   //      manager.updateAppWidget(thisWidget, view);
+   //   }
 
    void updateIcon() {
-      Log.d(TAG, "updateIcon");
+      SonrLog.d(TAG, "updateIcon");
 
       RemoteViews view = new RemoteViews(getPackageName(), R.layout.toggle_apwidget);
 
       if (isRoutingHeadset()) {
-         Log.d(TAG, "Headset is routed");
+         SonrLog.d(TAG, "Headset is routed");
          view.setImageViewResource(R.id.Icon, R.drawable.sonr_on);
       } else {
-         Log.d(TAG, "Headset not routed");
+         SonrLog.d(TAG, "Headset not routed");
          view.setImageViewResource(R.id.Icon, R.drawable.sonr_off);
       }
 
@@ -389,6 +485,62 @@ public class ToggleSONR extends Service {
       manager.updateAppWidget(thisWidget, view);
    }
 
+   private void statusBarNotification(Context ctx) {
+      NotificationManager notificationManager = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
+
+      int icon = R.drawable.sonr_icon;
+      long when = System.currentTimeMillis();
+
+      if (mNotification == null) {
+         mNotification = new Notification(icon, ctx.getString(R.string.tickerText), when);
+      }
+      mNotification.flags |= Notification.FLAG_NO_CLEAR;
+
+      Intent notificationIntent = new Intent(ctx, SONR.class);
+      notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+      PendingIntent contentIntent = PendingIntent.getActivity(ctx, 0, notificationIntent, 0);
+
+      mNotification.setLatestEventInfo(ctx, TAG, ctx.getString(R.string.notificationText), contentIntent);
+      notificationManager.notify(ToggleSONR.SONR_ID, mNotification);
+   }
+
+   static void route_headset(Context ctx) {
+      SonrLog.d(TAG, "route to headset");
+      AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
+      if (Build.VERSION.SDK_INT == Build.VERSION_CODES.DONUT) {
+         /*
+          * see AudioService.setRouting Use MODE_INVALID to force headset
+          * routing change
+          */
+         manager.setRouting(AudioManager.MODE_INVALID, AudioManager.ROUTE_HEADSET, AudioManager.ROUTE_HEADSET);
+      } else {
+         setDeviceConnectionState(ToggleSONR.DEVICE_IN_WIRED_HEADSET, ToggleSONR.DEVICE_STATE_AVAILABLE, "");
+         setDeviceConnectionState(ToggleSONR.DEVICE_OUT_WIRED_HEADSET, ToggleSONR.DEVICE_STATE_AVAILABLE, "");
+      }
+   }
+
+   static void unroute_headset(Context ctx) {
+      SonrLog.d(TAG, "unroute headset");
+      AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
+
+      //Restore notification volume
+      int savedNotificationVolume = Preferences.getPreference(ctx, ctx.getString(R.string.SAVED_NOTIFICATION_VOLUME), 10);
+      manager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, savedNotificationVolume, AudioManager.FLAG_VIBRATE);
+
+      if (Build.VERSION.SDK_INT == Build.VERSION_CODES.DONUT) {
+         /*
+          * see AudioService.setRouting Use MODE_INVALID to force headset
+          * routing change
+          */
+         manager.setRouting(AudioManager.MODE_INVALID, 0, AudioManager.ROUTE_HEADSET);
+      } else {
+         setDeviceConnectionState(ToggleSONR.DEVICE_IN_WIRED_HEADSET, ToggleSONR.DEVICE_STATE_UNAVAILABLE, "");
+         setDeviceConnectionState(ToggleSONR.DEVICE_OUT_WIRED_HEADSET, ToggleSONR.DEVICE_STATE_UNAVAILABLE, "");
+         setDeviceConnectionState(ToggleSONR.DEVICE_OUT_EARPIECE, ToggleSONR.DEVICE_STATE_AVAILABLE, "");
+      }
+   }
+
    /**
     * set device connection state through reflection for Android 2.1, 2.2, 2.3,
     * maybe others. Thanks Adam King!
@@ -397,22 +549,15 @@ public class ToggleSONR extends Service {
     * @param state
     * @param address
     */
-   private static void setDeviceConnectionState(final int device, final int state, final String address) {
+   static void setDeviceConnectionState(final int device, final int state, final String address) {
       try {
          Class<?> audioSystem = Class.forName("android.media.AudioSystem");
          Method setDeviceConnectionState = audioSystem.getMethod("setDeviceConnectionState", int.class, int.class, String.class);
 
          setDeviceConnectionState.invoke(audioSystem, device, state, address);
-      } catch (RuntimeException e) {
-         Log.e(TAG, "setDeviceConnectionState failed: " + e);
-      } catch (ClassNotFoundException e) {
-         Log.e(TAG, "setDeviceConnectionState failed: " + e);
-      } catch (NoSuchMethodException e) {
-         Log.e(TAG, "setDeviceConnectionState failed: " + e);
-      } catch (IllegalAccessException e) {
-         Log.e(TAG, "setDeviceConnectionState failed: " + e);
-      } catch (InvocationTargetException e) {
-         Log.e(TAG, "setDeviceConnectionState failed: " + e);
-      }
+      } catch (Exception e) {
+         SonrLog.e(TAG, "setDeviceConnectionState failed: " + e);
+      } 
    }
+
 }

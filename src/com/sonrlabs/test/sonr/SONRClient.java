@@ -13,13 +13,7 @@ class SONRClient {
 
    private final static String TAG = SONRClient.class.getSimpleName();
    
-   /*
-    * This is a static because we can create multiple clients but we only want one listener.
-    * Possibly the creation of multiple clients is incorrect?
-    * 
-    */
-   private static MicSerialListener singletonListener;
-
+   private MicSerialListener singletonListener;
 
    private final AudioManager theAudioManager;
    private final Context applicationContext;
@@ -39,9 +33,9 @@ class SONRClient {
 
 
    SONRClient(Context applicationContext, AudioManager am) {
-      theAudioManager = am;
+      this.theAudioManager = am;
       this.applicationContext = applicationContext;
-      clientStopRegistered = false;
+      this.clientStopRegistered = false;
    }
 
    boolean foundDock() {
@@ -64,7 +58,7 @@ class SONRClient {
       }
    }
 
-   public  void createListener() {
+   public void createListener() {
       try {
          synchronized (this) {
             // LogFile.MakeLog("\n\nSONRClient CREATED");

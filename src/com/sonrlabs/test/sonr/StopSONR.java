@@ -22,10 +22,9 @@ public class StopSONR extends Activity {
 
          String ns = Context.NOTIFICATION_SERVICE;
          NotificationManager mNotificationManager = (NotificationManager) getSystemService(ns);
-         mNotificationManager.cancel(SONR.SONR_ID);
+         mNotificationManager.cancel(ToggleSONR.SONR_ID);
 
-         Intent i = new Intent(SONR.DISCONNECT_ACTION);
-         sendBroadcast(i);
+         sendBroadcast(new Intent(SONR.DISCONNECT_ACTION));
          finish();
          
       } catch (RuntimeException e) {

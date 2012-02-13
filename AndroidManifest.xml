@@ -55,7 +55,8 @@
 			</intent-filter>
 		</receiver>
 		
-		<service android:name="com.sonrlabs.test.sonr.ToggleSONR"/>
+		<!--  -->
+		<service android:name="com.sonrlabs.test.sonr.ToggleSONR" android:process=":service" android:exported="false"/>
 		
 		<receiver android:name="com.sonrlabs.test.sonr.BootIntentReceiver">
 			<intent-filter>

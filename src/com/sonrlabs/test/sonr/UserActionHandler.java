@@ -3,15 +3,15 @@ package com.sonrlabs.test.sonr;
 //import org.acra.ErrorReporter;
 
 //import com.flurry.android.FlurryAgent;
-import com.sonrlabs.test.sonr.signal.SpuriousSignalException;
-
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.KeyEvent;
+
+import com.sonrlabs.prod.sonr.R;
+import com.sonrlabs.test.sonr.signal.SpuriousSignalException;
 
 class UserActionHandler
       implements IUserActionHandler {
@@ -50,7 +50,7 @@ class UserActionHandler
    private static final int VOL_TIME = 100;
 
    private final AudioManager manager;
-   private final Context applicationContext;
+   private final Context appContext;
    
    private long lastPlayTime = 0;
    private long lastMuteTime = 0;
@@ -62,15 +62,14 @@ class UserActionHandler
    
    private static final String CURRENT_VOLUME = "CURRENT_VOLUME";
 
-   
    UserActionHandler(AudioManager manager, Context appliactionContext) {
+      SonrLog.d(TAG, "RemoteListener started");
       this.manager = manager;
-      this.applicationContext = appliactionContext;
+      this.appContext = appliactionContext;
    }
 
    @Override
-   public void processAction(int receivedByte)
-         throws SpuriousSignalException {
+   public void processAction(int receivedByte) throws SpuriousSignalException {
       try {
          processUserCommand(receivedByte);
       } catch (RuntimeException e) {
@@ -79,8 +78,7 @@ class UserActionHandler
       }
    }
 
-   private void processUserCommand(int receivedByte)
-         throws SpuriousSignalException {
+   private void processUserCommand(int receivedByte) throws SpuriousSignalException {
       checkAutoUnmute(receivedByte);
       int key = Integer.MIN_VALUE;
          
@@ -140,12 +138,12 @@ class UserActionHandler
          case MUTE:
             if (lastMuteTime < SystemClock.elapsedRealtime() - REPEAT_TIME) {
                if (muted) {
-                  volume = Preferences.getPreference(applicationContext, CURRENT_VOLUME, manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 2); //manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 2;
+                  volume = Preferences.getPreference(appContext, CURRENT_VOLUME, manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 2); //manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 2;
                   manager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, AudioManager.FLAG_SHOW_UI);
                   muted = false;
                } else {
                   volume = manager.getStreamVolume(AudioManager.STREAM_MUSIC);
-                  Preferences.savePreference(applicationContext, CURRENT_VOLUME, volume);
+                  Preferences.savePreference(appContext, CURRENT_VOLUME, volume);
                   volume = 0;
                   manager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, AudioManager.FLAG_SHOW_UI);
                   muted = true;
@@ -206,9 +204,9 @@ class UserActionHandler
             break;
          case SONR_HOME:
             Log.d(TAG, "SONR HOME");
-            Intent launchSonrHome = new Intent(applicationContext, SONR.class);
+            Intent launchSonrHome = new Intent(appContext, SONR.class);
             launchSonrHome.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            applicationContext.startActivity(launchSonrHome);
+            appContext.startActivity(launchSonrHome);
             break;
          case SEARCH:
             Log.d(TAG, "SEARCH");
@@ -243,7 +241,7 @@ class UserActionHandler
    private void sendbroadcast(int keyEvent) {
      
       synchronized (this) {
-         String playerPackage = Preferences.getPreference(applicationContext, SONR.APP_PACKAGE_NAME, null);
+         String playerPackage = Preferences.getPreference(appContext, appContext.getString(R.string.APP_PACKAGE_NAME), null);
 
          if (playerPackage != null) {
             Log.d(TAG, playerPackage);
@@ -252,10 +250,10 @@ class UserActionHandler
             i.setPackage(playerPackage);
 
             i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, keyEvent));
-            applicationContext.sendOrderedBroadcast(i, null);
+            appContext.sendOrderedBroadcast(i, null);
 
             i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, keyEvent));
-            applicationContext.sendOrderedBroadcast(i, null);
+            appContext.sendOrderedBroadcast(i, null);
          }
       }
       

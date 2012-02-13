@@ -17,8 +17,7 @@ import com.sonrlabs.test.sonr.signal.SpuriousSignalException;
 /**
  *  Queue requests, process them in sequence in a task.
  */
-public final class AudioProcessorQueue
-      extends Thread {
+public final class AudioProcessorQueue extends Thread {
    
    private static final AudioProcessorQueue singleton = new AudioProcessorQueue(20);
    
@@ -30,8 +29,7 @@ public final class AudioProcessorQueue
       singleton.actionHandler = handler;
    }
    
-   public static void processAction(int actionCode)
-         throws SpuriousSignalException {
+   public static void processAction(int actionCode) throws SpuriousSignalException {
       singleton.handleAction(actionCode);
    }
    
@@ -59,7 +57,7 @@ public final class AudioProcessorQueue
    private boolean offer(ISampleBuffer buffer) {
       synchronized (lock) {
          if (queuedBuffers.size() == capacity) {
-            android.util.Log.w(getClass().getName(), "Queue capacity exceeded");
+            SonrLog.w(getClass().getName(), "Queue capacity exceeded");
             return false;
          } else {
             queuedBuffers.add(buffer);

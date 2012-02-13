@@ -1,21 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <!-- KEYS -->
+    <string name="SAVED_NOTIFICATION_VOLUME">SAVED_NOTIFICATION_VOLUME</string>
+    <string name="PLAYER_SELECTED">PLAYER_SELECTED</string>
+    <string name="FIRST_LAUNCH">FIRST_LAUNCH</string>
+    <string name="DEFAULT_PLAYER_SELECTED">DEFAULT_PLAYER_SELECTED</string>
+    <string name="APP_PACKAGE_NAME">APP_PACKAGE_NAME</string>
+    <string name="APP_FULL_NAME">APP_FULL_NAME</string>
+    <string name="START_SONR_ACTIVITY">START_SONR_ACTIVITY</string>
+    <!-- KEYS -->
+
+	<!-- PANDORA & WINAMP MARKET URIs -->
+	<string name="PANDORA_PKG">market://details?id=com.pandora.android</string>
+   <string name="WINAMP_PKG">market://details?id=com.nullsoft.winamp</string>
+    <!-- PANDORA & WINAMP MARKET URIs -->
+	
     <string name="app_name">SONR Beta v0.82</string>
     <string name="empty_list_msg">No Applications</string>
     <string name="notificationText">Show SONR Menu</string>
     <string name="tickerText">SONR Connected</string>
+    <string name="DOCK_NOT_FOUND">DOCK NOT FOUND</string>
+    <string name="DOCK_FOUND">DOCK FOUND</string>
+    <string name="DEFAULT_MEDIA_PLAYER_FOUND">DEFAULT MEDIA PLAYER FOUND</string>
+    <string name="NO_DEFAULT_MEDIA_PLAYER">NO DEFAULT MEDIA PLAYER</string>
+    <string name="DOCK_NOT_FOUND_TRY_AGAIN">Dock not detected, check connections and try again</string>
+    <string name="SAMPLE_URI">\\</string>
+    <string name="AUDIO_MIME_TYPE">audio/*</string>
+    <string name="SELECT_PLAYER">Please select a music player</string>
     <string name="widget_name">SONR</string>
-    <string name="connectingToSonrDock">Searching for SONR Dock...</string>
-	<string name="service_name">ToggleHeadsetService</string>
-	<string name="crash_toast_text">There was a crash. Sending Report…</string>
-	<string name="pick_music_app">Which music app would you like to launch?</string>
-	<string name="default_player_msg">Your default app for\nyour sound dock:</string>
-	<string name="featured_title">Featured Music App: Pandora</string>
-	<string name="featured_desc">Your own FREE personalized radio. Start with the name of one of your favorite artists or songs and Pandora will create a \"station\" that plays their music and more music like it.</string>
-	<string name="home_text">This app connects your Android dock to your favorite music apps and streaming services. 
+    <string name="connectingToSonrDock">Searching for SONR Dock…</string>
+    <string name="service_name">ToggleHeadsetService</string>
+    <string name="crash_toast_text">There was a crash. Sending Report…</string>
+    <string name="pick_music_app">Which music app would you like to launch?</string>
+    <string name="default_player_msg">Your default app for\nyour sound dock:</string>
+    <string name="featured_title">Featured Music App: Pandora</string>
+    <string name="featured_desc">Your own FREE personalized radio. Start with the name of one of your favorite artists or songs and Pandora will create a \"station\" that plays their music and more music like it.</string>
+    <string name="home_text">This app connects your Android dock to your favorite music apps and streaming services. 
 		You can control almost any music app from across the room with the AcoustiX remote control.
 		\n\nClick "OK" below to agree to our terms of service and privacy policy and to start enjoying great music.</string>
-	<string name="t_o_s">SONR End User License Agreement (EULA)
+    <string name="t_o_s">SONR End User License Agreement (EULA)
 \n\nSONR Labs, Inc. (\"The Company\") provides this SONR application (\"Application\") to you subject to the following terms and conditions (\"Terms and Conditions\") in this End User License Agreement (\"EULA\").  By downloading Application, installing or using Application or any portion thereof, you agree to these Terms and Conditions.
 \n\n1. USE OF APPLICATION
 \na. The Company grants you the non-exclusive, non-transferable, limited right and license to install and use this Application solely and exclusively for your personal use.
@@ -45,6 +69,9 @@ YOU EXPRESSLY UNDERSTAND AND AGREE THAT THE COMPANY, ITS SUBSIDIARIES AND AFFILI
 \nc. If any court of law, having the jurisdiction to decide on this matter, rules that any provision of these Terms and Conditions is invalid, then that provision will be removed from the Terms and Conditions without affecting the rest of the Terms and Conditions. The remaining provisions of these Terms and Conditions will continue to be valid and enforceable.
 \nd. The rights granted in these Terms and Conditions may not be assigned or transferred by either you or The Company without the prior written approval of the other party. Neither you nor The Company are permitted to delegate their responsibilities or obligations under these Terms and Conditions without the prior written approval of the other party.
 \ne. These Terms and Conditions and your relationship with The Company under these Terms and Conditions will be governed by the laws of the State of California without regard to its conflict of laws provisions. You and The Company agree to submit to the exclusive jurisdiction of the courts located within the county of San Francisco, California to resolve any legal matter arising from these Terms and Conditions. Notwithstanding this, you agree that The Company will still be allowed to apply for injunctive remedies (or an equivalent type of urgent legal relief) in any jurisdiction</string>
-	<string name="disagree">Disagree</string>
-	<string name="agree">Agree</string>
+    <string name="disagree">Disagree</string>
+    <string name="agree">Agree</string>
+	<string name="OK">OK</string>
+	<string name="NONE">None</string>
+	
 </resources>

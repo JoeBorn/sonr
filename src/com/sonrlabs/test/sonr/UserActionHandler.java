@@ -155,14 +155,17 @@ class UserActionHandler
             break;
          case THUMBS_UP:
             Log.d(TAG, "THUMBS_UP");
+            key = THUMBS_UP;
             //FlurryAgent.logEvent("THUMBS_UP_PRESSED");
             break;
          case THUMBS_DOWN:
             Log.d(TAG, "THUMBS_DOWN");
+            key = THUMBS_DOWN;
             //FlurryAgent.logEvent("THUMBS_DOWN_PRESSED");
             break;
          case FAVORITE:
             Log.d(TAG, "FAVORITE");
+            key = FAVORITE;
             //FlurryAgent.logEvent("FAVORITE_PRESSED");
             break;
          case UP:
@@ -192,14 +195,17 @@ class UserActionHandler
             break;
          case SHARE:
             Log.d(TAG, "SHARE");
+            key = SHARE;
             //FlurryAgent.logEvent("SHARE_PRESSED");
             break;
          case POWER_ON:
             Log.d(TAG, "POWER_ON");
+            key = POWER_ON;
             //FlurryAgent.logEvent("POWER_ON_PRESSED");
             break;
          case POWER_OFF:
             Log.d(TAG, "POWER_OFF");
+            key = POWER_OFF;
             //FlurryAgent.logEvent("POWER_OFF_PRESSED");
             break;
          case SONR_HOME:
@@ -210,6 +216,7 @@ class UserActionHandler
             break;
          case SEARCH:
             Log.d(TAG, "SEARCH");
+            key = SEARCH;
             break;
             
          case 0:

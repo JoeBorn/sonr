@@ -310,10 +310,7 @@ public class SONR extends ListActivity {
    private final BroadcastReceiver stopReceiver = new BroadcastReceiver() {
       @Override
       public void onReceive(Context context, Intent intent) {
-
-         String action = intent.getAction();
-
-         if (DISCONNECT_ACTION.equals(action)) {
+         if (intent != null && DISCONNECT_ACTION.equals(intent.getAction())) {
             finish();
          }
       }

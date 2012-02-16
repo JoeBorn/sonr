@@ -43,7 +43,7 @@ class SampleBufferPool {
              */
             availableBuffer = incrementPool();
             availableBuffer.check();
-            android.util.Log.i(getClass().getName(), "Increased buffer pool size to " + buffers.size());
+            SonrLog.i(getClass().getName(), "Increased buffer pool size to " + buffers.size());
          }
          availableBuffer.setCount(size);
          return availableBuffer;

@@ -4,10 +4,8 @@ package com.sonrlabs.test.sonr;
 
 import android.app.Activity;
 import android.app.NotificationManager;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
 public class StopSONR extends Activity {
    
@@ -17,11 +15,10 @@ public class StopSONR extends Activity {
    public void onCreate(Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
       try {
-         Log.e(TAG, TAG);
+         SonrLog.d(TAG, TAG);
          // LogFile.MakeLog("StopSONR sending broadcast");
 
-         String ns = Context.NOTIFICATION_SERVICE;
-         NotificationManager mNotificationManager = (NotificationManager) getSystemService(ns);
+         NotificationManager mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
          mNotificationManager.cancel(ToggleSONR.SONR_ID);
 
          sendBroadcast(new Intent(SONR.DISCONNECT_ACTION));

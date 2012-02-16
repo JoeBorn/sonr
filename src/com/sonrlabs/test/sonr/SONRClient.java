@@ -6,7 +6,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.media.AudioManager;
 import android.util.Log;
 
 class SONRClient {
@@ -14,27 +13,20 @@ class SONRClient {
    private final static String TAG = SONRClient.class.getSimpleName();
    
    private MicSerialListener singletonListener;
-
-   private final AudioManager theAudioManager;
-   private final Context applicationContext;
-
+   private Context applicationContext;
    private boolean clientStopRegistered;
    
    private final BroadcastReceiver clientStopReceiver = new BroadcastReceiver() {
       @Override
       public void onReceive(Context context, Intent intent) {
-         // Handle receiver
-         String mAction = intent.getAction();
-         if (SONR.DISCONNECT_ACTION.equals(mAction)) {
+         if (intent != null && SONR.DISCONNECT_ACTION.equals(intent.getAction())) {
             onDestroy();
          }
       }
    };
 
-
-   SONRClient(Context applicationContext, AudioManager am) {
-      this.theAudioManager = am;
-      this.applicationContext = applicationContext;
+   SONRClient(Context context) {
+      this.applicationContext = context/*.getApplicationContext()*/;
       this.clientStopRegistered = false;
    }
 
@@ -61,10 +53,10 @@ class SONRClient {
    public void createListener() {
       try {
          synchronized (this) {
-            // LogFile.MakeLog("\n\nSONRClient CREATED");
+            SonrLog.d(TAG, "createListener()");
             unregisterReceiver();
             registerReceiver();
-            IUserActionHandler controller = new UserActionHandler(theAudioManager, applicationContext);
+            IUserActionHandler controller = new UserActionHandler(applicationContext);
             AudioProcessorQueue.setUserActionHandler(controller);
             if (singletonListener != null) {
                singletonListener.stopRunning();
@@ -95,7 +87,7 @@ class SONRClient {
    private void registerReceiver() {
       applicationContext.registerReceiver(clientStopReceiver, new IntentFilter(SONR.DISCONNECT_ACTION));
       clientStopRegistered = true;
-      Log.i(TAG, "Registered broadcast receiver " + clientStopReceiver + " in context " + applicationContext);
+      SonrLog.i(TAG, "Registered broadcast receiver " + clientStopReceiver + " in context " + applicationContext);
    }
 
    private void unregisterReceiver() {
@@ -103,10 +95,10 @@ class SONRClient {
          if (clientStopRegistered) {
             applicationContext.unregisterReceiver(clientStopReceiver);
             clientStopRegistered = false;
-            Log.i(TAG, "Unregistered broadcast receiver " + clientStopReceiver + " in context " + applicationContext);
+            SonrLog.i(TAG, "Unregistered broadcast receiver " + clientStopReceiver + " in context " + applicationContext);
          }
       } catch (RuntimeException e) {
-         Log.i(TAG, "Failed to unregister broadcast receiver " + clientStopReceiver + " in context " + applicationContext, e);
+         SonrLog.e(TAG, String.format("Failed to unregister broadcast receiver %s in context %s. \n Exception: %s", clientStopReceiver, applicationContext, e));
       }
    }
 }

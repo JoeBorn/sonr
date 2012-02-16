@@ -6,7 +6,7 @@
 package com.sonrlabs.test.sonr.signal;
 
 
-import android.util.Log;
+import com.sonrlabs.test.sonr.SonrLog;
 
 /**
  * Sync with the dock.
@@ -43,7 +43,7 @@ class DockDetector
       startpos += BEGIN_OFFSET;
 
       if (startpos < count - (SAMPLE_LENGTH - BEGIN_OFFSET)) {
-         Log.d(TAG, "Found a sample...");
+         SonrLog.d(TAG, "Found a sample...");
          computeSignalMax(samples, startpos);
          findSample(startpos, samples, 0, sampleStartIndices);
 

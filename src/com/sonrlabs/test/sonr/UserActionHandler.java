@@ -62,10 +62,10 @@ class UserActionHandler
    
    private static final String CURRENT_VOLUME = "CURRENT_VOLUME";
 
-   UserActionHandler(AudioManager manager, Context appliactionContext) {
+   UserActionHandler(Context appContext) {
       SonrLog.d(TAG, "RemoteListener started");
-      this.manager = manager;
-      this.appContext = appliactionContext;
+      this.manager = (AudioManager) appContext.getSystemService(Context.AUDIO_SERVICE);
+      this.appContext = appContext;
    }
 
    @Override

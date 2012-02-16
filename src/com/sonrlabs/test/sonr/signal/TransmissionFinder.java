@@ -7,6 +7,7 @@ package com.sonrlabs.test.sonr.signal;
 
 
 import com.sonrlabs.test.sonr.ISampleBuffer;
+import com.sonrlabs.test.sonr.SonrLog;
 
 final class TransmissionFinder
       extends SignalConstructor {
@@ -34,7 +35,7 @@ final class TransmissionFinder
       try {
          processSignalIfMatch();
       } catch (SpuriousSignalException e) {
-         //Log.d("TransmissionFinder", "Spurious Signal");
+         SonrLog.d(debugTag(), "Spurious Signal");
       }
    }
 }

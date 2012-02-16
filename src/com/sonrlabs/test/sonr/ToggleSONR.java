@@ -22,6 +22,7 @@ import android.os.Messenger;
 import android.os.PowerManager;
 import android.os.RemoteException;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
 import com.sonrlabs.prod.sonr.R;
 
@@ -36,11 +37,12 @@ public class ToggleSONR extends Service {
    static final int PLUGGED_IN                          = 30;
 
    static final int START_SELECTED_PLAYER               = 2;
-   
+
    static final int SONR_ID                             = 1;
-   
-   private boolean mSonrServiceCreated;
-   private boolean mSonrServiceStarted;
+
+   private boolean mSonrServiceCreated = false;
+   private boolean mSonrServiceStarted = false;
+   private boolean mSonrDiscoveryInProgress = false;
 
    private static final String TAG = ToggleSONR.class.getSimpleName();
    private static final String INTENT_USER_TOGGLE_REQUEST = "INTENT_TOGGLE_HEADSET";
@@ -74,17 +76,21 @@ public class ToggleSONR extends Service {
             default:
                break;
          }
-         
+
          switch (msg.arg1) {
             case START_SELECTED_PLAYER:
                SonrLog.d(TAG, "Starting selected music player...");
                if (mClient == null || !mClient.foundDock()) {
-                  Messenger messenger = msg.replyTo;
-                  Message messageToTarget = Message.obtain();
-                  try {
-                     messenger.send(messageToTarget);
-                  } catch (RemoteException e) {
-                     SonrLog.e(TAG, e.toString());
+                  //try once
+                  startSonrService();
+                  if (mClient == null || !mClient.foundDock()) {
+                     Messenger messenger = msg.replyTo;
+                     Message messageToTarget = Message.obtain();
+                     try {
+                        messenger.send(messageToTarget);
+                     } catch (RemoteException e) {
+                        SonrLog.e(TAG, e.toString());
+                     }
                   }
                } else {
                   AppUtils.doStart(ToggleSONR.this, false);
@@ -118,7 +124,7 @@ public class ToggleSONR extends Service {
       return mMessenger.getBinder();
    }
 
-   private void sonrServiceInternalInit() {
+   private synchronized void sonrServiceInternalInit() {
       if (headsetReceiver == null) {
          /**
           * Since HEADSET_PLUG uses FLAG_RECIEVER_REGISTERED_ONLY we need to
@@ -143,11 +149,11 @@ public class ToggleSONR extends Service {
 
          mServiceHandler = new ServiceHandler(mServiceLooper);
          mMessenger = new Messenger(mServiceHandler);
-         
+
          mSonrServiceCreated = true;
       }
    }
-   
+
    /**
     * Called when all clients have disconnected from a particular interface
     * published by the service. The default implementation does nothing and
@@ -158,15 +164,15 @@ public class ToggleSONR extends Service {
     * @return true if you would like to have the service's onRebind(Intent)
     * method later called when new clients bind to it.
     */
-//   @Override
-//   public boolean onUnbind(Intent intent) {
-//      //if (mClient != null && !mClient.foundDock()) {
-//      //        cleanup, reset mServiceStatus etc
-//      //    TODO: HEADSET_PLUG with UN_PLUGGED intent will destroy the service...
-//      //}
-//      return super.onUnbind(intent);
-//   }
-   
+   //   @Override
+   //   public boolean onUnbind(Intent intent) {
+   //      //if (mClient != null && !mClient.foundDock()) {
+   //      //        cleanup, reset mServiceStatus etc
+   //      //    TODO: HEADSET_PLUG with UN_PLUGGED intent will destroy the service...
+   //      //}
+   //      return super.onUnbind(intent);
+   //   }
+
    @Override
    public int onStartCommand(Intent intent, int flags, int startId) {
       SonrLog.d(TAG, "onStartCommand()");
@@ -182,24 +188,25 @@ public class ToggleSONR extends Service {
             startActivity(i);
 
          } else if (Intent.ACTION_HEADSET_PLUG.equals(action)) {
-            
+
             Message msg = mServiceHandler.obtainMessage();
-            
+
             int state = intent.getExtras().getInt("state");
             switch (state) {
                case 0: //0 for unplugged
                   msg.what = UN_PLUGGED;
                   SonrLog.d(TAG, "Headset plug intent recieved, state " + state + " UN_PLUGGED");
+                  mServiceHandler.sendMessage(msg);
                   break;
                case 1: //1 for plugged
+               default:
                   msg.what = PLUGGED_IN;
                   SonrLog.d(TAG, "Headset plug intent recieved, state " + state + " PLUGGED_IN");
-                  break;
-               default:
+                  if (!mSonrServiceStarted && !mSonrDiscoveryInProgress) {
+                     mServiceHandler.sendMessage(msg);
+                  }
                   break;
             }
-            mServiceHandler.sendMessage(msg);
-            
          } else if (Intent.ACTION_POWER_CONNECTED.equals(action)) {
             /**
              * Do nothing - but this intent should wake the service up and
@@ -218,69 +225,76 @@ public class ToggleSONR extends Service {
       return Service.START_STICKY;
    } 
 
-   private void startSonrService() {
-      if (!mSonrServiceStarted) {
+   private synchronized void startSonrService() {
+      if (!mSonrServiceStarted && !mSonrDiscoveryInProgress) {
 
-            newUpClient();
+         mSonrDiscoveryInProgress = true;
+         
+         newUpClient();
+
+         if (mClient.foundDock()) {
             
             mClient.startListener();
             
-            if (mClient.foundDock()) {
-               SonrLog.d(TAG, getString(R.string.DOCK_FOUND));
-               
-               statusBarNotification(this);
-               
-               PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-               mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, TAG);
-               mWakeLock.acquire();
-               
-               SonrLog.d(TAG, "ToggleSONR routing headset");
-               route_headset(this);
-               
-               boolean headsetRouted = isRoutingHeadset(); 
-               if (headsetRouted) {
-                  if (Preferences.getPreference(this, getString(R.string.DEFAULT_PLAYER_SELECTED), false)) {
-                     SonrLog.d(TAG, getString(R.string.DEFAULT_MEDIA_PLAYER_FOUND));
+            SonrLog.d(TAG, getString(R.string.DOCK_FOUND));
 
-                     //TODO: this needs to be ironed out, when is user
-                     //selecting default player, on a long click-hold or?
-                     AppUtils.doStart(this, false); //true?
-                  } else {
-                     //start sonr music app list activity?
-//                     SonrLog.d(TAG, getString(R.string.NO_DEFAULT_MEDIA_PLAYER));
-//                     Intent i = new Intent(this, SONR.class);
-//                     i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-//                     startActivity(i);
-                  }
+            statusBarNotification(this);
+
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, TAG);
+            mWakeLock.acquire();
+
+            SonrLog.d(TAG, "routing headset");
+            route_headset(this);
+
+            boolean headsetRouted = isRoutingHeadset(); 
+            if (headsetRouted) {
+               if (Preferences.getPreference(this, getString(R.string.DEFAULT_PLAYER_SELECTED), false)) {
+                  SonrLog.d(TAG, getString(R.string.DEFAULT_MEDIA_PLAYER_FOUND));
+
+                  //TODO: this needs to be ironed out, when is user
+                  //selecting default player, on a long click-hold or?
+                  AppUtils.doStart(this, false); //true?
+               } else {
+                  //start sonr music app list activity?
+                  //                     SonrLog.d(TAG, getString(R.string.NO_DEFAULT_MEDIA_PLAYER));
+                  //                     Intent i = new Intent(this, SONR.class);
+                  //                     i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                  //                     startActivity(i);
                }
-               
-               updateIconON();
-               
-               SonrLog.i(TAG, "Started SONR Service");
-               mSonrServiceStarted = true;
-               startForeground(ToggleSONR.SONR_ID, mNotification);
-               
-            } else {
-               SonrLog.d(TAG, getString(R.string.DOCK_NOT_FOUND));
-               cleanUpClient();
-               
-               updateIcon();
             }
+
+            updateIconON();
+
+            SonrLog.i(TAG, "Started SONR Service");
+            mSonrServiceStarted = true;
+            startForeground(ToggleSONR.SONR_ID, mNotification);
+
+         } else {
+            SonrLog.d(TAG, getString(R.string.DOCK_NOT_FOUND));
+            //Toast.makeText(ToggleSONR.this, getString(R.string.DOCK_NOT_FOUND), Toast.LENGTH_LONG).show();
+            cleanUpClient();
+
+            updateIcon();
+         }
+         
+         mSonrDiscoveryInProgress = false;  
+         
       } 
    }
-   
-   private void stopSonrService() {
+
+   private synchronized void stopSonrService() {
       if (mSonrServiceStarted) {
          SonrLog.i(TAG, "Stopping SONR Service");
-         
+
          mSonrServiceStarted = false; 
-         
+
          resetSonrService();
       } else {
          SonrLog.d(TAG, "Trying to shut down but sonr service not started");
       }
    }
-   
+
    // when headset intent meant UNPLUGGED
    // SonrLogFile.SonrLog("ToggleSONR unrouting headset");
    //         Intent stopintent = new Intent(this, StopSONR.class);
@@ -299,12 +313,12 @@ public class ToggleSONR extends Service {
          mWakeLock.release();
       }
    }
-   
+
    private void newUpClient() {
       if (mClient == null) {
          cleanUpClient();
 
-         mClient = new SONRClient(this, (AudioManager) getSystemService(Context.AUDIO_SERVICE));
+         mClient = new SONRClient(this);
          mClient.createListener();
       }
    }
@@ -324,13 +338,13 @@ public class ToggleSONR extends Service {
    @Override
    public void onDestroy() {
       mServiceLooper.quit();
-      
+
       SonrLog.i(TAG, "Shutting down SONR Service");
       cleanUpHeadsetReceiver();
-      
+
       mSonrServiceCreated = false;
       mSonrServiceStarted = false;
-      
+
       resetSonrService();
    }
 

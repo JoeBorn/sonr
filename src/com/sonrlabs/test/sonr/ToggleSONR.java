@@ -22,7 +22,6 @@ import android.os.Messenger;
 import android.os.PowerManager;
 import android.os.RemoteException;
 import android.widget.RemoteViews;
-import android.widget.Toast;
 
 import com.sonrlabs.prod.sonr.R;
 
@@ -229,46 +228,48 @@ public class ToggleSONR extends Service {
       if (!mSonrServiceStarted && !mSonrDiscoveryInProgress) {
 
          mSonrDiscoveryInProgress = true;
+
+         route_headset(ToggleSONR.this);
+         boolean headsetRouted = isRoutingHeadset(); 
          
-         newUpClient();
+         if (headsetRouted) {
 
-         if (mClient.foundDock()) {
-            
-            mClient.startListener();
-            
-            SonrLog.d(TAG, getString(R.string.DOCK_FOUND));
+            newUpClient();
 
-            statusBarNotification(this);
+            if (mClient.foundDock()) {
 
-            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-            mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, TAG);
-            mWakeLock.acquire();
+               mClient.startListener();
 
-            SonrLog.d(TAG, "routing headset");
-            route_headset(this);
+               SonrLog.d(TAG, getString(R.string.DOCK_FOUND));
 
-            boolean headsetRouted = isRoutingHeadset(); 
-            if (headsetRouted) {
-               if (Preferences.getPreference(this, getString(R.string.DEFAULT_PLAYER_SELECTED), false)) {
+               statusBarNotification(ToggleSONR.this);
+
+               PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+               mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, TAG);
+               mWakeLock.acquire();
+
+               SonrLog.d(TAG, "routing headset");
+
+               if (Preferences.getPreference(ToggleSONR.this, getString(R.string.DEFAULT_PLAYER_SELECTED), false)) {
                   SonrLog.d(TAG, getString(R.string.DEFAULT_MEDIA_PLAYER_FOUND));
 
                   //TODO: this needs to be ironed out, when is user
                   //selecting default player, on a long click-hold or?
-                  AppUtils.doStart(this, false); //true?
+                  AppUtils.doStart(ToggleSONR.this, false); //true?
+                  
                } else {
-                  //start sonr music app list activity?
-                  //                     SonrLog.d(TAG, getString(R.string.NO_DEFAULT_MEDIA_PLAYER));
-                  //                     Intent i = new Intent(this, SONR.class);
-                  //                     i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                  //                     startActivity(i);
+                  SonrLog.d(TAG, getString(R.string.NO_DEFAULT_MEDIA_PLAYER));
+//                  Intent startSonrActivity = new Intent(this, SONR.class);
+//                  startSonrActivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                  startActivity(startSonrActivity);
                }
+
+               updateIconON();
+
+               SonrLog.i(TAG, "Started SONR Service");
+               mSonrServiceStarted = true;
+               startForeground(ToggleSONR.SONR_ID, mNotification);
             }
-
-            updateIconON();
-
-            SonrLog.i(TAG, "Started SONR Service");
-            mSonrServiceStarted = true;
-            startForeground(ToggleSONR.SONR_ID, mNotification);
 
          } else {
             SonrLog.d(TAG, getString(R.string.DOCK_NOT_FOUND));
@@ -277,9 +278,9 @@ public class ToggleSONR extends Service {
 
             updateIcon();
          }
-         
+
          mSonrDiscoveryInProgress = false;  
-         
+
       } 
    }
 
@@ -307,7 +308,7 @@ public class ToggleSONR extends Service {
    private void resetSonrService() {
       cleanUpClient();
       stopForeground(true);
-      unroute_headset(this);
+      unroute_headset(ToggleSONR.this);
 
       if (mWakeLock != null) {
          mWakeLock.release();
@@ -318,7 +319,7 @@ public class ToggleSONR extends Service {
       if (mClient == null) {
          cleanUpClient();
 
-         mClient = new SONRClient(this);
+         mClient = new SONRClient(ToggleSONR.this);
          mClient.createListener();
       }
    }
@@ -436,7 +437,7 @@ public class ToggleSONR extends Service {
     * routing
     */
    void updateIconON() {
-      RemoteViews view = new RemoteViews(this.getPackageName(), R.layout.toggle_apwidget);
+      RemoteViews view = new RemoteViews(ToggleSONR.this.getPackageName(), R.layout.toggle_apwidget);
       view.setImageViewResource(R.id.Icon, R.drawable.sonr_on);
 
       // Create an Intent to launch toggle headset

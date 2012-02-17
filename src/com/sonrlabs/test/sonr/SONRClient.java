@@ -6,7 +6,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.util.Log;
 
 class SONRClient {
 
@@ -26,7 +25,7 @@ class SONRClient {
    };
 
    SONRClient(Context context) {
-      this.applicationContext = context/*.getApplicationContext()*/;
+      this.applicationContext = context.getApplicationContext();
       this.clientStopRegistered = false;
    }
 

@@ -33,10 +33,6 @@ class SONRClient {
       return singletonListener != null && singletonListener.foundDock();
    }
 
-   void searchSignal() {
-      singletonListener.searchSignal();
-   }
-
    void startListener() {
       if (!singletonListener.isAlive()) {
          // LogFile.MakeLog("Start Listener");

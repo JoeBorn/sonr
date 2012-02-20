@@ -316,12 +316,10 @@ public class ToggleSONR extends Service {
    }
 
    private void newUpClient() {
-      if (mClient == null) {
-         cleanUpClient();
-
-         mClient = new SONRClient(ToggleSONR.this);
-         mClient.createListener();
-      }
+      cleanUpClient();
+      mClient = new SONRClient(ToggleSONR.this);
+      mClient.createListener();
+      
    }
 
    private void cleanUpClient() {

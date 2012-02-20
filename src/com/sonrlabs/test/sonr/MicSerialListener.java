@@ -39,10 +39,9 @@ class MicSerialListener implements Runnable {
 
    MicSerialListener() {
       init();
-      
-      searchSignal();
-      
-      if (inStream == null) {
+      if (inStream != null) {
+         searchSignal();
+      } else {
          SonrLog.d(TAG, "Failed to initialize AudioRecord");
       }
    }
@@ -137,16 +136,7 @@ class MicSerialListener implements Runnable {
       Log.d(TAG, "STOPPED");
    }
 
-   void searchSignal() {
-      if (inStream == null) {
-         if (!foundDock) {
-            init();
-         }
-         if (inStream == null) {
-            return;
-         }
-      }
-      
+   private void searchSignal() {
       ISampleBuffer buffer = bufferPool.getBuffer(bufferSize);
       short[] samples = buffer.getArray();
       long endTime = SystemClock.elapsedRealtime() + SIGNAL_SEARCH_TIME_MILLIS;

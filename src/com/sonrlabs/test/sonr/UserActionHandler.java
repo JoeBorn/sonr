@@ -15,7 +15,7 @@ import com.sonrlabs.prod.sonr.R;
 import com.sonrlabs.test.sonr.signal.SpuriousSignalException;
 
 class UserActionHandler
-implements IUserActionHandler {
+      implements IUserActionHandler {
 
    private static final String TAG = "SONR audio processor";
 
@@ -71,7 +71,7 @@ implements IUserActionHandler {
 
    @Override
    public void processAction(int receivedByte)
-   throws SpuriousSignalException {
+         throws SpuriousSignalException {
       try {
          processUserCommand(receivedByte);
       } catch (RuntimeException e) {
@@ -81,7 +81,7 @@ implements IUserActionHandler {
    }
 
    private void processUserCommand(int receivedByte)
-   throws SpuriousSignalException {
+         throws SpuriousSignalException {
       checkAutoUnmute(receivedByte);
       int key = Integer.MIN_VALUE;
 
@@ -140,8 +140,8 @@ implements IUserActionHandler {
             if (lastMuteTime < SystemClock.elapsedRealtime() - REPEAT_TIME) {
                if (muted) {
                   volume =
-                     Preferences.getPreference(appContext, CURRENT_VOLUME,
-                                               manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 2); // manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+                        Preferences.getPreference(appContext, CURRENT_VOLUME,
+                                                  manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 2); // manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
                   // /
                   // 2;
                   manager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, AudioManager.FLAG_SHOW_UI);
@@ -176,21 +176,23 @@ implements IUserActionHandler {
          case UP:
             key = KeyEvent.KEYCODE_DPAD_UP;
             Log.d(TAG, "UP");
-
-            try {
-               new Thread(new Runnable() {
-                  @Override
-                  public void run() {
-                     new Instrumentation().sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP);
-                  }
-               }).start();
-            } catch (Exception e) {
-               Log.d("UserActionHandler","prevent injection crash, this is a hack");
+            synchronized (this) {
+               try {
+                  new Thread(new Runnable() {
+                     @Override
+                     public void run() {
+                        new Instrumentation().sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP);
+                     }
+                  }).start();
+               } catch (Exception e) {
+                  Log.d("UserActionHandler", "prevent injection crash, this is a hack");
+               }
             }
             break;
          case DOWN:
             key = KeyEvent.KEYCODE_DPAD_DOWN;
             Log.d(TAG, "DOWN");
+            synchronized (this) {
                try {
                   new Thread(new Runnable() {
                      @Override
@@ -199,49 +201,56 @@ implements IUserActionHandler {
                      }
                   }).start();
                } catch (Exception e) {
-                  Log.d("UserActionHandler","prevent injection crash, this is a hack");
+                  Log.d("UserActionHandler", "prevent injection crash, this is a hack");
                }
+            }
             break;
          case LEFT:
             key = KeyEvent.KEYCODE_DPAD_LEFT;
             Log.d(TAG, "LEFT");
-            try {
-               new Thread(new Runnable() {
-                  @Override
-                  public void run() {
-                     new Instrumentation().sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_LEFT);
-                  }
-               }).start();
-            } catch (Exception e) {
-               Log.d("UserActionHandler","prevent injection crash, this is a hack");
+            synchronized (this) {
+               try {
+                  new Thread(new Runnable() {
+                     @Override
+                     public void run() {
+                        new Instrumentation().sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_LEFT);
+                     }
+                  }).start();
+               } catch (Exception e) {
+                  Log.d("UserActionHandler", "prevent injection crash, this is a hack");
+               }
             }
             break;
          case RIGHT:
             key = KeyEvent.KEYCODE_DPAD_RIGHT;
             Log.d(TAG, "RIGHT");
-            try {
-               new Thread(new Runnable() {
-                  @Override
-                  public void run() {
-                     new Instrumentation().sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_RIGHT);
-                  }
-               }).start();
-            } catch (Exception e) {
-               Log.d("UserActionHandler","prevent injection crash, this is a hack");
+            synchronized (this) {
+               try {
+                  new Thread(new Runnable() {
+                     @Override
+                     public void run() {
+                        new Instrumentation().sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_RIGHT);
+                     }
+                  }).start();
+               } catch (Exception e) { //java.lang.SecurityException
+                  Log.d("UserActionHandler", "prevent injection crash, this is a hack"); 
+               }
             }
             break;
          case SELECT:
             key = KeyEvent.KEYCODE_DPAD_CENTER;
             Log.d(TAG, "CENTER");
-            try {
-               new Thread(new Runnable() {
-                  @Override
-                  public void run() {
-                     new Instrumentation().sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER);
-                  }
-               }).start();
-            } catch (Exception e) {
-               Log.d("UserActionHandler","prevent injection crash, this is a hack");
+            synchronized (this) {
+               try {
+                  new Thread(new Runnable() {
+                     @Override
+                     public void run() {
+                        new Instrumentation().sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER);
+                     }
+                  }).start();
+               } catch (Exception e) {
+                  Log.d("UserActionHandler", "prevent injection crash, this is a hack");
+               }
             }
             break;
          case SHARE:

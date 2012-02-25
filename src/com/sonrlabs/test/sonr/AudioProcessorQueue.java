@@ -12,7 +12,6 @@ import java.util.Queue;
 
 import com.sonrlabs.test.sonr.signal.Factory;
 import com.sonrlabs.test.sonr.signal.IAudioProcessor;
-import com.sonrlabs.test.sonr.signal.SpuriousSignalException;
 
 /**
  *  Queue requests, process them in sequence in a task.
@@ -29,7 +28,7 @@ public final class AudioProcessorQueue extends Thread {
       singleton.actionHandler = handler;
    }
    
-   public static void processAction(int actionCode) throws SpuriousSignalException {
+   public static void processAction(int actionCode) {
       singleton.handleAction(actionCode);
    }
    
@@ -47,8 +46,7 @@ public final class AudioProcessorQueue extends Thread {
       start();
    }
    
-   private void handleAction(int actionCode)
-         throws SpuriousSignalException {
+   private void handleAction(int actionCode) {
       if (actionHandler != null) {
          actionHandler.processAction(actionCode);
       }

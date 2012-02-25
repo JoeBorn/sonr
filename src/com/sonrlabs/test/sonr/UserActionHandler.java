@@ -12,7 +12,6 @@ import android.util.Log;
 import android.view.KeyEvent;
 
 import com.sonrlabs.prod.sonr.R;
-import com.sonrlabs.test.sonr.signal.SpuriousSignalException;
 
 class UserActionHandler
       implements IUserActionHandler {
@@ -70,8 +69,7 @@ class UserActionHandler
    }
 
    @Override
-   public void processAction(int receivedByte)
-         throws SpuriousSignalException {
+   public void processAction(int receivedByte) {
       try {
          processUserCommand(receivedByte);
       } catch (RuntimeException e) {
@@ -80,8 +78,7 @@ class UserActionHandler
       }
    }
 
-   private void processUserCommand(int receivedByte)
-         throws SpuriousSignalException {
+   private void processUserCommand(int receivedByte) {
       checkAutoUnmute(receivedByte);
       int key = Integer.MIN_VALUE;
 
@@ -284,7 +281,7 @@ class UserActionHandler
             break;
 
          default:
-            throw new SpuriousSignalException(receivedByte);
+            SonrLog.d(TAG, "Unknown signal " + Integer.toHexString(receivedByte));
       }
 
       if (key != Integer.MIN_VALUE) {

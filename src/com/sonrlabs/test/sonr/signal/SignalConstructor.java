@@ -42,8 +42,7 @@ abstract class SignalConstructor
     * Look for at least {@value #MIN_MATCHES} matches of the values in {@link #signals}.
     * If found, send that matching value off to the processor.
     */
-   void processSignalIfMatch()
-         throws SpuriousSignalException {
+   void processSignalIfMatch() {
       for (int i = 0; i <= signals.length-MIN_MATCHES; i++) {
          int baseSignal = signals[i];
          if (baseSignal != 0 && baseSignal != BOUNDARY) {

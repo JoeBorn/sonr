@@ -234,11 +234,9 @@ class UserActionHandler {
     * volume at 0.
     */
    private void checkAutoUnmute(int receivedByte) {
-      if (muted) {
-         if (receivedByte != MUTE) {
-            volume = 0;
-            muted = false;
-         }
+      if (muted && receivedByte != MUTE) {
+         volume = 0;
+         muted = false;
       }
    }
 
@@ -265,8 +263,6 @@ class UserActionHandler {
          instrumentation.sendKeyDownUpSync(keyEvent);
       } catch (SecurityException e) {
          // some other app is front, ignore.
-      } catch (RuntimeException e) {
-         Log.d("UserActionHandler", "unexpected instrumentation error", e);
       }
    }
 }

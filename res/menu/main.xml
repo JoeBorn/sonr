@@ -4,5 +4,4 @@
         android:id="@+id/quitOption"
         android:icon="@android:drawable/ic_lock_power_off"
         android:title="Quit"/>
-    <item android:id="@+id/feedbackOption" android:title="Feedback"></item>
 </menu>

@@ -171,82 +171,27 @@ class UserActionHandler {
          case UP:
             key = KeyEvent.KEYCODE_DPAD_UP;
             Log.d(TAG, "UP");
-            synchronized (this) {
-               try {
-                  new Thread(new Runnable() {
-                     @Override
-                     public void run() {
-                        new Instrumentation().sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP);
-                     }
-                  }).start();
-               } catch (Exception e) {
-                  Log.d("UserActionHandler", "prevent injection crash, this is a hack");
-               }
-            }
+            instrumentKey(key);
             break;
          case DOWN:
             key = KeyEvent.KEYCODE_DPAD_DOWN;
             Log.d(TAG, "DOWN");
-            synchronized (this) {
-               try {
-                  new Thread(new Runnable() {
-                     @Override
-                     public void run() {
-                        new Instrumentation().sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN);
-                     }
-                  }).start();
-               } catch (Exception e) {
-                  Log.d("UserActionHandler", "prevent injection crash, this is a hack");
-               }
-            }
+            instrumentKey(key);
             break;
          case LEFT:
             key = KeyEvent.KEYCODE_DPAD_LEFT;
             Log.d(TAG, "LEFT");
-            synchronized (this) {
-               try {
-                  new Thread(new Runnable() {
-                     @Override
-                     public void run() {
-                        new Instrumentation().sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_LEFT);
-                     }
-                  }).start();
-               } catch (Exception e) {
-                  Log.d("UserActionHandler", "prevent injection crash, this is a hack");
-               }
-            }
+            instrumentKey(key);
             break;
          case RIGHT:
             key = KeyEvent.KEYCODE_DPAD_RIGHT;
             Log.d(TAG, "RIGHT");
-            synchronized (this) {
-               try {
-                  new Thread(new Runnable() {
-                     @Override
-                     public void run() {
-                        new Instrumentation().sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_RIGHT);
-                     }
-                  }).start();
-               } catch (Exception e) { //java.lang.SecurityException
-                  Log.d("UserActionHandler", "prevent injection crash, this is a hack"); 
-               }
-            }
+            instrumentKey(key);
             break;
          case SELECT:
             key = KeyEvent.KEYCODE_DPAD_CENTER;
             Log.d(TAG, "CENTER");
-            synchronized (this) {
-               try {
-                  new Thread(new Runnable() {
-                     @Override
-                     public void run() {
-                        new Instrumentation().sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER);
-                     }
-                  }).start();
-               } catch (Exception e) {
-                  Log.d("UserActionHandler", "prevent injection crash, this is a hack");
-               }
-            }
+            instrumentKey(key);
             break;
          case SHARE:
             Log.d(TAG, "SHARE");
@@ -287,6 +232,19 @@ class UserActionHandler {
       }
    }
 
+   private void instrumentKey(final int keyEvent) {
+      try {
+         new Thread(new Thread() {
+            @Override
+            public void run() {
+               new Instrumentation().sendKeyDownUpSync(keyEvent);
+            }
+         }).start();
+      } catch (RuntimeException e) {
+         Log.d("UserActionHandler", "prevent injection crash, this is a hack");
+      }
+   }
+
    /*
     * If currently muted, unmute on any action other mute itself, but leave the
     * volume at 0.
@@ -302,22 +260,19 @@ class UserActionHandler {
 
    private void sendbroadcast(int keyEvent) {
 
-      synchronized (this) {
-         String playerPackage = Preferences.getPreference(appContext, appContext.getString(R.string.APP_PACKAGE_NAME), null);
-
-         if (playerPackage != null) {
-            Log.d(TAG, playerPackage);
-
-            Intent i = new Intent(Intent.ACTION_MEDIA_BUTTON);
-            i.setPackage(playerPackage);
-
-            i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, keyEvent));
-            appContext.sendOrderedBroadcast(i, null);
-
-            i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, keyEvent));
-            appContext.sendOrderedBroadcast(i, null);
-         }
+      String playerPackage = Preferences.getPreference(appContext, appContext.getString(R.string.APP_PACKAGE_NAME), null);
+      
+      if (playerPackage != null) {
+         Log.d(TAG, playerPackage);
+         
+         Intent i = new Intent(Intent.ACTION_MEDIA_BUTTON);
+         i.setPackage(playerPackage);
+         
+         i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, keyEvent));
+         appContext.sendOrderedBroadcast(i, null);
+         
+         i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, keyEvent));
+         appContext.sendOrderedBroadcast(i, null);
       }
-
    }
 }

@@ -5,6 +5,7 @@ package com.sonrlabs.test.sonr;
 //import com.flurry.android.FlurryAgent;
 import com.sonrlabs.test.sonr.signal.SpuriousSignalException;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;

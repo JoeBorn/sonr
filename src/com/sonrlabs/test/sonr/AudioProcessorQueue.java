@@ -18,6 +18,7 @@ import com.sonrlabs.test.sonr.signal.IAudioProcessor;
  */
 public final class AudioProcessorQueue extends Thread {
    
+   private static final String TAG = "AudioProcessorQueue";
    private static final AudioProcessorQueue singleton = new AudioProcessorQueue(20);
    
    static boolean push(ISampleBuffer buffer) {
@@ -40,13 +41,17 @@ public final class AudioProcessorQueue extends Thread {
    private final Object lock = "queue-lock";
    
    private AudioProcessorQueue(int capacity) {
-      super("AudioProcessorQueue");
+      super(TAG);
       setDaemon(true);
       this.capacity = capacity;
       start();
    }
    
    private void handleAction(int actionCode) {
+      if (Thread.currentThread() != this) {
+         SonrLog.e(TAG, "Actions must be handled in the " + TAG+ " thread");
+         return;
+      }
       if (actionHandler != null) {
          actionHandler.processAction(actionCode);
       }

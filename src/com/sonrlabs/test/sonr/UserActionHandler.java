@@ -47,6 +47,7 @@ class UserActionHandler {
    private static final int SKIP_TIME = 300;
    private static final int BACK_TIME = 300;
    private static final int VOL_TIME = 100;
+   private static final String CURRENT_VOLUME = "CURRENT_VOLUME";
 
    private final AudioManager manager;
    private final Context appContext;
@@ -59,7 +60,6 @@ class UserActionHandler {
    private int volume = -1;
    private boolean muted = false;
 
-   private static final String CURRENT_VOLUME = "CURRENT_VOLUME";
 
    UserActionHandler(Context appContext) {
       SonrLog.d(TAG, "RemoteListener started");
@@ -134,11 +134,8 @@ class UserActionHandler {
          case MUTE:
             if (lastMuteTime < SystemClock.elapsedRealtime() - REPEAT_TIME) {
                if (muted) {
-                  volume =
-                        Preferences.getPreference(appContext, CURRENT_VOLUME,
-                                                  manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 2); // manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-                  // /
-                  // 2;
+                  int defaultLevel = manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 2;
+                  volume = Preferences.getPreference(appContext, CURRENT_VOLUME, defaultLevel); 
                   manager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, AudioManager.FLAG_SHOW_UI);
                   muted = false;
                } else {
@@ -246,7 +243,6 @@ class UserActionHandler {
    }
 
    private void sendbroadcast(int keyEvent) {
-
       String playerPackage = Preferences.getPreference(appContext, appContext.getString(R.string.APP_PACKAGE_NAME), null);
       
       if (playerPackage != null) {

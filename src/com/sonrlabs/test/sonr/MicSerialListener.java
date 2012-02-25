@@ -71,7 +71,6 @@ class MicSerialListener implements Runnable {
     */
    @Override
    public void run() {
-//      synchronized (searchLock) {
          if (inStream != null) {
             running = true;
             ISampleBuffer samples = bufferPool.getBuffer(bufferSize);
@@ -80,13 +79,8 @@ class MicSerialListener implements Runnable {
                   // Log.d("SONR audio processor", "NEW RECORDING");
                   int count = inStream.read(samples.getArray(), 0, bufferSize);
                   if (count > 0) {
-                     /* if there are samples and not waiting */
                      samples.setCount(count);
-                     if (AudioProcessorQueue.push(samples)) {
-                        /*
-                         * Grab a new buffer from the pool if the current buffer was
-                         * successfully queued. Otherwise reuse it.
-                         */
+                  AudioProcessorQueue.push(samples);
                         samples = bufferPool.getBuffer(bufferSize);
                      }
                   }
@@ -102,7 +96,6 @@ class MicSerialListener implements Runnable {
             }
             Log.d(TAG, "LISTENER ENDED");
          }
-//      }
    }
 
    boolean foundDock() {

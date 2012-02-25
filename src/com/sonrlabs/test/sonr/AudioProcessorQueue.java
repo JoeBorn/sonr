@@ -19,10 +19,10 @@ import com.sonrlabs.test.sonr.signal.IAudioProcessor;
 public final class AudioProcessorQueue extends Thread {
    
    private static final String TAG = "AudioProcessorQueue";
-   private static final AudioProcessorQueue singleton = new AudioProcessorQueue(20);
+   private static final AudioProcessorQueue singleton = new AudioProcessorQueue();
    
-   static boolean push(ISampleBuffer buffer) {
-      return singleton.offer(buffer);
+   static void push(ISampleBuffer buffer) {
+      singleton.offer(buffer);
    }
    
    static void setUserActionHandler(UserActionHandler handler) {
@@ -37,13 +37,11 @@ public final class AudioProcessorQueue extends Thread {
    private UserActionHandler actionHandler;
    
    private final Queue<ISampleBuffer> queuedBuffers = new LinkedList<ISampleBuffer>();
-   private final int capacity;
    private final Object lock = "queue-lock";
    
-   private AudioProcessorQueue(int capacity) {
+   private AudioProcessorQueue() {
       super(TAG);
       setDaemon(true);
-      this.capacity = capacity;
       start();
    }
    
@@ -57,18 +55,12 @@ public final class AudioProcessorQueue extends Thread {
       }
    }
    
-   private boolean offer(ISampleBuffer buffer) {
+   private void offer(ISampleBuffer buffer) {
       synchronized (lock) {
-         if (queuedBuffers.size() == capacity) {
-            SonrLog.w(getClass().getName(), "Queue capacity exceeded");
-            return false;
-         } else {
             queuedBuffers.add(buffer);
             lock.notify();
-            return true;
          }
       }
-   }
 
    @Override
    public void run() {

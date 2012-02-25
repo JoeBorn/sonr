@@ -71,31 +71,25 @@ class MicSerialListener implements Runnable {
     */
    @Override
    public void run() {
-         if (inStream != null) {
-            running = true;
-            ISampleBuffer samples = bufferPool.getBuffer(bufferSize);
-            try {
-               while (running) {
-                  // Log.d("SONR audio processor", "NEW RECORDING");
-                  int count = inStream.read(samples.getArray(), 0, bufferSize);
-                  if (count > 0) {
-                     samples.setCount(count);
+      if (inStream != null) {
+         running = true;
+         ISampleBuffer samples = bufferPool.getBuffer(bufferSize);
+         try {
+            while (running) {
+               // Log.d("SONR audio processor", "NEW RECORDING");
+               int count = inStream.read(samples.getArray(), 0, bufferSize);
+               if (count > 0) {
+                  samples.setCount(count);
                   AudioProcessorQueue.push(samples);
-                        samples = bufferPool.getBuffer(bufferSize);
-                     }
-                  }
-                  try {
-                     Thread.sleep(100);
-                  } catch (InterruptedException e) {
-                     // wake up early, no big deal.
-                  }
+                  samples = bufferPool.getBuffer(bufferSize);
                }
-            } catch (RuntimeException e) {
-               e.printStackTrace();
-               //ErrorReporter.getInstance().handleException(e);
             }
-            Log.d(TAG, "LISTENER ENDED");
+         } catch (RuntimeException e) {
+            e.printStackTrace();
+            //ErrorReporter.getInstance().handleException(e);
          }
+         Log.d(TAG, "LISTENER ENDED");
+      }
    }
 
    boolean foundDock() {

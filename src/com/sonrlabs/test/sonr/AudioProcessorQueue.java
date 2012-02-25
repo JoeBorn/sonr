@@ -57,10 +57,10 @@ public final class AudioProcessorQueue extends Thread {
    
    private void offer(ISampleBuffer buffer) {
       synchronized (lock) {
-            queuedBuffers.add(buffer);
-            lock.notify();
-         }
+         queuedBuffers.add(buffer);
+         lock.notify();
       }
+   }
 
    @Override
    public void run() {
@@ -80,12 +80,12 @@ public final class AudioProcessorQueue extends Thread {
             queuedBuffers.clear();
          }
          processor.nextSamples(pending);
-         /*
-          * Could Yield here so we don't starve other threads. This can lead to
-          * delayed reponse to remote-control operations, don't use this unless
-          * we really have to.
-          */
          pending.clear();
+         /*
+          * Yield so as not to starve the MicSerialListener.
+          * Could do this every N times through the loop instead of every time.
+          */
+         Thread.yield();
       }
    }
 }

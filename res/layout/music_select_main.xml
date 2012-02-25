@@ -15,7 +15,7 @@
 
     <LinearLayout
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_height="0dip"
         android:layout_weight="1"
         android:orientation="vertical"
         android:scrollbars="vertical" >
@@ -24,7 +24,7 @@
             android:id="@android:id/list"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:background="#444444" android:fadingEdge="none"/>
+            android:background="#444444" android:fadingEdge="none" android:focusable="false" android:focusableInTouchMode="false"/>
 
         <TextView
             android:id="@android:id/empty"
@@ -46,7 +46,7 @@
             android:id="@+id/noneButton"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="None" />
+            android:text="@string/NONE" android:onClick="onNoneClicked" />
     </LinearLayout>
 
 </LinearLayout>

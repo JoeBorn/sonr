@@ -11,11 +11,6 @@ import com.sonrlabs.test.sonr.ISampleBuffer;
 final class TransmissionFinder
       extends SignalConstructor {
    
-   @Override
-   String debugTag() {
-      return "TransmissionFinder";
-   }
-
    void nextSample(ISampleBuffer buffer, int sampleCount, int[] sampleStartIndices) {
       short[] samples = buffer.getArray();
       int startpos = sampleStartIndices[0];
@@ -31,10 +26,6 @@ final class TransmissionFinder
 
    private void processSample(short[] samples, int[] sampleStartIndices) {
       constructSignal(samples, sampleStartIndices);
-      try {
-         processSignalIfMatch();
-      } catch (SpuriousSignalException e) {
-         //Log.d("TransmissionFinder", "Spurious Signal");
-      }
+      processSignalIfMatch();
    }
 }

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="com.sonrlabs.prod.sonr"
-      android:versionCode="82"
-      android:versionName="0.82-test">
+      android:versionCode="86"
+      android:versionName="0.86-test">
 
-	<uses-sdk android:minSdkVersion="4" />
+	<uses-sdk android:minSdkVersion="8" />
 	<uses-permission android:name="android.permission.RECORD_AUDIO" />
 	<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -12,6 +12,7 @@
 	<uses-permission android:name="android.permission.INTERNET"></uses-permission>
 	<uses-permission android:name="android.permission.WAKE_LOCK" />
 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+	<uses-permission android:name="android.permission.INJECT_EVENTS"/>
 
     <application android:icon="@drawable/sonr_icon" android:label="@string/app_name" android:debuggable="true" android:name="com.sonrlabs.test.sonr.SONRApplication">
         <activity android:name="com.sonrlabs.test.sonr.SONR"
@@ -55,7 +56,8 @@
 			</intent-filter>
 		</receiver>
 		
-		<service android:name="com.sonrlabs.test.sonr.ToggleSONR"/>
+		<!--  -->
+		<service android:name="com.sonrlabs.test.sonr.ToggleSONR" android:process=":service" android:exported="false"/>
 		
 		<receiver android:name="com.sonrlabs.test.sonr.BootIntentReceiver">
 			<intent-filter>

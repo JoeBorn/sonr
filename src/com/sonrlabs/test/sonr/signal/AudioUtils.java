@@ -5,10 +5,11 @@
 
 package com.sonrlabs.test.sonr.signal;
 
+import com.sonrlabs.test.sonr.SonrLog;
+
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder.AudioSource;
-import android.util.Log;
 
 /**
  *  Static utility methods.
@@ -19,8 +20,7 @@ public class AudioUtils implements AudioSupportConstants {
    
    private static final short[] FORMATS = {
       AudioFormat.ENCODING_PCM_16BIT,
-      //AudioFormat.ENCODING_DEFAULT,
-      // AudioRecord.java:467 PCM_8BIT not supported at the moment
+      /* Any others ? */
    };
 
    private static final short[] CHANNEL_CONFIGS = {
@@ -41,44 +41,38 @@ public class AudioUtils implements AudioSupportConstants {
     * @return a suitable record, or null if none found.
     */
    public static AudioRecord findAudioRecord(String callingClassName) {
-
-      AudioRecord audioRecorder = null;
       
       for (short audioFormat : FORMATS) {
          for (short channelConfig : CHANNEL_CONFIGS) {
-            Log.d(TAG, callingClassName + " Attempting rate " + SAMPLE_RATE + "Hz, bits: " + audioFormat + ", channel: " + channelConfig);
-            
-            try {
-                  int bsize = SAMPLES_PER_BUFFER * AudioRecord.getMinBufferSize(SAMPLE_RATE, channelConfig, audioFormat);
-                  
-                  if (bsize != AudioRecord.ERROR_BAD_VALUE) {
-                     // check if we can instantiate and have a success
-                     audioRecorder = new AudioRecord(AudioSource.DEFAULT, SAMPLE_RATE, channelConfig, audioFormat, bsize);
+            String baseMessage = "rate" + SAMPLE_RATE + "Hz, bits: " + audioFormat + ", channel: " + channelConfig;
+            String message = callingClassName + " Attempting " + baseMessage;
+            SonrLog.d(TAG, message);
+            int bsize = SAMPLES_PER_BUFFER * AudioRecord.getMinBufferSize(SAMPLE_RATE, channelConfig, audioFormat);
+            if (bsize != AudioRecord.ERROR_BAD_VALUE) {
+               AudioRecord audioRecorder;
+               try {
+                  audioRecorder =  new AudioRecord(AudioSource.DEFAULT, SAMPLE_RATE, channelConfig, audioFormat, bsize);
+               } catch (IllegalArgumentException e) {
+                  String errmsg = callingClassName + " unable to allocate for: " + baseMessage  + ": " + e;
+                  SonrLog.e(TAG, errmsg);
+                  continue;
+               }
+               /* successfully made the recorder, now validate the state */
+               switch (audioRecorder.getState()) {
+                  case AudioRecord.STATE_INITIALIZED:
+                     bufferSize = bsize;
+                     return audioRecorder;
                      
-                     switch (audioRecorder.getState()) {
-                        case AudioRecord.STATE_INITIALIZED:
-                           bufferSize = bsize;
-                           return audioRecorder;
-                           //break;
-                        case AudioRecord.STATE_UNINITIALIZED:
-                        default:
-                           audioRecorder.release();
-                           audioRecorder = null;
-                           break;
-                     }
-                  }
-               
-            } catch (Exception e) {
-               Log.e(TAG, callingClassName + " unable to allocate for: " + SAMPLE_RATE + "Hz, bits: " + audioFormat + ", channel: " + channelConfig);
-               Log.e(TAG, "Exception " + e);
+                  default:
+                     audioRecorder.release();
+                     break;
+               }
             }
          }
       }
-      if (audioRecorder == null) {
-         Log.e(TAG, callingClassName + " returning null AudioRecord...");
-      }
-      
-      return audioRecorder;
+      /* If we get here we did not find a working recorder. */
+      SonrLog.e(TAG, callingClassName + " returning null AudioRecord...");
+      return null;
    }
 
 }

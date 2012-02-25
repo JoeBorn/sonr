@@ -36,15 +36,12 @@ public class HeadphoneReceiver extends BroadcastReceiver {
 
    @Override
    public void onReceive(Context context, Intent intent) {
-      try {
+      if (intent != null && Intent.ACTION_HEADSET_PLUG.equals(intent.getAction())) {
          Log.d(TAG, "Receive intent= " + intent);
          Intent serviceIntent = new Intent(context, ToggleSONR.class);
          serviceIntent.setAction(intent.getAction());
          serviceIntent.putExtras(intent.getExtras());
          context.startService(serviceIntent);
-      } catch (RuntimeException e) {
-         e.printStackTrace();
-         //ErrorReporter.getInstance().handleException(e);
       }
    }
 }

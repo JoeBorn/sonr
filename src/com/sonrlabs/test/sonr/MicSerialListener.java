@@ -11,13 +11,12 @@ import com.sonrlabs.test.sonr.signal.AudioUtils;
 import com.sonrlabs.test.sonr.signal.Factory;
 import com.sonrlabs.test.sonr.signal.IDockDetector;
 
-class MicSerialListener
-      implements Runnable {
+class MicSerialListener implements Runnable {
    
-   private static final String MIC_INPUT_UNAVAIL = "Mic input was unavailable to be read";
-   private static final String TAG = "MicSerialListener";
-//   private static final long SIGNAL_SEARCH_TIME_MILLIS = 5 * 1150;
-   private static final long SIGNAL_SEARCH_TIME_MILLIS = 10 * 1150;
+   static final String MIC_INPUT_UNAVAIL = "Mic input was unavailable to be read";
+   static final String TAG = MicSerialListener.class.getSimpleName();
+// static final long SIGNAL_SEARCH_TIME_MILLIS = 5 * 1150;
+   static final long SIGNAL_SEARCH_TIME_MILLIS = 10 * 1150;
 
    /*
     * Just one reusable thread since we only start a new one after killing the
@@ -36,18 +35,14 @@ class MicSerialListener
    private int bufferSize;
    private AudioRecord inStream;
    private SampleBufferPool bufferPool;
-   private Object searchLock = new Object();
+   private final Object searchLock = new Object();
 
    MicSerialListener() {
-      Log.d(TAG, "STARTED");
-      
       init();
-      
       if (inStream != null) {
          searchSignal();
       } else {
-         // LogFile.MakeLog("Failed to initialize AudioRecord");
-         Log.d(TAG, "Failed to initialize AudioRecord");
+         SonrLog.d(TAG, "Failed to initialize AudioRecord");
       }
    }
 
@@ -61,6 +56,7 @@ class MicSerialListener
          switch (inStream.getState()) {
             case AudioRecord.STATE_INITIALIZED:
                inStream.startRecording();
+               SonrLog.d(TAG, "AudioRecord.startRecording()");
                break;
             case AudioRecord.STATE_UNINITIALIZED:
                //TODO: if this happens, no point in continuing in the future
@@ -70,43 +66,31 @@ class MicSerialListener
       }
    }
    
-   @Override
-   /*
+   /**
     * Reads in from mic and dispatches an audio rocessor to process the data
     */
+   @Override
    public void run() {
-//      synchronized (searchLock) {
-         if (inStream != null) {
-            running = true;
-            ISampleBuffer samples = bufferPool.getBuffer(bufferSize);
-            try {
-               while (running) {
-                  // Log.d("SONR audio processor", "NEW RECORDING");
-                  int count = inStream.read(samples.getArray(), 0, bufferSize);
-                  if (count > 0) {
-                     /* if there are samples and not waiting */
-                     samples.setCount(count);
-                     if (AudioProcessorQueue.push(samples)) {
-                        /*
-                         * Grab a new buffer from the pool if the current buffer was
-                         * successfully queued. Otherwise reuse it.
-                         */
-                        samples = bufferPool.getBuffer(bufferSize);
-                     }
-                  }
-                  try {
-                     Thread.sleep(100);
-                  } catch (InterruptedException e) {
-                     // wake up early, no big deal.
-                  }
+      android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
+      if (inStream != null) {
+         running = true;
+         ISampleBuffer samples = bufferPool.getBuffer(bufferSize);
+         try {
+            while (running) {
+               // Log.d("SONR audio processor", "NEW RECORDING");
+               int count = inStream.read(samples.getArray(), 0, bufferSize);
+               if (count > 0) {
+                  samples.setCount(count);
+                  AudioProcessorQueue.push(samples);
+                  samples = bufferPool.getBuffer(bufferSize);
                }
-            } catch (RuntimeException e) {
-               e.printStackTrace();
-               //ErrorReporter.getInstance().handleException(e);
             }
-            Log.d(TAG, "LISTENER ENDED");
+         } catch (RuntimeException e) {
+            e.printStackTrace();
+            //ErrorReporter.getInstance().handleException(e);
          }
-//      }
+         Log.d(TAG, "LISTENER ENDED");
+      }
    }
 
    boolean foundDock() {
@@ -140,16 +124,7 @@ class MicSerialListener
       Log.d(TAG, "STOPPED");
    }
 
-   void searchSignal() {
-      if (inStream == null) {
-         if (!foundDock) {
-            init();
-         }
-         if (inStream == null) {
-            return;
-         }
-      }
-      
+   private void searchSignal() {
       ISampleBuffer buffer = bufferPool.getBuffer(bufferSize);
       short[] samples = buffer.getArray();
       long endTime = SystemClock.elapsedRealtime() + SIGNAL_SEARCH_TIME_MILLIS;
@@ -167,13 +142,13 @@ class MicSerialListener
                } else {
                   problem = true;
                   errorCode = count;
-                  //ErrorReporter.getInstance().putCustomData(TAG, MIC_INPUT_UNAVAIL);
+                  //SonrLog.e ErrorReporter.getInstance().putCustomData(TAG, MIC_INPUT_UNAVAIL);
                }
                
             }
             
             if (problem) {
-               String errorMsg = null;
+               String errorMsg;
                switch (errorCode) {
                   case AudioRecord.ERROR_INVALID_OPERATION:
                      errorMsg = "AudioRecord: the object wasn't properly initialized";
@@ -185,10 +160,9 @@ class MicSerialListener
                      errorMsg = MIC_INPUT_UNAVAIL;
                      break;
                }
-               Log.e(TAG, errorMsg);
-               //ErrorReporter.getInstance().putCustomData(TAG, errorMsg);
+               SonrLog.e(TAG, errorMsg);
+               //SonrLog.e ErrorReporter.getInstance().putCustomData(TAG, errorMsg);
             }
-            
          }
       } catch (RuntimeException e) {
          e.printStackTrace();

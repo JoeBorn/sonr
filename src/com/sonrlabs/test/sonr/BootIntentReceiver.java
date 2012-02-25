@@ -5,10 +5,8 @@ package com.sonrlabs.test.sonr;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 
-public class BootIntentReceiver
-      extends BroadcastReceiver {
+public class BootIntentReceiver extends BroadcastReceiver {
    
    private static final String TAG = BootIntentReceiver.class.getSimpleName();
 
@@ -16,18 +14,13 @@ public class BootIntentReceiver
    public void onReceive(Context context, Intent intent) {
       try {
          if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
-            Log.d(TAG, "Boot Intent Received");
-            // Intent i = new Intent(context, BootIntentHandler.class);
-            // context.startActivity(i);
-            if (!ToggleSONR.SERVICE_ON) {
-               Intent i = new Intent(context, ToggleSONR.class);
-               context.startService(i);
-            }
+            SonrLog.d(TAG, "Boot Intent Received");
+            Intent i = new Intent(context, ToggleSONR.class);
+            context.startService(i);
          }
       } catch (RuntimeException e) {
-         e.printStackTrace();
+         SonrLog.e(TAG, "Boot Intent Received");
          //ErrorReporter.getInstance().handleException(e);
-
       }
    }
 }

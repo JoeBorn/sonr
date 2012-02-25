@@ -317,11 +317,13 @@ public class SONR extends ListActivity {
    };
 
    private ServiceConnection mConnection = new ServiceConnection() {
+      @Override
       public void onServiceConnected(ComponentName className, IBinder service) {
          mService = new Messenger(service);
          mBound = true;
       }
 
+      @Override
       public void onServiceDisconnected(ComponentName className) {
          mService = null;
          mBound = false;

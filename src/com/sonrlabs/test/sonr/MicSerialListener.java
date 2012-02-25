@@ -35,7 +35,7 @@ class MicSerialListener implements Runnable {
    private int bufferSize;
    private AudioRecord inStream;
    private SampleBufferPool bufferPool;
-   private Object searchLock = new Object();
+   private final Object searchLock = new Object();
 
    MicSerialListener() {
       init();
@@ -160,7 +160,7 @@ class MicSerialListener implements Runnable {
             }
             
             if (problem) {
-               String errorMsg = null;
+               String errorMsg;
                switch (errorCode) {
                   case AudioRecord.ERROR_INVALID_OPERATION:
                      errorMsg = "AudioRecord: the object wasn't properly initialized";

@@ -36,8 +36,6 @@ abstract class SignalConstructor
     */
    private final int[] signals = new int[SAMPLES_PER_BUFFER];
    
-   abstract String debugTag();
-
    /**
     * Look for at least {@value #MIN_MATCHES} matches of the values in {@link #signals}.
     * If found, send that matching value off to the processor.

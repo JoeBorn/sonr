@@ -71,6 +71,7 @@ class MicSerialListener implements Runnable {
     */
    @Override
    public void run() {
+      android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
       if (inStream != null) {
          running = true;
          ISampleBuffer samples = bufferPool.getBuffer(bufferSize);

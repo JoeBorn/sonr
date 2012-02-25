@@ -81,11 +81,6 @@ public final class AudioProcessorQueue extends Thread {
          }
          processor.nextSamples(pending);
          pending.clear();
-         /*
-          * Yield so as not to starve the MicSerialListener.
-          * Could do this every N times through the loop instead of every time.
-          */
-         Thread.yield();
       }
    }
 }

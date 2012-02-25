@@ -81,6 +81,8 @@ public final class AudioProcessorQueue extends Thread {
          }
          processor.nextSamples(pending);
          pending.clear();
+         /* Yield to maximize the likelihood that MicSerialListener can keep up with the AudioFlinger. */
+         Thread.yield();
       }
    }
 }

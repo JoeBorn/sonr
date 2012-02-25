@@ -232,19 +232,6 @@ class UserActionHandler {
       }
    }
 
-   private void instrumentKey(final int keyEvent) {
-      try {
-         new Thread(new Thread() {
-            @Override
-            public void run() {
-               new Instrumentation().sendKeyDownUpSync(keyEvent);
-            }
-         }).start();
-      } catch (RuntimeException e) {
-         Log.d("UserActionHandler", "prevent injection crash, this is a hack");
-      }
-   }
-
    /*
     * If currently muted, unmute on any action other mute itself, but leave the
     * volume at 0.
@@ -273,6 +260,17 @@ class UserActionHandler {
          
          i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, keyEvent));
          appContext.sendOrderedBroadcast(i, null);
+      }
+   }
+
+   private void instrumentKey(int keyEvent) {
+      Instrumentation instrumentation = new Instrumentation();
+      try {
+         instrumentation.sendKeyDownUpSync(keyEvent);
+      } catch (SecurityException e) {
+         // some other app is front, ignore.
+      } catch (RuntimeException e) {
+         Log.d("UserActionHandler", "unexpected instrumentation error", e);
       }
    }
 }

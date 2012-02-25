@@ -25,7 +25,7 @@ public final class AudioProcessorQueue extends Thread {
       return singleton.offer(buffer);
    }
    
-   static void setUserActionHandler(IUserActionHandler handler) {
+   static void setUserActionHandler(UserActionHandler handler) {
       singleton.actionHandler = handler;
    }
    
@@ -34,7 +34,7 @@ public final class AudioProcessorQueue extends Thread {
    }
    
    private final IAudioProcessor processor = Factory.createAudioProcessor();
-   private IUserActionHandler actionHandler;
+   private UserActionHandler actionHandler;
    
    private final Queue<ISampleBuffer> queuedBuffers = new LinkedList<ISampleBuffer>();
    private final int capacity;

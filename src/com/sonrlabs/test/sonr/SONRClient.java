@@ -51,7 +51,7 @@ class SONRClient {
             SonrLog.d(TAG, "createListener()");
             unregisterReceiver();
             registerReceiver();
-            IUserActionHandler controller = new UserActionHandler(applicationContext);
+            UserActionHandler controller = new UserActionHandler(applicationContext);
             AudioProcessorQueue.setUserActionHandler(controller);
             if (singletonListener != null) {
                singletonListener.stopRunning();

@@ -13,8 +13,7 @@ import android.view.KeyEvent;
 
 import com.sonrlabs.prod.sonr.R;
 
-class UserActionHandler
-      implements IUserActionHandler {
+class UserActionHandler {
 
    private static final String TAG = "SONR audio processor";
 
@@ -68,8 +67,7 @@ class UserActionHandler
       this.appContext = appContext;
    }
 
-   @Override
-   public void processAction(int receivedByte) {
+   void processAction(int receivedByte) {
       try {
          processUserCommand(receivedByte);
       } catch (RuntimeException e) {

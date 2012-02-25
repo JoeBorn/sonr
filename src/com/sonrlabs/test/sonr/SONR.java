@@ -24,7 +24,6 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.media.AudioManager;
-import android.media.AudioRecord;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.PowerManager;
@@ -58,7 +57,6 @@ public class SONR extends ListActivity {
    static final String APP_FULL_NAME = "APP_FULL_NAME";
    static final String DISCONNECT_ACTION = "android.intent.action.DISCONNECT_DOCK";
 
-   static final String CLIENT_STOP_RECEIVER_REGISTERED = "CLIENT_STOP_RECEIVER_REGISTERED";
    static final String SAVED_NOTIFICATION_VOLUME = "SAVED_NOTIFICATION_VOLUME";
 
    private static final String SAMPLE_URI = "\\";
@@ -80,7 +78,6 @@ public class SONR extends ListActivity {
    private List<ApplicationInfo> infos = null;
    private int currentlySelectedApplicationInfoIndex;
    private SONRClient client;
-   private AudioRecord audio;
    private final BroadcastReceiver stopReceiver = new StopReceiver();
    private boolean isRegistered = false;
    private PowerManager.WakeLock mWakeLock;
@@ -192,9 +189,10 @@ public class SONR extends ListActivity {
    }
    
    private void newUpAudioAndClient(AudioManager audioManager) {
-      if (audio == null || client == null) {
-         audio = AudioUtils.findAudioRecord();
-         client = new SONRClient(this, audio, audioManager);
+      if (client == null) {
+         cleanAudioAndClient(); //cleanup if one is not null
+         
+         client = new SONRClient(this, audioManager);
          client.createListener();
       }
    }
@@ -203,11 +201,6 @@ public class SONR extends ListActivity {
       if (client != null) {
          client.onDestroy();
          client = null;
-      }
-
-      if (audio != null) {
-         audio.release();
-         audio = null;
       }
    }
    
@@ -226,10 +219,11 @@ public class SONR extends ListActivity {
    @Override
    protected void onDestroy() {
       try {
-         unregisterReceiver(stopReceiver);
-         super.onDestroy();
-         
          cleanAudioAndClient();
+
+         stopService(new Intent(this, ToggleSONR.class));
+
+         unregisterReceiver(stopReceiver);
 
          mainScreen = false;
          on = false;
@@ -237,6 +231,8 @@ public class SONR extends ListActivity {
          NotificationManager mNotificationManager = (NotificationManager) getSystemService(ns);
          mNotificationManager.cancel(SONR_ID);
          mWakeLock.release();
+         
+         super.onDestroy();
       } catch (RuntimeException e) {
          e.printStackTrace();
          //ErrorReporter.getInstance().handleException(e);
@@ -257,10 +253,10 @@ public class SONR extends ListActivity {
    protected void onResume() {
       super.onResume();
 
-      AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-      audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 1, AudioManager.FLAG_VIBRATE);
-
-      newUpAudioAndClient(audioManager);
+//      AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+//      audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 1, AudioManager.FLAG_VIBRATE);
+//
+//      newUpAudioAndClient(audioManager);
    }
 
    @Override
@@ -293,17 +289,12 @@ public class SONR extends ListActivity {
    @Override
    public boolean onOptionsItemSelected(MenuItem item) {
       boolean consumeResult = super.onOptionsItemSelected(item);
-      
+
       if (R.id.quitOption == item.getItemId()) {
-            stopService(new Intent(this, ToggleSONR.class));
-
-            statusBarNotification(this, false);
-
-            cleanAudioAndClient();
-
-            finish();
-            consumeResult = true;
+         finish();
+         consumeResult = true;
       }
+      
       return consumeResult;
    }
 

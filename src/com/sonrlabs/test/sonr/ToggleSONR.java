@@ -259,9 +259,9 @@ public class ToggleSONR extends Service {
                   
                } else {
                   SonrLog.d(TAG, getString(R.string.NO_DEFAULT_MEDIA_PLAYER));
-//                  Intent startSonrActivity = new Intent(this, SONR.class);
-//                  startSonrActivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//                  startActivity(startSonrActivity);
+                  Intent startSonrActivity = new Intent(this, SONR.class);
+                  startSonrActivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                  startActivity(startSonrActivity);
                }
 
                updateIconON();

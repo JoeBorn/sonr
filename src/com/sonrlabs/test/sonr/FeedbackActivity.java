@@ -41,40 +41,64 @@ public class FeedbackActivity extends Activity {
    private void sendFeedback()
    {
       Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);  
-      
-      String manufacturer = new String(Build.MANUFACTURER);
-      String model = new String(Build.MODEL);
-      String os = new String(Build.VERSION.RELEASE);
-      String deviceInfo = "Manufacturer: " + manufacturer +" " + "Model: " + model + "" + "OS: " + os;
-      
-      String form = new String();
-      
+    
+      StringBuilder form = new StringBuilder();
+      form.append("Feedback");
+      form.append('\n');
+      form.append("---");
+      form.append('\n');
+
       if(checkBox1.isChecked())
       {
-         form = form + checkBox1.getText().toString();
+         form.append(checkBox1.getText().toString());
+         form.append('\n');
       }
       
       if(checkBox2.isChecked())
       {
-         form = form + checkBox2.getText().toString();
+         form.append(checkBox2.getText().toString());
+         form.append('\n');
       }
       
       if(checkBox3.isChecked())
       {
-         form = form + checkBox3.getText().toString();
+         form.append(checkBox3.getText().toString());
+         form.append('\n');
       }
       
       if(checkBox4.isChecked())
       {
-         form = form + checkBox4.getText().toString();
+         form.append(checkBox4.getText().toString());
+         form.append('\n');
       }
       
-      String extraComments = "Extra Comments: " + additionalInfoEditText.getText().toString();
+      form.append("---");
+      form.append('\n');
+      form.append("Comments: " + additionalInfoEditText.getText().toString());
+      form.append('\n');
+      
+      form.append("---");
+      form.append('\n');
+      
+      form.append("Manufacturer: " + Build.MANUFACTURER).toString();
+      form.append('\n');
+
+      form.append("Model: " + Build.MODEL).toString();  
+      form.append('\n');
+
+      form.append("Android Version: " + Build.VERSION.RELEASE).toString();
+      form.append('\n');
+      
+      form.append("Hardware: " + Build.HARDWARE).toString();
+      form.append('\n');
+      
+      form.append("Radio: " + Build.RADIO).toString();
+      form.append('\n');
       
       String emailList[] = { "info@sonrlabs.com"};  
       emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, emailList);  
       emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "SONR Feedback");
-      emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, "Feedback: " + form + extraComments + deviceInfo);
+      emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, form.toString());
       emailIntent.setType("plain/text");    
         
       startActivity(emailIntent);

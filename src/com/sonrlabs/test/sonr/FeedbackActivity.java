@@ -10,8 +10,8 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageItemInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.ResolveInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
@@ -21,13 +21,14 @@ import android.widget.EditText;
 
 import com.sonrlabs.prod.sonr.R;
 
-public class FeedbackActivity extends Activity {
-   CheckBox checkBox1;
-   CheckBox checkBox2;
-   CheckBox checkBox3;
-   CheckBox checkBox4;
-   EditText additionalInfoEditText;
-   Button sendFeedbackButton;
+public class FeedbackActivity
+      extends Activity {
+   private CheckBox checkBox1;
+   private CheckBox checkBox2;
+   private CheckBox checkBox3;
+   private CheckBox checkBox4;
+   private EditText additionalInfoEditText;
+   private Button sendFeedbackButton;
 
    @Override
    public void onCreate(Bundle savedInstanceState) {
@@ -40,112 +41,114 @@ public class FeedbackActivity extends Activity {
       additionalInfoEditText = (EditText) findViewById(R.id.additionalnfoEditText);
       sendFeedbackButton = (Button) findViewById(R.id.sendFeedbackButton);
       sendFeedbackButton.setOnClickListener(new View.OnClickListener() {
+         @Override
          public void onClick(View v) {
-             sendFeedback();
+            startActivity(new FeedbackIntent());
          }
-     });
-   }
-   
-   private StringBuilder getInstalledApps(StringBuilder builder, PackageManager packageManager) {
-      Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
-      mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-      boolean first = true;
-      List<ResolveInfo> queryIntentActivities = packageManager.queryIntentActivities(mainIntent, 0);
-      for (ResolveInfo info : queryIntentActivities) {
-         PackageItemInfo activityInfo = info.activityInfo;
-         int flags = info.activityInfo.applicationInfo.flags;
-         boolean isSystemPackage = (flags & ApplicationInfo.FLAG_SYSTEM) !=0;
-         if (isSystemPackage) {
-            // ignore system packages
-            continue;
-         }
-         if (!first) {
-            builder.append(", ");
-         }
-         String name = activityInfo.name;
-         builder.append(name);
-         first = false;
-      }
-      return builder;
+      });
    }
 
-   
-   private void sendFeedback()
-   {
-      Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);  
-    
-      StringBuilder form = new StringBuilder();
-      form.append("Feedback");
-      form.append('\n');
-      form.append("---");
-      form.append('\n');
+   private final class FeedbackIntent
+         extends Intent {
 
-      if(checkBox1.isChecked())
-      {
-         form.append(checkBox1.getText());
-         form.append('\n');
+      FeedbackIntent() {
+         super(Intent.ACTION_SEND);
+         String emailList[] = {
+            "info@sonrlabs.com"
+         };
+         putExtra(EXTRA_EMAIL, emailList);
+         putExtra(EXTRA_SUBJECT, "SONR Feedback");
+         setType("plain/text");
+         StringBuilder builder = new StringBuilder();
+         constructFeedbackText(builder);
+         putExtra(Intent.EXTRA_TEXT, builder.toString());
       }
-      
-      if(checkBox2.isChecked())
-      {
-         form.append(checkBox2.getText());
-         form.append('\n');
-      }
-      
-      if(checkBox3.isChecked())
-      {
-         form.append(checkBox3.getText());
-         form.append('\n');
-      }
-      
-      if(checkBox4.isChecked())
-      {
-         form.append(checkBox4.getText());
-         form.append('\n');
-      }
-      
-      form.append("---");
-      form.append('\n');
-      form.append("Comments: ").append(additionalInfoEditText.getText());
-      form.append('\n');
-      
-      form.append("---");
-      form.append('\n');
-      
-      form.append("Manufacturer: ").append(Build.MANUFACTURER);
-      form.append('\n');
 
-      form.append("Model: ").append(Build.MODEL);  
-      form.append('\n');
-
-      form.append("Android Version: ").append(Build.VERSION.RELEASE).append(": Sdk: ").append(Build.VERSION.SDK_INT);
-      form.append('\n');
-      
-      form.append("Hardware: ").append(Build.HARDWARE);
-      form.append('\n');
-      
-      form.append("Radio: ").append( Build.RADIO);
-      form.append('\n');
-      
-      form.append("SONR: ");
-      PackageManager packageManager = getPackageManager();
-      try {
-         PackageInfo packageInfo = packageManager.getPackageInfo(getPackageName(), 0);
-         form.append(packageInfo.versionName);
-      } catch (NameNotFoundException e) {
-         form.append("Unable to determine version");
+      private StringBuilder getInstalledApps(StringBuilder builder, PackageManager packageManager) {
+         Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
+         mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+         boolean first = true;
+         List<ResolveInfo> queryIntentActivities = packageManager.queryIntentActivities(mainIntent, 0);
+         for (ResolveInfo info : queryIntentActivities) {
+            PackageItemInfo activityInfo = info.activityInfo;
+            int flags = info.activityInfo.applicationInfo.flags;
+            boolean isSystemPackage = (flags & ApplicationInfo.FLAG_SYSTEM) != 0;
+            if (isSystemPackage) {
+               // ignore system packages
+               continue;
+            }
+            if (!first) {
+               builder.append(", ");
+            }
+            String name = activityInfo.name;
+            builder.append(name);
+            first = false;
+         }
+         return builder;
       }
-      form.append('\n');
 
-      form.append("Installed Apps: ");
-      getInstalledApps(form, packageManager).append('\n');
-      
-      String emailList[] = { "info@sonrlabs.com"};  
-      emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, emailList);  
-      emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "SONR Feedback");
-      emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, form.toString());
-      emailIntent.setType("plain/text");    
-        
-      startActivity(emailIntent);
+      void constructFeedbackText(StringBuilder form) {
+         form.append("Feedback");
+         form.append('\n');
+         form.append("---");
+         form.append('\n');
+
+         if (checkBox1.isChecked()) {
+            form.append(checkBox1.getText());
+            form.append('\n');
+         }
+
+         if (checkBox2.isChecked()) {
+            form.append(checkBox2.getText());
+            form.append('\n');
+         }
+
+         if (checkBox3.isChecked()) {
+            form.append(checkBox3.getText());
+            form.append('\n');
+         }
+
+         if (checkBox4.isChecked()) {
+            form.append(checkBox4.getText());
+            form.append('\n');
+         }
+
+         form.append("---");
+         form.append('\n');
+         form.append("Comments: ").append(additionalInfoEditText.getText());
+         form.append('\n');
+
+         form.append("---");
+         form.append('\n');
+
+         form.append("Manufacturer: ").append(Build.MANUFACTURER);
+         form.append('\n');
+
+         form.append("Model: ").append(Build.MODEL);
+         form.append('\n');
+
+         form.append("Android Version: ").append(Build.VERSION.RELEASE).append(": Sdk: ").append(Build.VERSION.SDK_INT);
+         form.append('\n');
+
+         form.append("Hardware: ").append(Build.HARDWARE);
+         form.append('\n');
+
+         form.append("Radio: ").append(Build.RADIO);
+         form.append('\n');
+
+         form.append("SONR: ");
+         PackageManager packageManager = getPackageManager();
+         try {
+            PackageInfo packageInfo = packageManager.getPackageInfo(getPackageName(), 0);
+            form.append(packageInfo.versionName);
+         } catch (NameNotFoundException e) {
+            form.append("Unable to determine version");
+         }
+         form.append('\n');
+
+         form.append("Installed Apps: ");
+         getInstalledApps(form, packageManager).append('\n');
+      }
    }
+
 }

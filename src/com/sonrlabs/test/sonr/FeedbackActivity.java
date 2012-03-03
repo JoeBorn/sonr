@@ -52,7 +52,7 @@ public class FeedbackActivity
          extends Intent {
 
       FeedbackIntent() {
-         super(Intent.ACTION_SEND);
+         super(ACTION_SEND);
          String emailList[] = {
             "info@sonrlabs.com"
          };
@@ -61,12 +61,12 @@ public class FeedbackActivity
          setType("plain/text");
          StringBuilder builder = new StringBuilder();
          constructFeedbackText(builder);
-         putExtra(Intent.EXTRA_TEXT, builder.toString());
+         putExtra(EXTRA_TEXT, builder.toString());
       }
 
       private StringBuilder getInstalledApps(StringBuilder builder, PackageManager packageManager) {
-         Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
-         mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+         Intent mainIntent = new Intent(ACTION_MAIN, null);
+         mainIntent.addCategory(CATEGORY_LAUNCHER);
          boolean first = true;
          List<ResolveInfo> queryIntentActivities = packageManager.queryIntentActivities(mainIntent, 0);
          for (ResolveInfo info : queryIntentActivities) {

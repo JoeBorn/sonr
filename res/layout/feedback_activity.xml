@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Your feedback is very important to us"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <CheckBox
+        android:id="@+id/checkBox1"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Buttons don't respond well" />
+
+    <CheckBox
+        android:id="@+id/checkBox2"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Remote doesn't work" />
+
+    <CheckBox
+        android:id="@+id/checkBox3"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="App crashes" />
+
+    <CheckBox
+        android:id="@+id/checkBox4"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="I love SONR" />
+
+    <EditText
+        android:id="@+id/additionalnfoEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textMultiLine" >
+
+        <requestFocus />
+    </EditText>
+
+    <Button
+        android:id="@+id/sendFeedbackButton"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Send Feedback" />
+
+</LinearLayout>

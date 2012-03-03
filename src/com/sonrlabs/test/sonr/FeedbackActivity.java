@@ -2,8 +2,16 @@ package com.sonrlabs.test.sonr;
 
 //import org.acra.ErrorReporter;
 
+import java.util.List;
+
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageItemInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
@@ -37,6 +45,30 @@ public class FeedbackActivity extends Activity {
          }
      });
    }
+   
+   private StringBuilder getInstalledApps(StringBuilder builder, PackageManager packageManager) {
+      Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
+      mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+      boolean first = true;
+      List<ResolveInfo> queryIntentActivities = packageManager.queryIntentActivities(mainIntent, 0);
+      for (ResolveInfo info : queryIntentActivities) {
+         PackageItemInfo activityInfo = info.activityInfo;
+         int flags = info.activityInfo.applicationInfo.flags;
+         boolean isSystemPackage = (flags & ApplicationInfo.FLAG_SYSTEM) !=0;
+         if (isSystemPackage) {
+            // ignore system packages
+            continue;
+         }
+         if (!first) {
+            builder.append(", ");
+         }
+         String name = activityInfo.name;
+         builder.append(name);
+         first = false;
+      }
+      return builder;
+   }
+
    
    private void sendFeedback()
    {
@@ -94,6 +126,19 @@ public class FeedbackActivity extends Activity {
       
       form.append("Radio: " + Build.RADIO).toString();
       form.append('\n');
+      
+      form.append("SONR: ");
+      PackageManager packageManager = getPackageManager();
+      try {
+         PackageInfo packageInfo = packageManager.getPackageInfo(getPackageName(), 0);
+         form.append(packageInfo.versionName);
+      } catch (NameNotFoundException e) {
+         form.append("Unable to determine version");
+      }
+      form.append('\n');
+
+      form.append("Installed Apps: ");
+      getInstalledApps(form, packageManager).append('\n');
       
       String emailList[] = { "info@sonrlabs.com"};  
       emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, emailList);  

@@ -82,49 +82,49 @@ public class FeedbackActivity extends Activity {
 
       if(checkBox1.isChecked())
       {
-         form.append(checkBox1.getText().toString());
+         form.append(checkBox1.getText());
          form.append('\n');
       }
       
       if(checkBox2.isChecked())
       {
-         form.append(checkBox2.getText().toString());
+         form.append(checkBox2.getText());
          form.append('\n');
       }
       
       if(checkBox3.isChecked())
       {
-         form.append(checkBox3.getText().toString());
+         form.append(checkBox3.getText());
          form.append('\n');
       }
       
       if(checkBox4.isChecked())
       {
-         form.append(checkBox4.getText().toString());
+         form.append(checkBox4.getText());
          form.append('\n');
       }
       
       form.append("---");
       form.append('\n');
-      form.append("Comments: " + additionalInfoEditText.getText().toString());
+      form.append("Comments: ").append(additionalInfoEditText.getText());
       form.append('\n');
       
       form.append("---");
       form.append('\n');
       
-      form.append("Manufacturer: " + Build.MANUFACTURER).toString();
+      form.append("Manufacturer: ").append(Build.MANUFACTURER);
       form.append('\n');
 
-      form.append("Model: " + Build.MODEL).toString();  
+      form.append("Model: ").append(Build.MODEL);  
       form.append('\n');
 
-      form.append("Android Version: " + Build.VERSION.RELEASE).toString();
+      form.append("Android Version: ").append(Build.VERSION.RELEASE).append(": Sdk: ").append(Build.VERSION.SDK_INT);
       form.append('\n');
       
-      form.append("Hardware: " + Build.HARDWARE).toString();
+      form.append("Hardware: ").append(Build.HARDWARE);
       form.append('\n');
       
-      form.append("Radio: " + Build.RADIO).toString();
+      form.append("Radio: ").append( Build.RADIO);
       form.append('\n');
       
       form.append("SONR: ");

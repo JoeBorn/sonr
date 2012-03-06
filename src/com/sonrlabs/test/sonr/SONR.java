@@ -235,16 +235,6 @@ public class SONR extends ListActivity {
          consumeResult = true;
       }
       else if (R.id.feedbackOption == item.getItemId()) {
-         /*Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);  
-         
-         String emailList[] = { "info@sonrlabs.com", "joeborn@sonrlabs.com" };  
-         emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, emailList);  
-         emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "SONR Feedback");  
-         emailIntent.setType("plain/text");    
-           
-         startActivity(emailIntent);
-         */
-         
          Intent feedbackActivityIntent = new Intent(this, FeedbackActivity.class);
          startActivity(feedbackActivityIntent);
          consumeResult = true;

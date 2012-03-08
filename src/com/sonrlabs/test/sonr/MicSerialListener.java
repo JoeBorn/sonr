@@ -75,6 +75,7 @@ class MicSerialListener implements Runnable {
       if (inStream != null) {
          running = true;
          ISampleBuffer samples = bufferPool.getBuffer(bufferSize);
+         
          try {
             while (running) {
                // Log.d("SONR audio processor", "NEW RECORDING");
@@ -137,15 +138,19 @@ class MicSerialListener implements Runnable {
             
             while (!foundDock && SystemClock.elapsedRealtime() <= endTime) {
                int count = inStream.read(samples, 0, bufferSize);
+               
                if (count > 0) {
                   foundDock = dockDetector.findDock(samples, count);
                } else {
                   problem = true;
                   errorCode = count;
-                  //SonrLog.e ErrorReporter.getInstance().putCustomData(TAG, MIC_INPUT_UNAVAIL);
                }
-               
             }
+            
+            /*for(int i = 0; i < bufferSize; i++)
+            {
+               Log.d("MicSerialListener", Integer.toHexString(samples[i]));
+            }*/
             
             if (problem) {
                String errorMsg;
@@ -161,6 +166,7 @@ class MicSerialListener implements Runnable {
                      break;
                }
                SonrLog.e(TAG, errorMsg);
+              
                //SonrLog.e ErrorReporter.getInstance().putCustomData(TAG, errorMsg);
             }
          }

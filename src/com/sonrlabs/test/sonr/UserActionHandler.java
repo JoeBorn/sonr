@@ -3,13 +3,18 @@ package com.sonrlabs.test.sonr;
 //import org.acra.ErrorReporter;
 
 //import com.flurry.android.FlurryAgent;
+import java.util.List;
+
 import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.media.AudioManager;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.widget.Toast;
 
 import com.sonrlabs.prod.sonr.R;
 
@@ -147,8 +152,8 @@ class UserActionHandler {
                }
                lastMuteTime = SystemClock.elapsedRealtime();
                Log.d(TAG, "MUTE");
-               // FlurryAgent.logEvent("MUTE_PRESSED");
             }
+            
             break;
          case THUMBS_UP:
             Log.d(TAG, "THUMBS_UP");
@@ -214,6 +219,12 @@ class UserActionHandler {
          case SEARCH:
             Log.d(TAG, "SEARCH");
             key = SEARCH;
+            //if(isIntentAvailable(appContext, Intent.ACTION_VOICE_COMMAND))
+            //{
+               Intent voiceCommandIntent = new Intent(Intent.ACTION_VOICE_COMMAND);
+               voiceCommandIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+               appContext.startActivity(voiceCommandIntent);
+            //}
             break;
 
          case 0:
@@ -264,5 +275,26 @@ class UserActionHandler {
       } catch (SecurityException e) {
          // some other app is front, ignore.
       }
+   }
+   
+   /**
+    * Indicates whether the specified action can be used as an intent. This
+    * method queries the package manager for installed packages that can
+    * respond to an intent with the specified action. If no suitable package is
+    * found, this method returns false.
+    *
+    * @param context The application's environment.
+    * @param action The Intent action to check for availability.
+    *
+    * @return True if an Intent with the specified action can be sent and
+    *         responded to, false otherwise.
+    */
+   public static boolean isIntentAvailable(Context context, String action) {
+       final PackageManager packageManager = context.getPackageManager();
+       final Intent intent = new Intent(action);
+       List<ResolveInfo> list =
+               packageManager.queryIntentActivities(intent,
+                       PackageManager.MATCH_DEFAULT_ONLY);
+       return list.size() > 0;
    }
 }

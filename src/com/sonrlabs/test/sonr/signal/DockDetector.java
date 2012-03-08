@@ -6,6 +6,8 @@
 package com.sonrlabs.test.sonr.signal;
 
 
+import android.util.Log;
+
 import com.sonrlabs.test.sonr.SonrLog;
 
 /**
@@ -24,6 +26,8 @@ class DockDetector
       int startpos = SAMPLE_LENGTH;
       int sampleStartIndices[] = new int[SAMPLES_PER_BUFFER];
       while (startpos < count - 1 && Math.abs(samples[startpos] - samples[startpos + 1]) < THRESHOLD) {
+         //TODO: Log every sample, this should be commented out before production
+         //Log.d("DockDetector", Integer.toHexString(samples[startpos]));
          startpos++;
       }
 

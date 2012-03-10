@@ -3,13 +3,10 @@ package com.sonrlabs.test.sonr;
 //import org.acra.ErrorReporter;
 
 //import com.flurry.android.FlurryAgent;
-import java.util.List;
 
 import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.media.AudioManager;
 import android.os.SystemClock;
 import android.util.Log;

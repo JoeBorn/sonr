@@ -6,6 +6,7 @@
     <string name="PLAYER_SELECTED">PLAYER_SELECTED</string>
     <string name="FIRST_LAUNCH">FIRST_LAUNCH</string>
     <string name="DEFAULT_PLAYER_SELECTED">DEFAULT_PLAYER_SELECTED</string>
+     <string name="DEFAULT_PLAYER_PACKAGE_NAME">DEFAULT_PLAYER_PACKAGE_NAME</string>
     <string name="APP_PACKAGE_NAME">APP_PACKAGE_NAME</string>
     <string name="APP_FULL_NAME">APP_FULL_NAME</string>
     <string name="START_SONR_ACTIVITY">START_SONR_ACTIVITY</string>

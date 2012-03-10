@@ -31,6 +31,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
@@ -131,10 +132,25 @@ public class SONR extends ListActivity {
    
    @Override
    public boolean onContextItemSelected(MenuItem item) {
+      AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+    
        switch (item.getItemId()) {
-           case R.id.default_player:
-              Toast.makeText(getApplicationContext(), "TOASTY!", Toast.LENGTH_SHORT).show();
-               return true;
+           case R.id.makeDefaultPlayer:
+              Log.d("YELLO", "YO DID I GET HERE?");
+
+              ApplicationInfo ai = (ApplicationInfo) this.getListView().getAdapter().getItem(info.position);
+              List<ResolveInfo> rinfos = AppUtils.findActivitiesForPackage(this, ai.packageName);
+              
+              String defaultPlayerToastMessage = new String();
+              if (!rinfos.isEmpty()) {
+                 ResolveInfo ri = rinfos.get(0);
+
+                 Preferences.savePreference(this, getString(R.string.DEFAULT_PLAYER_PACKAGE_NAME), ri.activityInfo.packageName);
+                 defaultPlayerToastMessage = ri.activityInfo.name + " is now the default player";
+              }
+              
+             Toast.makeText(getApplicationContext(), defaultPlayerToastMessage, Toast.LENGTH_LONG).show();
+              return true;
            default:
                return super.onContextItemSelected(item);
        }

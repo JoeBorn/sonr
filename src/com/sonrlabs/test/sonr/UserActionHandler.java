@@ -288,12 +288,12 @@ class UserActionHandler {
     * @return True if an Intent with the specified action can be sent and
     *         responded to, false otherwise.
     */
-   public static boolean isIntentAvailable(Context context, String action) {
+   /*public static boolean isIntentAvailable(Context context, String action) {
        final PackageManager packageManager = context.getPackageManager();
        final Intent intent = new Intent(action);
        List<ResolveInfo> list =
                packageManager.queryIntentActivities(intent,
                        PackageManager.MATCH_DEFAULT_ONLY);
        return list.size() > 0;
-   }
+   }*/
 }

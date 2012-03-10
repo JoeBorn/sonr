@@ -14,7 +14,6 @@ import android.media.AudioManager;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.widget.Toast;
 
 import com.sonrlabs.prod.sonr.R;
 

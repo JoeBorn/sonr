@@ -6,7 +6,6 @@
 package com.sonrlabs.test.sonr.signal;
 
 
-import android.util.Log;
 
 import com.sonrlabs.test.sonr.SonrLog;
 

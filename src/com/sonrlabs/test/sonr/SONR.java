@@ -22,9 +22,12 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,7 +49,7 @@ public class SONR extends ListActivity {
    private ProgressDialog progressDialog;
    private boolean isRegistered;
    private int currentlySelectedApplicationInfoIndex;
-
+   
    private boolean mBound;
    private Messenger mService;
 
@@ -64,6 +67,8 @@ public class SONR extends ListActivity {
    protected void onCreate(Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
       setContentView(R.layout.music_select_main);
+      
+      registerForContextMenu(this.getListView());
 
       if (progressDialog == null) {
          progressDialog = new ProgressDialog(this);
@@ -117,6 +122,25 @@ public class SONR extends ListActivity {
    }
 
    @Override
+   public void onCreateContextMenu(ContextMenu menu, View v,
+                                   ContextMenuInfo menuInfo) {
+       super.onCreateContextMenu(menu, v, menuInfo);
+       MenuInflater inflater = getMenuInflater();
+       inflater.inflate(R.menu.context_menu, menu);
+   }
+   
+   @Override
+   public boolean onContextItemSelected(MenuItem item) {
+       switch (item.getItemId()) {
+           case R.id.default_player:
+              Toast.makeText(getApplicationContext(), "TOASTY!", Toast.LENGTH_SHORT).show();
+               return true;
+           default:
+               return super.onContextItemSelected(item);
+       }
+   }
+   
+   @Override
    protected void onListItemClick(ListView listView, View clickedView, int position, long id) {
       super.onListItemClick(listView, clickedView, position, id);
 
@@ -154,7 +178,7 @@ public class SONR extends ListActivity {
          }
       }
    }
-
+   
    @Override
    protected void onStart() {
       super.onStart();

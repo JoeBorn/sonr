@@ -106,7 +106,7 @@ public class ToggleSONR extends Service {
    private Messenger mMessenger;
    private Looper mServiceLooper;
 
-   private SONRClient mClient;
+   private static SONRClient mClient;
 
    private Notification mNotification;
 
@@ -322,7 +322,7 @@ public class ToggleSONR extends Service {
       
    }
 
-   private void cleanUpClient() {
+   static void cleanUpClient() {
       if (mClient != null) {
          SonrLog.d(TAG, "releasing client");
          mClient.onDestroy();

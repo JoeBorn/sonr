@@ -44,6 +44,7 @@ import com.sonrlabs.prod.sonr.R;
 public class SONR extends ListActivity {
 
    static final String DISCONNECT_ACTION = "android.intent.action.DISCONNECT_DOCK";
+   static final String VOICE_COMMAND_ACTION = "android.intent.action.VOICE_COMMAND";
    static final String TAG = SONR.class.getSimpleName();
    static final int USER_HAD_SEEN_INTRO_SCREEN = 0; 
 
@@ -136,8 +137,6 @@ public class SONR extends ListActivity {
     
        switch (item.getItemId()) {
            case R.id.makeDefaultPlayer:
-              Log.d("YELLO", "YO DID I GET HERE?");
-
               ApplicationInfo ai = (ApplicationInfo) this.getListView().getAdapter().getItem(info.position);
               List<ResolveInfo> rinfos = AppUtils.findActivitiesForPackage(this, ai.packageName);
               
@@ -209,6 +208,8 @@ public class SONR extends ListActivity {
          if (!isRegistered) {
             registerReceiver(stopReceiver, new IntentFilter(DISCONNECT_ACTION));
             isRegistered = true;
+            
+            registerReceiver(voiceCommandReceiver, new IntentFilter(VOICE_COMMAND_ACTION));
          }
 
          completeStartUp();
@@ -346,6 +347,17 @@ public class SONR extends ListActivity {
       public void onReceive(Context context, Intent intent) {
          if (intent != null && DISCONNECT_ACTION.equals(intent.getAction())) {
             finish();
+         }
+      }
+   };
+   
+   private final BroadcastReceiver voiceCommandReceiver = new BroadcastReceiver() {
+      @Override
+      public void onReceive(Context context, Intent intent) {
+         if (intent != null && Intent.ACTION_VOICE_COMMAND.equals(intent.getAction())) {
+            ToggleSONR.cleanUpClient();
+            context.startActivity(intent);
+            SonrLog.d(TAG, "VOICE COMMAND RECEIVED!");
          }
       }
    };

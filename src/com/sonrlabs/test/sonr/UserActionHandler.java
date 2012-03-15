@@ -4,10 +4,14 @@ package com.sonrlabs.test.sonr;
 
 //import com.flurry.android.FlurryAgent;
 
+import java.lang.reflect.Method;
+
 import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
+import android.media.AudioManager.OnAudioFocusChangeListener;
+import android.os.Build;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -60,8 +64,7 @@ class UserActionHandler {
    private long lastBackTime = 0;
    private int volume = -1;
    private boolean muted = false;
-
-
+   
    UserActionHandler(Context appContext) {
       SonrLog.d(TAG, "RemoteListener started");
       this.manager = (AudioManager) appContext.getSystemService(Context.AUDIO_SERVICE);
@@ -133,7 +136,7 @@ class UserActionHandler {
             }
             break;
          case MUTE:
-            if (lastMuteTime < SystemClock.elapsedRealtime() - REPEAT_TIME) {
+            /*if (lastMuteTime < SystemClock.elapsedRealtime() - REPEAT_TIME) {
                if (muted) {
                   int defaultLevel = manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 2;
                   volume = Preferences.getPreference(appContext, CURRENT_VOLUME, defaultLevel); 
@@ -148,7 +151,25 @@ class UserActionHandler {
                }
                lastMuteTime = SystemClock.elapsedRealtime();
                Log.d(TAG, "MUTE");
-            }
+            }*/
+            
+            /*manager.abandonAudioFocus(new OnAudioFocusChangeListener() {
+               public void onAudioFocusChange(int focusChange) {
+                  if (focusChange == AudioManager.AUDIOFOCUS_GAIN){
+                     //playback stuff
+                  }
+                  else if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
+                     manager.abandonAudioFocus(this);
+                     // Stop playback
+                 }
+               }
+             });*/
+            
+            Intent voiceCommandIntent = new Intent(Intent.ACTION_VOICE_COMMAND);
+            voiceCommandIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            appContext.sendOrderedBroadcast(voiceCommandIntent, null);
+            SonrLog.d(TAG, "broadcasting vc intent");
+            //appContext.startActivity(voiceCommandIntent);
             
             break;
          case THUMBS_UP:
@@ -215,12 +236,19 @@ class UserActionHandler {
          case SEARCH:
             Log.d(TAG, "SEARCH");
             key = SEARCH;
-            //if(isIntentAvailable(appContext, Intent.ACTION_VOICE_COMMAND))
-            //{
-               Intent voiceCommandIntent = new Intent(Intent.ACTION_VOICE_COMMAND);
-               voiceCommandIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-               appContext.startActivity(voiceCommandIntent);
-            //}
+            
+            /*manager.abandonAudioFocus(new OnAudioFocusChangeListener() {
+               public void onAudioFocusChange(int focusChange) {
+                  if (focusChange == AudioManager.AUDIOFOCUS_GAIN)
+                  {
+                     //playback stuff
+                  }
+               }
+             });
+            
+            Intent voiceCommandIntent = new Intent(Intent.ACTION_VOICE_COMMAND);
+            voiceCommandIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            appContext.startActivity(voiceCommandIntent);*/
             break;
 
          case 0:
@@ -274,23 +302,21 @@ class UserActionHandler {
    }
    
    /**
-    * Indicates whether the specified action can be used as an intent. This
-    * method queries the package manager for installed packages that can
-    * respond to an intent with the specified action. If no suitable package is
-    * found, this method returns false.
-    *
-    * @param context The application's environment.
-    * @param action The Intent action to check for availability.
-    *
-    * @return True if an Intent with the specified action can be sent and
-    *         responded to, false otherwise.
+    * set device connection state through reflection for Android 2.1, 2.2, 2.3,
+    * maybe others. Thanks Adam King!
+    * 
+    * @param device
+    * @param state
+    * @param address
     */
-   /*public static boolean isIntentAvailable(Context context, String action) {
-       final PackageManager packageManager = context.getPackageManager();
-       final Intent intent = new Intent(action);
-       List<ResolveInfo> list =
-               packageManager.queryIntentActivities(intent,
-                       PackageManager.MATCH_DEFAULT_ONLY);
-       return list.size() > 0;
-   }*/
+   static void setDeviceConnectionState(final int device, final int state, final String address) {
+      try {
+         Class<?> audioSystem = Class.forName("android.media.AudioSystem");
+         Method setDeviceConnectionState = audioSystem.getMethod("setDeviceConnectionState", int.class, int.class, String.class);
+
+         setDeviceConnectionState.invoke(audioSystem, device, state, address);
+      } catch (Exception e) {
+         SonrLog.e(TAG, "setDeviceConnectionState failed: " + e);
+      } 
+   }
 }

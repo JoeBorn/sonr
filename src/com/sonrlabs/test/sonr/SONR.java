@@ -92,6 +92,7 @@ public class SONR extends ListActivity {
    @Override
    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
       super.onActivityResult(requestCode, resultCode, data);
+
       switch (requestCode) {
          case USER_HAD_SEEN_INTRO_SCREEN:
             if (resultCode == Activity.RESULT_OK) {
@@ -99,6 +100,9 @@ public class SONR extends ListActivity {
                Preferences.savePreference(this, getString(R.string.FIRST_LAUNCH), false);
                completeStartUp();
             }
+            break;
+         case VOICE_RECOGNITION_REQUEST_CODE:
+               //reconnectSONR();
             break;
          default:
             break;
@@ -246,6 +250,17 @@ public class SONR extends ListActivity {
       connectDock.putExtra("microphone", 0);
       this.sendBroadcast(connectDock);
    }
+   
+   private void disconnectSONR()
+   {
+      //Disconnect the Dock
+      Intent disconnectDock = new Intent(Intent.ACTION_HEADSET_PLUG);
+      disconnectDock.putExtra("state", 0);
+      disconnectDock.putExtra("name", "fake headset disconnect");
+      disconnectDock.putExtra("microphone", 0);
+      this.sendOrderedBroadcast(disconnectDock, null);
+   }
+   
    @Override
    protected void onStop() {
       SonrLog.d(TAG, "onStop()");
@@ -385,14 +400,9 @@ public class SONR extends ListActivity {
          if (intent != null && Intent.ACTION_VOICE_COMMAND.equals(intent.getAction())) { 
             SonrLog.d(TAG, "VOICE COMMAND RECEIVED!");
             
-            //Disconnect the Dock
-            Intent disconnectDock = new Intent(Intent.ACTION_HEADSET_PLUG);
-            disconnectDock.putExtra("state", 0);
-            disconnectDock.putExtra("name", "fake headset disconnect");
-            disconnectDock.putExtra("microphone", 0);
+            disconnectSONR();
             
             //Start Voice Command
-            context.sendOrderedBroadcast(disconnectDock, null);
             context.startActivity(intent);
          }
       }
@@ -404,28 +414,9 @@ public class SONR extends ListActivity {
          if (intent != null && SPEECH_RECOGNIZER_ACTION.equals(intent.getAction())) {
             SonrLog.d(TAG, "SPEECH RECOGNIZER COMMAND RECEIVED!");
             
-            //Disconnect the Dock
-            Intent disconnectDock = new Intent(Intent.ACTION_HEADSET_PLUG);
-            disconnectDock.putExtra("state", 0);
-            disconnectDock.putExtra("name", "fake headset disconnect");
-            disconnectDock.putExtra("microphone", 0);
-            context.sendOrderedBroadcast(disconnectDock, null);
-            
-            //Launch Speech Recognizer
-            /*
-            Intent speechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-            speechRecognizerIntent.putExtra("EXTRA_LANGUAGE_MODEL", RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, speechRecognizerIntent, Intent.FLAG_ACTIVITY_NEW_TASK);
-            
-            try {
-               pendingIntent.send();
-            } catch (CanceledException e) {
-               throw new RuntimeException(e);
-            }
-            */
-            
-            startVoiceRecognitionActivity();
+            disconnectSONR();
 
+            startVoiceRecognitionActivity();
          }
       }
    };
@@ -440,7 +431,7 @@ public class SONR extends ListActivity {
        intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getClass().getPackage().getName());
 
        // Display an hint to the user about what he should say.
-       intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speech recognition demo");
+       intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Play Lyle Lovett");
 
        // Given an hint to the recognizer about what the user is going to say
        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,

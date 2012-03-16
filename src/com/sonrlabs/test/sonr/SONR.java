@@ -387,7 +387,7 @@ public class SONR extends ListActivity {
             Intent disconnectDock = new Intent(Intent.ACTION_HEADSET_PLUG);
             disconnectDock.putExtra("state", 0);
             disconnectDock.putExtra("name", "fake headset disconnect");
-            disconnectDock.putExtra("microphone", 1);
+            disconnectDock.putExtra("microphone", 0);
             
             //Start Voice Command
             context.sendOrderedBroadcast(disconnectDock, null);
@@ -406,7 +406,7 @@ public class SONR extends ListActivity {
             Intent disconnectDock = new Intent(Intent.ACTION_HEADSET_PLUG);
             disconnectDock.putExtra("state", 0);
             disconnectDock.putExtra("name", "fake headset disconnect");
-            disconnectDock.putExtra("microphone", 1);
+            disconnectDock.putExtra("microphone", 0);
             context.sendOrderedBroadcast(disconnectDock, null);
             
             //Launch Speech Recognizer

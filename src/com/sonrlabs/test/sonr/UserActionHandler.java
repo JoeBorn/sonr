@@ -156,7 +156,9 @@ class UserActionHandler {
             speechRecognizerIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             appContext.sendOrderedBroadcast(speechRecognizerIntent, null);
             */
+            
             SonrLog.d(TAG, "broadcasting speech recognizer");
+            
             Intent voiceCommandIntent = new Intent(Intent.ACTION_VOICE_COMMAND);
             voiceCommandIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             appContext.sendOrderedBroadcast(voiceCommandIntent, null);

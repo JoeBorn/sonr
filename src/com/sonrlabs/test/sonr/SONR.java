@@ -15,6 +15,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.media.AudioManager;
+import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -51,7 +52,7 @@ public class SONR extends ListActivity {
    private ProgressDialog progressDialog;
    private boolean isRegistered;
    private int currentlySelectedApplicationInfoIndex;
-   
+
    private boolean mBound;
    private Messenger mService;
 
@@ -69,7 +70,7 @@ public class SONR extends ListActivity {
    protected void onCreate(Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
       setContentView(R.layout.music_select_main);
-      
+
       registerForContextMenu(this.getListView());
 
       if (progressDialog == null) {
@@ -126,35 +127,35 @@ public class SONR extends ListActivity {
    @Override
    public void onCreateContextMenu(ContextMenu menu, View v,
                                    ContextMenuInfo menuInfo) {
-       super.onCreateContextMenu(menu, v, menuInfo);
-       MenuInflater inflater = getMenuInflater();
-       inflater.inflate(R.menu.context_menu, menu);
+      super.onCreateContextMenu(menu, v, menuInfo);
+      MenuInflater inflater = getMenuInflater();
+      inflater.inflate(R.menu.context_menu, menu);
    }
-   
+
    @Override
    public boolean onContextItemSelected(MenuItem item) {
       AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-    
-       switch (item.getItemId()) {
-           case R.id.makeDefaultPlayer:
-              ApplicationInfo ai = (ApplicationInfo) this.getListView().getAdapter().getItem(info.position);
-              List<ResolveInfo> rinfos = AppUtils.findActivitiesForPackage(this, ai.packageName);
-              
-              String defaultPlayerToastMessage = new String();
-              if (!rinfos.isEmpty()) {
-                 ResolveInfo ri = rinfos.get(0);
 
-                 Preferences.savePreference(this, getString(R.string.DEFAULT_PLAYER_PACKAGE_NAME), ri.activityInfo.packageName);
-                 defaultPlayerToastMessage = ri.activityInfo.name + " is now the default player";
-              }
-              
-             Toast.makeText(getApplicationContext(), defaultPlayerToastMessage, Toast.LENGTH_LONG).show();
-              return true;
-           default:
-               return super.onContextItemSelected(item);
-       }
+      switch (item.getItemId()) {
+         case R.id.makeDefaultPlayer:
+            ApplicationInfo ai = (ApplicationInfo) this.getListView().getAdapter().getItem(info.position);
+            List<ResolveInfo> rinfos = AppUtils.findActivitiesForPackage(this, ai.packageName);
+
+            String defaultPlayerToastMessage = new String();
+            if (!rinfos.isEmpty()) {
+               ResolveInfo ri = rinfos.get(0);
+
+               Preferences.savePreference(this, getString(R.string.DEFAULT_PLAYER_PACKAGE_NAME), ri.activityInfo.packageName);
+               defaultPlayerToastMessage = ri.activityInfo.name + " is now the default player";
+            }
+
+            Toast.makeText(getApplicationContext(), defaultPlayerToastMessage, Toast.LENGTH_LONG).show();
+            return true;
+         default:
+            return super.onContextItemSelected(item);
+      }
    }
-   
+
    @Override
    protected void onListItemClick(ListView listView, View clickedView, int position, long id) {
       super.onListItemClick(listView, clickedView, position, id);
@@ -193,7 +194,7 @@ public class SONR extends ListActivity {
          }
       }
    }
-   
+
    @Override
    protected void onStart() {
       super.onStart();
@@ -208,8 +209,20 @@ public class SONR extends ListActivity {
          if (!isRegistered) {
             registerReceiver(stopReceiver, new IntentFilter(DISCONNECT_ACTION));
             isRegistered = true;
-            
+
             registerReceiver(voiceCommandReceiver, new IntentFilter(VOICE_COMMAND_ACTION));
+
+            AudioManager manager = (AudioManager)this.getSystemService(Context.AUDIO_SERVICE);
+            OnAudioFocusChangeListener afChangeListener = new OnAudioFocusChangeListener() {
+               public void onAudioFocusChange(int focusChange) {
+                  if (focusChange == AudioManager.AUDIOFOCUS_GAIN){
+                     SonrLog.d(TAG, "voice command finished");
+                     reconnectSONR();  
+                  }
+               }
+            };
+            
+            manager.requestAudioFocus(afChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
          }
 
          completeStartUp();
@@ -217,7 +230,14 @@ public class SONR extends ListActivity {
 
       //FlurryAgent.onStartSession(this, "NNCR41GZ52ZYBXPZPTGT");
    }
-
+   
+   private void reconnectSONR(){
+      Intent connectDock = new Intent(Intent.ACTION_HEADSET_PLUG);
+      connectDock.putExtra("state", 1);
+      connectDock.putExtra("name", "fake headset connect");
+      connectDock.putExtra("microphone", 0);
+      this.sendBroadcast(connectDock);
+   }
    @Override
    protected void onStop() {
       SonrLog.d(TAG, "onStop()");
@@ -350,12 +370,12 @@ public class SONR extends ListActivity {
          }
       }
    };
-   
+
    private final BroadcastReceiver voiceCommandReceiver = new BroadcastReceiver() {
       @Override
       public void onReceive(Context context, Intent intent) {
          if (intent != null && Intent.ACTION_VOICE_COMMAND.equals(intent.getAction())) {
-            Intent disconnectDock = new Intent(DISCONNECT_ACTION);
+            Intent disconnectDock = new Intent(Intent.ACTION_HEADSET_PLUG);
             disconnectDock.putExtra("state", 0);
             disconnectDock.putExtra("name", "fake headset disconnect");
             disconnectDock.putExtra("microphone", 1);
@@ -363,19 +383,6 @@ public class SONR extends ListActivity {
             context.sendOrderedBroadcast(disconnectDock, null);
             context.startActivity(intent);
             SonrLog.d(TAG, "VOICE COMMAND RECEIVED!");
-            
-            /*try {
-               Thread.sleep(10000);
-            } catch (InterruptedException e) {
-               // TODO Auto-generated catch block
-               throw new RuntimeException(e);
-            }
-            
-            Intent connectDock = new Intent(DISCONNECT_ACTION);
-            connectDock.putExtra("state", 1);
-            connectDock.putExtra("name", "fake headset connect");
-            connectDock.putExtra("microphone", 0);*/
-            
          }
       }
    };

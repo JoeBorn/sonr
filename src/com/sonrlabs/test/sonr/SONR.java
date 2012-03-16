@@ -4,6 +4,8 @@ import java.util.List;
 
 import android.app.Activity;
 import android.app.ListActivity;
+import android.app.PendingIntent;
+import android.app.PendingIntent.CanceledException;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -22,6 +24,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.speech.RecognizerIntent;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -46,6 +49,7 @@ public class SONR extends ListActivity {
 
    static final String DISCONNECT_ACTION = "android.intent.action.DISCONNECT_DOCK";
    static final String VOICE_COMMAND_ACTION = "android.intent.action.VOICE_COMMAND";
+   static final String SPEECH_RECOGNIZER_ACTION = "android.intent.action.SPEECH_RECOGNIZER";
    static final String TAG = SONR.class.getSimpleName();
    static final int USER_HAD_SEEN_INTRO_SCREEN = 0; 
 
@@ -211,6 +215,8 @@ public class SONR extends ListActivity {
             isRegistered = true;
 
             registerReceiver(voiceCommandReceiver, new IntentFilter(VOICE_COMMAND_ACTION));
+            registerReceiver(speechRecognizerReceiver, new IntentFilter(SPEECH_RECOGNIZER_ACTION));
+
 
             AudioManager manager = (AudioManager)this.getSystemService(Context.AUDIO_SERVICE);
             OnAudioFocusChangeListener afChangeListener = new OnAudioFocusChangeListener() {
@@ -374,15 +380,45 @@ public class SONR extends ListActivity {
    private final BroadcastReceiver voiceCommandReceiver = new BroadcastReceiver() {
       @Override
       public void onReceive(Context context, Intent intent) {
-         if (intent != null && Intent.ACTION_VOICE_COMMAND.equals(intent.getAction())) {
+         if (intent != null && Intent.ACTION_VOICE_COMMAND.equals(intent.getAction())) { 
+            SonrLog.d(TAG, "VOICE COMMAND RECEIVED!");
+            
+            //Disconnect the Dock
             Intent disconnectDock = new Intent(Intent.ACTION_HEADSET_PLUG);
             disconnectDock.putExtra("state", 0);
             disconnectDock.putExtra("name", "fake headset disconnect");
             disconnectDock.putExtra("microphone", 1);
-
+            
+            //Start Voice Command
             context.sendOrderedBroadcast(disconnectDock, null);
             context.startActivity(intent);
-            SonrLog.d(TAG, "VOICE COMMAND RECEIVED!");
+         }
+      }
+   };
+   
+   private final BroadcastReceiver speechRecognizerReceiver = new BroadcastReceiver() {
+      @Override
+      public void onReceive(Context context, Intent intent) {
+         if (intent != null && SPEECH_RECOGNIZER_ACTION.equals(intent.getAction())) {
+            SonrLog.d(TAG, "SPEECH RECOGNIZER COMMAND RECEIVED!");
+            
+            //Disconnect the Dock
+            Intent disconnectDock = new Intent(Intent.ACTION_HEADSET_PLUG);
+            disconnectDock.putExtra("state", 0);
+            disconnectDock.putExtra("name", "fake headset disconnect");
+            disconnectDock.putExtra("microphone", 1);
+            context.sendOrderedBroadcast(disconnectDock, null);
+            
+            //Launch Speech Recognizer
+            Intent speechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            speechRecognizerIntent.putExtra("EXTRA_LANGUAGE_MODEL", RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, speechRecognizerIntent, Intent.FLAG_ACTIVITY_NEW_TASK);
+            
+            try {
+               pendingIntent.send();
+            } catch (CanceledException e) {
+               throw new RuntimeException(e);
+            }
          }
       }
    };

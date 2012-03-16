@@ -10,8 +10,6 @@ import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
-import android.media.AudioManager.OnAudioFocusChangeListener;
-import android.os.Build;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -153,11 +151,17 @@ class UserActionHandler {
                Log.d(TAG, "MUTE");
             }*/
             
+            /*
+            Intent speechRecognizerIntent = new Intent("android.intent.action.SPEECH_RECOGNIZER");
+            speechRecognizerIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            appContext.sendOrderedBroadcast(speechRecognizerIntent, null);
+            */
+            SonrLog.d(TAG, "broadcasting speech recognizer");
             Intent voiceCommandIntent = new Intent(Intent.ACTION_VOICE_COMMAND);
             voiceCommandIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             appContext.sendOrderedBroadcast(voiceCommandIntent, null);
-            SonrLog.d(TAG, "broadcasting vc intent");
             
+           
             break;
          case THUMBS_UP:
             Log.d(TAG, "THUMBS_UP");
@@ -223,20 +227,7 @@ class UserActionHandler {
          case SEARCH:
             Log.d(TAG, "SEARCH");
             key = SEARCH;
-            
-            /*manager.abandonAudioFocus(new OnAudioFocusChangeListener() {
-               public void onAudioFocusChange(int focusChange) {
-                  if (focusChange == AudioManager.AUDIOFOCUS_GAIN)
-                  {
-                     //playback stuff
-                  }
-               }
-             });*/
-            
-            /*Intent voiceCommandIntent = new Intent(Intent.ACTION_VOICE_COMMAND);
-            voiceCommandIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            appContext.sendOrderedBroadcast(voiceCommandIntent, null);
-            SonrLog.d(TAG, "broadcasting vc intent");*/
+     
             break;
 
          case 0:

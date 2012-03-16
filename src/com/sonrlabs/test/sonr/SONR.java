@@ -355,9 +355,27 @@ public class SONR extends ListActivity {
       @Override
       public void onReceive(Context context, Intent intent) {
          if (intent != null && Intent.ACTION_VOICE_COMMAND.equals(intent.getAction())) {
-            ToggleSONR.cleanUpClient();
+            Intent disconnectDock = new Intent(DISCONNECT_ACTION);
+            disconnectDock.putExtra("state", 0);
+            disconnectDock.putExtra("name", "fake headset disconnect");
+            disconnectDock.putExtra("microphone", 1);
+
+            context.sendOrderedBroadcast(disconnectDock, null);
             context.startActivity(intent);
             SonrLog.d(TAG, "VOICE COMMAND RECEIVED!");
+            
+            /*try {
+               Thread.sleep(10000);
+            } catch (InterruptedException e) {
+               // TODO Auto-generated catch block
+               throw new RuntimeException(e);
+            }
+            
+            Intent connectDock = new Intent(DISCONNECT_ACTION);
+            connectDock.putExtra("state", 1);
+            connectDock.putExtra("name", "fake headset connect");
+            connectDock.putExtra("microphone", 0);*/
+            
          }
       }
    };

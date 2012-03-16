@@ -136,7 +136,7 @@ class UserActionHandler {
             }
             break;
          case MUTE:
-            /*if (lastMuteTime < SystemClock.elapsedRealtime() - REPEAT_TIME) {
+            if (lastMuteTime < SystemClock.elapsedRealtime() - REPEAT_TIME) {
                if (muted) {
                   int defaultLevel = manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 2;
                   volume = Preferences.getPreference(appContext, CURRENT_VOLUME, defaultLevel); 
@@ -151,7 +151,7 @@ class UserActionHandler {
                }
                lastMuteTime = SystemClock.elapsedRealtime();
                Log.d(TAG, "MUTE");
-            }*/
+            }
             
             /*manager.abandonAudioFocus(new OnAudioFocusChangeListener() {
                public void onAudioFocusChange(int focusChange) {
@@ -164,13 +164,6 @@ class UserActionHandler {
                  }
                }
              });*/
-            
-            Intent voiceCommandIntent = new Intent(Intent.ACTION_VOICE_COMMAND);
-            voiceCommandIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            appContext.sendOrderedBroadcast(voiceCommandIntent, null);
-            SonrLog.d(TAG, "broadcasting vc intent");
-            //appContext.startActivity(voiceCommandIntent);
-            
             break;
          case THUMBS_UP:
             Log.d(TAG, "THUMBS_UP");
@@ -244,11 +237,12 @@ class UserActionHandler {
                      //playback stuff
                   }
                }
-             });
+             });*/
             
             Intent voiceCommandIntent = new Intent(Intent.ACTION_VOICE_COMMAND);
             voiceCommandIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            appContext.startActivity(voiceCommandIntent);*/
+            appContext.sendOrderedBroadcast(voiceCommandIntent, null);
+            SonrLog.d(TAG, "broadcasting vc intent");
             break;
 
          case 0:

@@ -102,7 +102,7 @@ public class SONR extends ListActivity {
             }
             break;
          case VOICE_RECOGNITION_REQUEST_CODE:
-               //reconnectSONR();
+               reconnectSONR();
             break;
          default:
             break;

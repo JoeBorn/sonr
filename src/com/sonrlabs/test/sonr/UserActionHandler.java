@@ -5,14 +5,19 @@ package com.sonrlabs.test.sonr;
 //import com.flurry.android.FlurryAgent;
 
 import java.lang.reflect.Method;
+import java.util.List;
 
 import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.media.AudioManager;
 import android.os.SystemClock;
+import android.speech.RecognizerIntent;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.widget.Toast;
 
 import com.sonrlabs.prod.sonr.R;
 
@@ -151,10 +156,19 @@ class UserActionHandler {
                Log.d(TAG, "MUTE");
             }*/
             
+            PackageManager pm = appContext.getPackageManager();
+            List<ResolveInfo> activities = pm.queryIntentActivities(new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH), 0);
+            if (activities.size() != 0) {
+               SonrLog.d(TAG, "VR SUPPORTED YAHOO!");
+               Intent speechRecognizerIntent = new Intent("android.intent.action.SPEECH_RECOGNIZER");
+               speechRecognizerIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+               appContext.sendOrderedBroadcast(speechRecognizerIntent, null);
+            } else {
+                SonrLog.e(TAG, "VR NOT SUPPORTED!");
+                Toast.makeText(appContext, "Voice Recognition Not Supported!", Toast.LENGTH_LONG).show();
+            }
             
-            Intent speechRecognizerIntent = new Intent("android.intent.action.SPEECH_RECOGNIZER");
-            speechRecognizerIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            appContext.sendOrderedBroadcast(speechRecognizerIntent, null);
+            
             
             
             SonrLog.d(TAG, "broadcasting speech recognizer");

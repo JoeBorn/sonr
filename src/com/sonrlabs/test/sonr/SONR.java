@@ -50,6 +50,8 @@ public class SONR extends ListActivity {
    static final String DISCONNECT_ACTION = "android.intent.action.DISCONNECT_DOCK";
    static final String VOICE_COMMAND_ACTION = "android.intent.action.VOICE_COMMAND";
    static final String SPEECH_RECOGNIZER_ACTION = "android.intent.action.SPEECH_RECOGNIZER";
+   private static final int VOICE_RECOGNITION_REQUEST_CODE = 1234;
+
    static final String TAG = SONR.class.getSimpleName();
    static final int USER_HAD_SEEN_INTRO_SCREEN = 0; 
 
@@ -410,6 +412,7 @@ public class SONR extends ListActivity {
             context.sendOrderedBroadcast(disconnectDock, null);
             
             //Launch Speech Recognizer
+            /*
             Intent speechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
             speechRecognizerIntent.putExtra("EXTRA_LANGUAGE_MODEL", RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
             PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, speechRecognizerIntent, Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -419,9 +422,36 @@ public class SONR extends ListActivity {
             } catch (CanceledException e) {
                throw new RuntimeException(e);
             }
+            */
+            
+            startVoiceRecognitionActivity();
+
          }
       }
    };
+   
+   /**
+    * Fire an intent to start the speech recognition activity.
+    */
+   private void startVoiceRecognitionActivity() {
+       Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+
+       // Specify the calling package to identify your application
+       intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getClass().getPackage().getName());
+
+       // Display an hint to the user about what he should say.
+       intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speech recognition demo");
+
+       // Given an hint to the recognizer about what the user is going to say
+       intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+               RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+
+       // Specify how many results you want to receive. The results will be sorted
+       // where the first result is the one with higher confidence.
+       intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5);
+
+       startActivityForResult(intent, VOICE_RECOGNITION_REQUEST_CODE);
+   }
 
    private ServiceConnection mConnection = new ServiceConnection() {
       @Override

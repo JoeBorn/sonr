@@ -50,7 +50,9 @@ public class SONR extends ListActivity {
    static final String DISCONNECT_ACTION = "android.intent.action.DISCONNECT_DOCK";
    static final String VOICE_COMMAND_ACTION = "android.intent.action.VOICE_COMMAND";
    static final String SPEECH_RECOGNIZER_ACTION = "android.intent.action.SPEECH_RECOGNIZER";
+   static final String GOOGLE_VOICE_SEARCH_PACKAGE_NAME = "com.google.android.voicesearch";
    private static final int VOICE_RECOGNITION_REQUEST_CODE = 1234;
+   private static final int GOOGLE_VOICE_SEARCH_REQUEST_CODE = 1235;
 
    static final String TAG = SONR.class.getSimpleName();
    static final int USER_HAD_SEEN_INTRO_SCREEN = 0; 
@@ -104,6 +106,9 @@ public class SONR extends ListActivity {
          case VOICE_RECOGNITION_REQUEST_CODE:
                reconnectSONR();
             break;
+         case GOOGLE_VOICE_SEARCH_REQUEST_CODE:
+            reconnectSONR();
+         break;
          default:
             break;
       }
@@ -228,9 +233,12 @@ public class SONR extends ListActivity {
             OnAudioFocusChangeListener afChangeListener = new OnAudioFocusChangeListener() {
                public void onAudioFocusChange(int focusChange) {
                   if (focusChange == AudioManager.AUDIOFOCUS_GAIN){
-                     SonrLog.d(TAG, "voice command finished");
+                     SonrLog.d(TAG, "audio focus gain");
                      reconnectSONR();  
                   }
+                  else if (focusChange == AudioManager.AUDIOFOCUS_LOSS){
+                     Log.d("TAG", "audio focus loss");
+                 }
                }
             };
             
@@ -425,7 +433,7 @@ public class SONR extends ListActivity {
     * Fire an intent to start the speech recognition activity.
     */
    private void startVoiceRecognitionActivity() {
-       Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+       /*Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
 
        // Specify the calling package to identify your application
        intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getClass().getPackage().getName());
@@ -442,6 +450,21 @@ public class SONR extends ListActivity {
        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5);
 
        startActivityForResult(intent, VOICE_RECOGNITION_REQUEST_CODE);
+       */
+      
+      Intent launchIntent = getPackageManager().getLaunchIntentForPackage(GOOGLE_VOICE_SEARCH_PACKAGE_NAME);
+      startActivityForResult(launchIntent,GOOGLE_VOICE_SEARCH_REQUEST_CODE);
+      
+      /*
+      final Handler handler = new Handler();
+      handler.postDelayed(new Runnable() {
+        @Override
+        public void run() {
+          SonrLog.d(TAG, "TIMEOUT, reconnecting SONR!");
+          reconnectSONR();
+        }
+      }, 10000); //10 second timeout
+      */
    }
 
    private ServiceConnection mConnection = new ServiceConnection() {

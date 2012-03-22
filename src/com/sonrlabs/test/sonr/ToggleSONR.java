@@ -7,11 +7,13 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
+import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -21,6 +23,8 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.PowerManager;
 import android.os.RemoteException;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.widget.RemoteViews;
 
 import com.sonrlabs.prod.sonr.R;
@@ -53,7 +57,7 @@ public class ToggleSONR extends Service {
    static final int DEVICE_STATE_AVAILABLE = 1;
 
    private static HeadphoneReceiver headsetReceiver = null;
-
+   
    private PowerManager.WakeLock mWakeLock;
 
    class ServiceHandler extends Handler {
@@ -140,6 +144,8 @@ public class ToggleSONR extends Service {
          registerReceiver(headsetReceiver, powerDisconnectedFilter);
       }
 
+      registerReceiver(speechRecognizerReceiver, new IntentFilter(SONR.SPEECH_RECOGNIZER_ACTION));
+      
       if (!mSonrServiceCreated) {
          HandlerThread handlerThread = new HandlerThread("SONR_HandlerThread");
          handlerThread.start();
@@ -151,6 +157,45 @@ public class ToggleSONR extends Service {
 
          mSonrServiceCreated = true;
       }
+      
+      AudioManager manager = (AudioManager)this.getSystemService(Context.AUDIO_SERVICE);
+      OnAudioFocusChangeListener afChangeListener = new OnAudioFocusChangeListener() {
+         public void onAudioFocusChange(int focusChange) {
+            if (focusChange == AudioManager.AUDIOFOCUS_GAIN){
+               SonrLog.d(TAG, "audio focus gain");
+
+               SonrLog.d(TAG, "Waiting");
+               try {
+                  Thread.sleep(5000);
+               } catch (InterruptedException e) {
+                  // TODO Auto-generated catch block
+                  //throw new RuntimeException(e);
+               }
+               
+               boolean wasOff = mSonrServiceStarted == false;
+               
+               Message msg = mServiceHandler.obtainMessage();
+               msg.what = PLUGGED_IN;
+               mServiceHandler.sendMessage(msg);
+               
+               if (!mSonrServiceStarted/* && wasOff*/) {
+                  int key = KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE;
+                  Intent i = new Intent(Intent.ACTION_MEDIA_BUTTON);
+                  i.setPackage("com.pandora.android");
+                  
+                  i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, key));
+                  sendOrderedBroadcast(i, null);
+                  
+                  i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, key));
+                  sendOrderedBroadcast(i, null);
+               }
+            }
+            else if (focusChange == AudioManager.AUDIOFOCUS_LOSS){
+               Log.d("TAG", "audio focus loss");
+           }
+         }
+      };
+      manager.requestAudioFocus(afChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
    }
 
    /**
@@ -258,10 +303,11 @@ public class ToggleSONR extends Service {
                   AppUtils.doStart(ToggleSONR.this, false); //true?
                   
                } else {
-                  SonrLog.d(TAG, getString(R.string.NO_DEFAULT_MEDIA_PLAYER));
-                  Intent startSonrActivity = new Intent(this, SONR.class);
-                  startSonrActivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                  startActivity(startSonrActivity);
+                  //TODO enable me cautiously
+//                  SonrLog.d(TAG, getString(R.string.NO_DEFAULT_MEDIA_PLAYER));
+//                  Intent startSonrActivity = new Intent(this, SONR.class);
+//                  startSonrActivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                  startActivity(startSonrActivity);
                }
 
                updateIconON();
@@ -573,4 +619,21 @@ public class ToggleSONR extends Service {
       } 
    }
 
+   private final BroadcastReceiver speechRecognizerReceiver = new BroadcastReceiver() {
+      @Override
+      public void onReceive(Context context, Intent intent) {
+         if (intent != null && SONR.SPEECH_RECOGNIZER_ACTION.equals(intent.getAction())) {
+            SonrLog.d(TAG, "SPEECH RECOGNIZER COMMAND RECEIVED!");
+            
+            Message msg = mServiceHandler.obtainMessage();
+            msg.what = UN_PLUGGED;
+            mServiceHandler.sendMessage(msg);
+
+            //startVoiceRecognitionActivity();
+            Intent launchIntent = getPackageManager().getLaunchIntentForPackage(SONR.GOOGLE_VOICE_SEARCH_PACKAGE_NAME);
+            context.startActivity(launchIntent);
+         }
+      }
+   };
+   
 }

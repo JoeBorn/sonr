@@ -47,12 +47,12 @@ import com.sonrlabs.prod.sonr.R;
 
 public class SONR extends ListActivity {
 
-   static final String DISCONNECT_ACTION = "android.intent.action.DISCONNECT_DOCK";
-   static final String VOICE_COMMAND_ACTION = "android.intent.action.VOICE_COMMAND";
-   static final String SPEECH_RECOGNIZER_ACTION = "android.intent.action.SPEECH_RECOGNIZER";
-   static final String GOOGLE_VOICE_SEARCH_PACKAGE_NAME = "com.google.android.voicesearch";
+   public static final String DISCONNECT_ACTION = "android.intent.action.DISCONNECT_DOCK";
+   public static final String VOICE_COMMAND_ACTION = "android.intent.action.VOICE_COMMAND";
+   public static final String SPEECH_RECOGNIZER_ACTION = "android.intent.action.SPEECH_RECOGNIZER";
+   public static final String GOOGLE_VOICE_SEARCH_PACKAGE_NAME = "com.google.android.voicesearch";
    private static final int VOICE_RECOGNITION_REQUEST_CODE = 1234;
-   private static final int GOOGLE_VOICE_SEARCH_REQUEST_CODE = 1235;
+   public static final int GOOGLE_VOICE_SEARCH_REQUEST_CODE = 1235;
 
    static final String TAG = SONR.class.getSimpleName();
    static final int USER_HAD_SEEN_INTRO_SCREEN = 0; 
@@ -107,6 +107,7 @@ public class SONR extends ListActivity {
                reconnectSONR();
             break;
          case GOOGLE_VOICE_SEARCH_REQUEST_CODE:
+            SonrLog.d(TAG, "got here");
             reconnectSONR();
          break;
          default:
@@ -226,23 +227,7 @@ public class SONR extends ListActivity {
             isRegistered = true;
 
             registerReceiver(voiceCommandReceiver, new IntentFilter(VOICE_COMMAND_ACTION));
-            registerReceiver(speechRecognizerReceiver, new IntentFilter(SPEECH_RECOGNIZER_ACTION));
 
-
-            AudioManager manager = (AudioManager)this.getSystemService(Context.AUDIO_SERVICE);
-            OnAudioFocusChangeListener afChangeListener = new OnAudioFocusChangeListener() {
-               public void onAudioFocusChange(int focusChange) {
-                  if (focusChange == AudioManager.AUDIOFOCUS_GAIN){
-                     SonrLog.d(TAG, "audio focus gain");
-                     reconnectSONR();  
-                  }
-                  else if (focusChange == AudioManager.AUDIOFOCUS_LOSS){
-                     Log.d("TAG", "audio focus loss");
-                 }
-               }
-            };
-            
-            manager.requestAudioFocus(afChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
          }
 
          completeStartUp();
@@ -416,18 +401,7 @@ public class SONR extends ListActivity {
       }
    };
    
-   private final BroadcastReceiver speechRecognizerReceiver = new BroadcastReceiver() {
-      @Override
-      public void onReceive(Context context, Intent intent) {
-         if (intent != null && SPEECH_RECOGNIZER_ACTION.equals(intent.getAction())) {
-            SonrLog.d(TAG, "SPEECH RECOGNIZER COMMAND RECEIVED!");
-            
-            disconnectSONR();
-
-            startVoiceRecognitionActivity();
-         }
-      }
-   };
+   
    
    /**
     * Fire an intent to start the speech recognition activity.

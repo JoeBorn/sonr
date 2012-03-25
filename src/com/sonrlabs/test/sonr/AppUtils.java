@@ -123,11 +123,13 @@ class AppUtils {
    
    static void doStart(Context context, boolean defaultplayer) {
       Preferences.savePreference(context, context.getString(R.string.DEFAULT_PLAYER_SELECTED), defaultplayer);
-
+      
       boolean mediaPlayerSelected = Preferences.getPreference(context, context.getString(R.string.PLAYER_SELECTED), false);
+      
+      SonrLog.d(TAG, "media player selected: " + mediaPlayerSelected);
+      
       if (mediaPlayerSelected) {
-         //flurryParams.put("MediaPlayer", APP_FULL_NAME);
-         //FlurryAgent.logEvent("APP_FULL_NAME", flurryParams);
+         SonrLog.d(TAG,Preferences.getPreference(context, context.getString(R.string.APP_PACKAGE_NAME), Preferences.N_A));
          Intent mediaApp = new Intent();
          mediaApp.setClassName(Preferences.getPreference(context, context.getString(R.string.APP_PACKAGE_NAME), Preferences.N_A),
                                Preferences.getPreference(context, context.getString(R.string.APP_FULL_NAME), Preferences.N_A));

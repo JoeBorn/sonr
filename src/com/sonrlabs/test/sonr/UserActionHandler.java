@@ -167,19 +167,9 @@ class UserActionHandler {
                 SonrLog.e(TAG, "VR NOT SUPPORTED!");
                 Toast.makeText(appContext, "Voice Recognition Not Supported!", Toast.LENGTH_LONG).show();
             }
-            
-            
-            
-            
+
             SonrLog.d(TAG, "broadcasting speech recognizer");
-            
-            /*
-            Intent voiceCommandIntent = new Intent(Intent.ACTION_VOICE_COMMAND);
-            voiceCommandIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            appContext.sendOrderedBroadcast(voiceCommandIntent, null);
-            */
-            
-           
+                   
             break;
          case THUMBS_UP:
             Log.d(TAG, "THUMBS_UP");
@@ -240,6 +230,7 @@ class UserActionHandler {
             Log.d(TAG, "SONR HOME");
             Intent launchSonrHome = new Intent(appContext, SONR.class);
             launchSonrHome.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            Preferences.savePreference(appContext, appContext.getString(R.string.DEFAULT_PLAYER_SELECTED), false);
             appContext.startActivity(launchSonrHome);
             break;
          case SEARCH:

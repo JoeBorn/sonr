@@ -300,14 +300,15 @@ public class ToggleSONR extends Service {
 
                   //TODO: this needs to be ironed out, when is user
                   //selecting default player, on a long click-hold or?
-                  AppUtils.doStart(ToggleSONR.this, false); //true?
+                  AppUtils.doStart(ToggleSONR.this, true); //true?
+                 
                   
                } else {
                   //TODO enable me cautiously
-//                  SonrLog.d(TAG, getString(R.string.NO_DEFAULT_MEDIA_PLAYER));
-//                  Intent startSonrActivity = new Intent(this, SONR.class);
-//                  startSonrActivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//                  startActivity(startSonrActivity);
+                  SonrLog.d(TAG, getString(R.string.NO_DEFAULT_MEDIA_PLAYER));
+                  Intent startSonrActivity = new Intent(this, SONR.class);
+                  startSonrActivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                  startActivity(startSonrActivity);
                }
 
                updateIconON();
@@ -396,8 +397,10 @@ public class ToggleSONR extends Service {
    private void cleanUpHeadsetReceiver() {
       if (headsetReceiver != null) {
          unregisterReceiver(headsetReceiver);
+         unregisterReceiver(speechRecognizerReceiver);
          SonrLog.d(TAG, "unRegisterHeadsetReceiver()");
          headsetReceiver = null;
+         speechRecognizerReceiver = null;
       }
    }
 
@@ -619,7 +622,7 @@ public class ToggleSONR extends Service {
       } 
    }
 
-   private final BroadcastReceiver speechRecognizerReceiver = new BroadcastReceiver() {
+   private BroadcastReceiver speechRecognizerReceiver = new BroadcastReceiver() {
       @Override
       public void onReceive(Context context, Intent intent) {
          if (intent != null && SONR.SPEECH_RECOGNIZER_ACTION.equals(intent.getAction())) {
@@ -635,5 +638,7 @@ public class ToggleSONR extends Service {
          }
       }
    };
+   
+   
    
 }

@@ -4,8 +4,6 @@ import java.util.List;
 
 import android.app.Activity;
 import android.app.ListActivity;
-import android.app.PendingIntent;
-import android.app.PendingIntent.CanceledException;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -17,14 +15,12 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.media.AudioManager;
-import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
-import android.speech.RecognizerIntent;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -51,7 +47,6 @@ public class SONR extends ListActivity {
    public static final String VOICE_COMMAND_ACTION = "android.intent.action.VOICE_COMMAND";
    public static final String SPEECH_RECOGNIZER_ACTION = "android.intent.action.SPEECH_RECOGNIZER";
    public static final String GOOGLE_VOICE_SEARCH_PACKAGE_NAME = "com.google.android.voicesearch";
-   private static final int VOICE_RECOGNITION_REQUEST_CODE = 1234;
    public static final int GOOGLE_VOICE_SEARCH_REQUEST_CODE = 1235;
 
    static final String TAG = SONR.class.getSimpleName();
@@ -103,9 +98,6 @@ public class SONR extends ListActivity {
                completeStartUp();
             }
             break;
-         case VOICE_RECOGNITION_REQUEST_CODE:
-               reconnectSONR();
-            break;
          case GOOGLE_VOICE_SEARCH_REQUEST_CODE:
             SonrLog.d(TAG, "got here");
             reconnectSONR();
@@ -151,17 +143,22 @@ public class SONR extends ListActivity {
    @Override
    public boolean onContextItemSelected(MenuItem item) {
       AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-
+      
       switch (item.getItemId()) {
-         case R.id.makeDefaultPlayer:
+         case R.id.makeDefaultPlayer:            
             ApplicationInfo ai = (ApplicationInfo) this.getListView().getAdapter().getItem(info.position);
             List<ResolveInfo> rinfos = AppUtils.findActivitiesForPackage(this, ai.packageName);
 
             String defaultPlayerToastMessage = new String();
             if (!rinfos.isEmpty()) {
                ResolveInfo ri = rinfos.get(0);
-
+             
                Preferences.savePreference(this, getString(R.string.DEFAULT_PLAYER_PACKAGE_NAME), ri.activityInfo.packageName);
+               Preferences.savePreference(this, getString(R.string.APP_FULL_NAME), ri.activityInfo.name);
+               Preferences.savePreference(this, getString(R.string.DEFAULT_PLAYER_SELECTED), true);
+               Preferences.savePreference(this, getString(R.string.PLAYER_SELECTED), true);
+
+
                defaultPlayerToastMessage = ri.activityInfo.name + " is now the default player";
             }
 
@@ -192,6 +189,7 @@ public class SONR extends ListActivity {
             Preferences.savePreference(this, getString(R.string.APP_PACKAGE_NAME), ri.activityInfo.packageName);
             Preferences.savePreference(this, getString(R.string.APP_FULL_NAME), ri.activityInfo.name);
             Preferences.savePreference(this, getString(R.string.PLAYER_SELECTED), true);
+
 
             currentlySelectedApplicationInfoIndex = position;
             listView.invalidateViews();
@@ -225,9 +223,6 @@ public class SONR extends ListActivity {
          if (!isRegistered) {
             registerReceiver(stopReceiver, new IntentFilter(DISCONNECT_ACTION));
             isRegistered = true;
-
-            registerReceiver(voiceCommandReceiver, new IntentFilter(VOICE_COMMAND_ACTION));
-
          }
 
          completeStartUp();
@@ -242,16 +237,6 @@ public class SONR extends ListActivity {
       connectDock.putExtra("name", "fake headset connect");
       connectDock.putExtra("microphone", 0);
       this.sendBroadcast(connectDock);
-   }
-   
-   private void disconnectSONR()
-   {
-      //Disconnect the Dock
-      Intent disconnectDock = new Intent(Intent.ACTION_HEADSET_PLUG);
-      disconnectDock.putExtra("state", 0);
-      disconnectDock.putExtra("name", "fake headset disconnect");
-      disconnectDock.putExtra("microphone", 0);
-      this.sendOrderedBroadcast(disconnectDock, null);
    }
    
    @Override
@@ -386,60 +371,6 @@ public class SONR extends ListActivity {
          }
       }
    };
-
-   private final BroadcastReceiver voiceCommandReceiver = new BroadcastReceiver() {
-      @Override
-      public void onReceive(Context context, Intent intent) {
-         if (intent != null && Intent.ACTION_VOICE_COMMAND.equals(intent.getAction())) { 
-            SonrLog.d(TAG, "VOICE COMMAND RECEIVED!");
-            
-            disconnectSONR();
-            
-            //Start Voice Command
-            context.startActivity(intent);
-         }
-      }
-   };
-   
-   
-   
-   /**
-    * Fire an intent to start the speech recognition activity.
-    */
-   private void startVoiceRecognitionActivity() {
-       /*Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-
-       // Specify the calling package to identify your application
-       intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getClass().getPackage().getName());
-
-       // Display an hint to the user about what he should say.
-       intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Play Lyle Lovett");
-
-       // Given an hint to the recognizer about what the user is going to say
-       intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-               RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-
-       // Specify how many results you want to receive. The results will be sorted
-       // where the first result is the one with higher confidence.
-       intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5);
-
-       startActivityForResult(intent, VOICE_RECOGNITION_REQUEST_CODE);
-       */
-      
-      Intent launchIntent = getPackageManager().getLaunchIntentForPackage(GOOGLE_VOICE_SEARCH_PACKAGE_NAME);
-      startActivityForResult(launchIntent,GOOGLE_VOICE_SEARCH_REQUEST_CODE);
-      
-      /*
-      final Handler handler = new Handler();
-      handler.postDelayed(new Runnable() {
-        @Override
-        public void run() {
-          SonrLog.d(TAG, "TIMEOUT, reconnecting SONR!");
-          reconnectSONR();
-        }
-      }, 10000); //10 second timeout
-      */
-   }
 
    private ServiceConnection mConnection = new ServiceConnection() {
       @Override

@@ -139,7 +139,7 @@ class UserActionHandler {
             }
             break;
          case MUTE:
-            /*if (lastMuteTime < SystemClock.elapsedRealtime() - REPEAT_TIME) {
+            if (lastMuteTime < SystemClock.elapsedRealtime() - REPEAT_TIME) {
                if (muted) {
                   int defaultLevel = manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 2;
                   volume = Preferences.getPreference(appContext, CURRENT_VOLUME, defaultLevel); 
@@ -154,22 +154,20 @@ class UserActionHandler {
                }
                lastMuteTime = SystemClock.elapsedRealtime();
                Log.d(TAG, "MUTE");
-            }*/
+            }
             
-            PackageManager pm = appContext.getPackageManager();
+            /*PackageManager pm = appContext.getPackageManager();
             List<ResolveInfo> activities = pm.queryIntentActivities(new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH), 0);
             if (activities.size() != 0) {
                SonrLog.d(TAG, "VR SUPPORTED YAHOO!");
+               SonrLog.d(TAG, "broadcasting speech recognizer");
                Intent speechRecognizerIntent = new Intent("android.intent.action.SPEECH_RECOGNIZER");
                speechRecognizerIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                appContext.sendOrderedBroadcast(speechRecognizerIntent, null);
             } else {
                 SonrLog.e(TAG, "VR NOT SUPPORTED!");
                 Toast.makeText(appContext, "Voice Recognition Not Supported!", Toast.LENGTH_LONG).show();
-            }
-
-            SonrLog.d(TAG, "broadcasting speech recognizer");
-                   
+            }*/                   
             break;
          case THUMBS_UP:
             Log.d(TAG, "THUMBS_UP");
@@ -236,6 +234,19 @@ class UserActionHandler {
          case SEARCH:
             Log.d(TAG, "SEARCH");
             key = SEARCH;
+
+            PackageManager pm = appContext.getPackageManager();
+            List<ResolveInfo> activities = pm.queryIntentActivities(new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH), 0);
+            if (activities.size() != 0) {
+               SonrLog.d(TAG, "VR SUPPORTED YAHOO!");
+               SonrLog.d(TAG, "broadcasting speech recognizer");
+               Intent speechRecognizerIntent = new Intent("android.intent.action.SPEECH_RECOGNIZER");
+               speechRecognizerIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+               appContext.sendOrderedBroadcast(speechRecognizerIntent, null);
+            } else {
+                SonrLog.e(TAG, "VR NOT SUPPORTED!");
+                Toast.makeText(appContext, "Voice Recognition Not Supported!", Toast.LENGTH_LONG).show();
+            } 
      
             break;
 

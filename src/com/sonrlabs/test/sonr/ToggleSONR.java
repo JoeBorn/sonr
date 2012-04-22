@@ -1,10 +1,12 @@
 package com.sonrlabs.test.sonr;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.SearchManager;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
 import android.content.BroadcastReceiver;
@@ -23,6 +25,7 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.PowerManager;
 import android.os.RemoteException;
+import android.speech.RecognizerIntent;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.RemoteViews;
@@ -181,7 +184,7 @@ public class ToggleSONR extends Service {
                if (!mSonrServiceStarted/* && wasOff*/) {
                   int key = KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE;
                   Intent i = new Intent(Intent.ACTION_MEDIA_BUTTON);
-                  i.setPackage("com.pandora.android");
+                  //i.setPackage("com.pandora.android");
                   
                   i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, key));
                   sendOrderedBroadcast(i, null);
@@ -638,7 +641,4 @@ public class ToggleSONR extends Service {
          }
       }
    };
-   
-   
-   
 }

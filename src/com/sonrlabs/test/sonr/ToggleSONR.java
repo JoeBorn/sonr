@@ -598,7 +598,9 @@ public class ToggleSONR extends Service {
           * see AudioService.setRouting Use MODE_INVALID to force headset
           * routing change
           */
-         manager.setRouting(AudioManager.MODE_INVALID, 0, AudioManager.ROUTE_HEADSET);
+         
+         manager.setRouting(AudioManager.MODE_NORMAL, 0, AudioManager.ROUTE_HEADSET);
+         //manager.setRouting(AudioManager.MODE_INVALID, 0, AudioManager.ROUTE_HEADSET);
       } else {
          setDeviceConnectionState(ToggleSONR.DEVICE_IN_WIRED_HEADSET, ToggleSONR.DEVICE_STATE_UNAVAILABLE, "");
          setDeviceConnectionState(ToggleSONR.DEVICE_OUT_WIRED_HEADSET, ToggleSONR.DEVICE_STATE_UNAVAILABLE, "");

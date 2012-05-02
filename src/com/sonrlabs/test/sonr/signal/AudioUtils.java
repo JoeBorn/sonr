@@ -20,6 +20,8 @@ public class AudioUtils implements AudioSupportConstants {
    
    private static final short[] FORMATS = {
       AudioFormat.ENCODING_PCM_16BIT,
+      //AudioFormat.ENCODING_DEFAULT,
+      //AudioFormat.ENCODING_PCM_8BIT
       /* Any others ? */
    };
 

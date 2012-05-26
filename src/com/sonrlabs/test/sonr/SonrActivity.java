@@ -41,7 +41,7 @@ import android.widget.Toast;
 
 import com.sonrlabs.prod.sonr.R;
 
-public class SONR extends ListActivity {
+public class SonrActivity extends ListActivity {
 
    public static final String DISCONNECT_ACTION = "android.intent.action.DISCONNECT_DOCK";
    public static final String VOICE_COMMAND_ACTION = "android.intent.action.VOICE_COMMAND";
@@ -49,7 +49,7 @@ public class SONR extends ListActivity {
    public static final String GOOGLE_VOICE_SEARCH_PACKAGE_NAME = "com.google.android.voicesearch";
    public static final int GOOGLE_VOICE_SEARCH_REQUEST_CODE = 1235;
 
-   static final String TAG = SONR.class.getSimpleName();
+   static final String TAG = SonrActivity.class.getSimpleName();
    static final int USER_HAD_SEEN_INTRO_SCREEN = 0; 
 
    private ProgressDialog progressDialog;
@@ -64,7 +64,7 @@ public class SONR extends ListActivity {
       public void handleMessage(Message msg) {
          progressDialog.dismiss();
          Toast.makeText(getApplicationContext(), getString(R.string.DOCK_NOT_FOUND), Toast.LENGTH_SHORT).show();
-         Dialogs.quickPopoutDialog(SONR.this, false, getString(R.string.DOCK_NOT_FOUND_TRY_AGAIN), getString(R.string.OK));
+         Dialogs.quickPopoutDialog(SonrActivity.this, false, getString(R.string.DOCK_NOT_FOUND_TRY_AGAIN), getString(R.string.OK));
       }
    }
    private final Messenger mMessenger = new Messenger(new IncomingHandler());
@@ -100,7 +100,7 @@ public class SONR extends ListActivity {
             break;
          case GOOGLE_VOICE_SEARCH_REQUEST_CODE:
             SonrLog.d(TAG, "got here");
-            reconnectSONR();
+            //reconnectSONR();
          break;
          default:
             break;
@@ -116,7 +116,7 @@ public class SONR extends ListActivity {
       SonrLog.d(TAG, "binding to service");
 
       if (!mBound) {
-         bindService(new Intent(this, ToggleSONR.class), mConnection, 
+         bindService(new Intent(this, SonrService.class), mConnection, 
                      Context.BIND_AUTO_CREATE);
       }
 
@@ -133,8 +133,7 @@ public class SONR extends ListActivity {
    }
 
    @Override
-   public void onCreateContextMenu(ContextMenu menu, View v,
-                                   ContextMenuInfo menuInfo) {
+   public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
       super.onCreateContextMenu(menu, v, menuInfo);
       MenuInflater inflater = getMenuInflater();
       inflater.inflate(R.menu.context_menu, menu);
@@ -157,7 +156,6 @@ public class SONR extends ListActivity {
                Preferences.savePreference(this, getString(R.string.APP_FULL_NAME), ri.activityInfo.name);
                Preferences.savePreference(this, getString(R.string.DEFAULT_PLAYER_SELECTED), true);
                Preferences.savePreference(this, getString(R.string.PLAYER_SELECTED), true);
-
 
                defaultPlayerToastMessage = ri.activityInfo.name + " is now the default player";
             }
@@ -196,7 +194,7 @@ public class SONR extends ListActivity {
 
             if (mService != null && mBound) {
                Message msg = Message.obtain();
-               msg.arg1 = ToggleSONR.START_SELECTED_PLAYER;
+               msg.arg1 = SonrService.START_SELECTED_PLAYER;
                msg.replyTo = mMessenger;
 
                try {
@@ -231,13 +229,13 @@ public class SONR extends ListActivity {
       //FlurryAgent.onStartSession(this, "NNCR41GZ52ZYBXPZPTGT");
    }
    
-   private void reconnectSONR(){
-      Intent connectDock = new Intent(Intent.ACTION_HEADSET_PLUG);
-      connectDock.putExtra("state", 1);
-      connectDock.putExtra("name", "fake headset connect");
-      connectDock.putExtra("microphone", 0);
-      this.sendBroadcast(connectDock);
-   }
+//   private void reconnectSONR(){
+//      Intent connectDock = new Intent(Intent.ACTION_HEADSET_PLUG);
+//      connectDock.putExtra("state", 1);
+//      connectDock.putExtra("name", "fake headset connect");
+//      connectDock.putExtra("microphone", 0);
+//      this.sendBroadcast(connectDock);
+//   }
    
    @Override
    protected void onStop() {
@@ -292,7 +290,7 @@ public class SONR extends ListActivity {
             unbindService(mConnection);
             mBound = false;
          }
-         stopService(new Intent(this, ToggleSONR.class));
+         stopService(new Intent(this, SonrService.class));
          finish();
          consumeResult = true;
       }

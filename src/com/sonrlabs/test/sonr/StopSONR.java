@@ -19,9 +19,9 @@ public class StopSONR extends Activity {
          // LogFile.MakeLog("StopSONR sending broadcast");
 
          NotificationManager mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-         mNotificationManager.cancel(ToggleSONR.SONR_ID);
+         mNotificationManager.cancel(SonrService.SONR_ID);
 
-         sendBroadcast(new Intent(SONR.DISCONNECT_ACTION));
+         sendBroadcast(new Intent(SonrActivity.DISCONNECT_ACTION));
          finish();
          
       } catch (RuntimeException e) {

@@ -13,9 +13,10 @@
 	<uses-permission android:name="android.permission.WAKE_LOCK" />
 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 	<uses-permission android:name="android.permission.INJECT_EVENTS"/>
+	<uses-permission android:name="android.permission.READ_PHONE_STATE"/>
 
     <application android:icon="@drawable/sonr_icon" android:label="@string/app_name" android:debuggable="true" android:name="com.sonrlabs.test.sonr.SONRApplication">
-        <activity android:name="com.sonrlabs.test.sonr.SONR"
+        <activity android:name="com.sonrlabs.test.sonr.SonrActivity"
                   android:label="@string/app_name">
                   
             <receiver android:name="com.sonrlabs.sonr.StopReceiver">
@@ -56,8 +57,8 @@
 			</intent-filter>
 		</receiver>
 		
-		<!--  -->
-		<service android:name="com.sonrlabs.test.sonr.ToggleSONR" android:process=":service" android:exported="false"/>
+		<!-- android:process=":service" android:exported="false" -->
+		<service android:name="com.sonrlabs.test.sonr.SonrService" />
 		
 		<receiver android:name="com.sonrlabs.test.sonr.BootIntentReceiver">
 			<intent-filter>

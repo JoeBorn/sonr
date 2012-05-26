@@ -18,7 +18,7 @@ class SONRClient {
    private final BroadcastReceiver clientStopReceiver = new BroadcastReceiver() {
       @Override
       public void onReceive(Context context, Intent intent) {
-         if (intent != null && SONR.DISCONNECT_ACTION.equals(intent.getAction())) {
+         if (intent != null && SonrActivity.DISCONNECT_ACTION.equals(intent.getAction())) {
             onDestroy();
          }
       }
@@ -80,7 +80,7 @@ class SONRClient {
    }
 
    private void registerReceiver() {
-      applicationContext.registerReceiver(clientStopReceiver, new IntentFilter(SONR.DISCONNECT_ACTION));
+      applicationContext.registerReceiver(clientStopReceiver, new IntentFilter(SonrActivity.DISCONNECT_ACTION));
       clientStopRegistered = true;
       SonrLog.i(TAG, "Registered broadcast receiver " + clientStopReceiver + " in context " + applicationContext);
    }

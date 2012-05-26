@@ -15,7 +15,7 @@ public class BootIntentReceiver extends BroadcastReceiver {
       try {
          if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
             SonrLog.d(TAG, "Boot Intent Received");
-            Intent i = new Intent(context, ToggleSONR.class);
+            Intent i = new Intent(context, SonrService.class);
             context.startService(i);
          }
       } catch (RuntimeException e) {

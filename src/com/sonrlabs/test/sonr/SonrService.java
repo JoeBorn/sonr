@@ -34,13 +34,16 @@ import android.widget.RemoteViews;
 
 import com.sonrlabs.prod.sonr.R;
 
-public class ToggleSONR
-      extends Service {
+public class SonrService extends Service {
 
+   //@formatter:off
    /**
-    * state - 0 for unplugged, 1 for plugged. name - Headset type, human
-    * readable string microphone - 1 if headset has a microphone, 0 otherwise
+    * state - 0 for unplugged, 1 for plugged. 
+    * name - Headset type, human readable string 
+    * microphone - 1 if headset has a microphone, 0 otherwise
     */
+   //@formatter:on
+
    static final int UN_PLUGGED = 20;
    static final int PLUGGED_IN = 30;
 
@@ -52,7 +55,7 @@ public class ToggleSONR
    private boolean mSonrServiceStarted = false;
    private boolean mSonrDiscoveryInProgress = false;
 
-   private static final String TAG = ToggleSONR.class.getSimpleName();
+   private static final String TAG = SonrService.class.getSimpleName();
    private static final String INTENT_USER_TOGGLE_REQUEST = "INTENT_TOGGLE_HEADSET";
 
    static final int DEVICE_IN_WIRED_HEADSET = 0x400000;
@@ -60,15 +63,14 @@ public class ToggleSONR
    static final int DEVICE_OUT_WIRED_HEADSET = 0x4;
    static final int DEVICE_STATE_UNAVAILABLE = 0;
    static final int DEVICE_STATE_AVAILABLE = 1;
-   
+
    private AudioManager audioManager = null;
 
    private static HeadphoneReceiver headsetReceiver = null;
 
    private PowerManager.WakeLock mWakeLock;
 
-   class ServiceHandler
-         extends Handler {
+   class ServiceHandler extends Handler {
       public ServiceHandler(Looper looper) {
          super(looper);
       }
@@ -104,7 +106,8 @@ public class ToggleSONR
                      }
                   }
                } else {
-                  AppUtils.doStart(ToggleSONR.this, false);
+                  //if service not started yet, start the app?
+                  AppUtils.doStart(SonrService.this, false);
                }
                break;
             default:
@@ -153,14 +156,14 @@ public class ToggleSONR
       }
 
       // Listen for speech recognition intents
-      registerReceiver(speechRecognizerReceiver, new IntentFilter(SONR.SPEECH_RECOGNIZER_ACTION));
+      registerReceiver(speechRecognizerReceiver, new IntentFilter(SonrActivity.SPEECH_RECOGNIZER_ACTION));
 
       // Get the telephony manager
       TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-      
+
       // Get the audio manager
       audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
-      
+
       // Create a new PhoneStateListener
       PhoneStateListener listener = new PhoneStateListener() {
          @Override
@@ -179,7 +182,7 @@ public class ToggleSONR
          }
       };
 
-      // Register the listener wit the telephony manager
+      // Register the listener with the telephony manager
       telephonyManager.listen(listener, PhoneStateListener.LISTEN_CALL_STATE);
 
       if (!mSonrServiceCreated) {
@@ -257,11 +260,11 @@ public class ToggleSONR
 
       if (intent != null) {
          String action = intent.getAction();
-         SonrLog.d(TAG, "Received action: " + action);
+         SonrLog.d(TAG, String.format("Received action: %s",  action));
 
          if (INTENT_USER_TOGGLE_REQUEST.equals(action)) {
 
-            Intent i = new Intent(this, SONR.class);
+            Intent i = new Intent(this, SonrActivity.class);
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(i);
 
@@ -308,7 +311,7 @@ public class ToggleSONR
 
          mSonrDiscoveryInProgress = true;
 
-         route_headset(ToggleSONR.this);
+         route_headset(SonrService.this);
          boolean headsetRouted = isRoutingHeadset();
 
          if (headsetRouted) {
@@ -321,34 +324,45 @@ public class ToggleSONR
 
                SonrLog.d(TAG, getString(R.string.DOCK_FOUND));
 
-               statusBarNotification(ToggleSONR.this);
+               statusBarNotification(SonrService.this);
 
                PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
                mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, TAG);
                mWakeLock.acquire();
 
-               SonrLog.d(TAG, "routing headset");
+               SonrLog.d(TAG, "Headset routed");
 
-               if (Preferences.getPreference(ToggleSONR.this, getString(R.string.DEFAULT_PLAYER_SELECTED), false)) {
+               if (Preferences.getPreference(SonrService.this, getString(R.string.DEFAULT_PLAYER_SELECTED), false)) {
                   SonrLog.d(TAG, getString(R.string.DEFAULT_MEDIA_PLAYER_FOUND));
 
                   // TODO: this needs to be ironed out, when is user
                   // selecting default player, on a long click-hold or?
-                  AppUtils.doStart(ToggleSONR.this, true); // true?
+                  AppUtils.doStart(SonrService.this, true); // true?
 
                } else {
-                  // TODO enable me cautiously
-                  SonrLog.d(TAG, getString(R.string.NO_DEFAULT_MEDIA_PLAYER));
-                  Intent startSonrActivity = new Intent(this, SONR.class);
-                  startSonrActivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                  startActivity(startSonrActivity);
+                  // DONT ENABLE UNTIL YOU FIGURE OUT 
+                  /*
+                   * 
+                   * 
+                   * WHEN
+                   * 
+                   * 
+                   * 
+                   */
+                  // THE SONR ACTIVITY SHOULD BE STARTED, OTHERWISE YOU HAVE A LOOP
+
+
+                  //                  SonrLog.d(TAG, getString(R.string.NO_DEFAULT_MEDIA_PLAYER));
+                  //                  Intent startSonrActivity = new Intent(this, SonrActivity.class);
+                  //                  startSonrActivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                  //                  startActivity(startSonrActivity);
                }
 
                updateIconON();
 
                SonrLog.i(TAG, "Started SONR Service");
                mSonrServiceStarted = true;
-               startForeground(ToggleSONR.SONR_ID, mNotification);
+               startForeground(SonrService.SONR_ID, mNotification);
             }
 
          } else {
@@ -389,7 +403,7 @@ public class ToggleSONR
    private void resetSonrService() {
       cleanUpClient();
       stopForeground(true);
-      unroute_headset(ToggleSONR.this);
+      unroute_headset(SonrService.this);
 
       if (mWakeLock != null) {
          mWakeLock.release();
@@ -398,7 +412,7 @@ public class ToggleSONR
 
    private void newUpClient() {
       cleanUpClient();
-      mClient = new SONRClient(ToggleSONR.this);
+      mClient = new SONRClient(SonrService.this);
       mClient.createListener();
 
    }
@@ -488,11 +502,13 @@ public class ToggleSONR
    private boolean isRoutingHeadset() {
       boolean isRoutingHeadset = false;
 
+      AudioManager manager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+
       if (Build.VERSION.SDK_INT == Build.VERSION_CODES.DONUT) {
          /*
           * The code that works and is tested for Donut...
           */
-         AudioManager manager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+         //AudioManager manager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
          int routing = manager.getRouting(AudioManager.MODE_NORMAL);
          SonrLog.d(TAG, "getRouting returns " + routing);
@@ -513,6 +529,12 @@ public class ToggleSONR
             isRoutingHeadset = retVal == 1;
             SonrLog.d(TAG, "getDeviceConnectionState " + retVal);
 
+
+            //another possibility since above code is using reflection...
+            //deprecated but ok to use to check if headset was plugged in
+            //isRoutingHeadset = manager.isWiredHeadsetOn();
+            //SonrLog.d(TAG, "AudioManager mode" + Integer.toHexString(manager.getMode()));
+
          } catch (Exception e) {
             SonrLog.e(TAG, "Could not determine status in isRoutingHeadset(): " + e);
          }
@@ -525,11 +547,11 @@ public class ToggleSONR
     * routing
     */
    void updateIconON() {
-      RemoteViews view = new RemoteViews(ToggleSONR.this.getPackageName(), R.layout.toggle_apwidget);
+      RemoteViews view = new RemoteViews(SonrService.this.getPackageName(), R.layout.toggle_apwidget);
       view.setImageViewResource(R.id.Icon, R.drawable.sonr_on);
 
       // Create an Intent to launch toggle headset
-      Intent toggleIntent = new Intent(this, ToggleSONR.class);
+      Intent toggleIntent = new Intent(this, SonrService.class);
       toggleIntent.setAction(INTENT_USER_TOGGLE_REQUEST);
       PendingIntent pendingIntent = PendingIntent.getService(this, 0, toggleIntent, 0);
 
@@ -576,8 +598,8 @@ public class ToggleSONR
       }
 
       // Create an Intent to launch toggle headset
-      Intent toggleIntent = new Intent(this, ToggleSONR.class);
-      toggleIntent.setAction(ToggleSONR.INTENT_USER_TOGGLE_REQUEST);
+      Intent toggleIntent = new Intent(this, SonrService.class);
+      toggleIntent.setAction(SonrService.INTENT_USER_TOGGLE_REQUEST);
       PendingIntent pendingIntent = PendingIntent.getService(this, 0, toggleIntent, 0);
 
       // Get the layout for the App Widget and attach an on-click listener to
@@ -601,13 +623,13 @@ public class ToggleSONR
       }
       mNotification.flags |= Notification.FLAG_NO_CLEAR;
 
-      Intent notificationIntent = new Intent(ctx, SONR.class);
+      Intent notificationIntent = new Intent(ctx, SonrActivity.class);
       notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
       PendingIntent contentIntent = PendingIntent.getActivity(ctx, 0, notificationIntent, 0);
 
-      mNotification.setLatestEventInfo(ctx, TAG, ctx.getString(R.string.notificationText), contentIntent);
-      notificationManager.notify(ToggleSONR.SONR_ID, mNotification);
+      mNotification.setLatestEventInfo(ctx, ctx.getString(R.string.widget_name), ctx.getString(R.string.notificationText), contentIntent);
+      notificationManager.notify(SonrService.SONR_ID, mNotification);
    }
 
    static void route_headset(Context ctx) {
@@ -620,11 +642,15 @@ public class ToggleSONR
           */
          manager.setRouting(AudioManager.MODE_INVALID, AudioManager.ROUTE_HEADSET, AudioManager.ROUTE_HEADSET);
       } else {
-         setDeviceConnectionState(ToggleSONR.DEVICE_IN_WIRED_HEADSET, ToggleSONR.DEVICE_STATE_AVAILABLE, "");
-         setDeviceConnectionState(ToggleSONR.DEVICE_OUT_WIRED_HEADSET, ToggleSONR.DEVICE_STATE_AVAILABLE, "");
+         //******** THIS CAUSES MUTE BUG ISSUE IN LGP990X ON PHONE CALL RECEIVED
+         //setDeviceConnectionState(SonrService.DEVICE_IN_WIRED_HEADSET, SonrService.DEVICE_STATE_AVAILABLE, "");
+         //setDeviceConnectionState(SonrService.DEVICE_OUT_WIRED_HEADSET, SonrService.DEVICE_STATE_AVAILABLE, "");
+         
+         //******** THIS CAUSES DOCK NOT DETECTED ON SOME PHONES
+         manager.setRouting(AudioManager.MODE_INVALID, AudioManager.ROUTE_HEADSET, AudioManager.ROUTE_HEADSET);     
       }
    }
-
+   
    static void unroute_headset(Context ctx) {
       SonrLog.d(TAG, "unroute headset");
       AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
@@ -638,14 +664,25 @@ public class ToggleSONR
           * see AudioService.setRouting Use MODE_INVALID to force headset
           * routing change
           */
-
-         manager.setRouting(AudioManager.MODE_NORMAL, 0, AudioManager.ROUTE_HEADSET);
-         // manager.setRouting(AudioManager.MODE_INVALID, 0,
-         // AudioManager.ROUTE_HEADSET);
+         manager.setRouting(AudioManager.MODE_INVALID, 0, AudioManager.ROUTE_HEADSET);
       } else {
-         setDeviceConnectionState(ToggleSONR.DEVICE_IN_WIRED_HEADSET, ToggleSONR.DEVICE_STATE_UNAVAILABLE, "");
-         setDeviceConnectionState(ToggleSONR.DEVICE_OUT_WIRED_HEADSET, ToggleSONR.DEVICE_STATE_UNAVAILABLE, "");
-         setDeviceConnectionState(ToggleSONR.DEVICE_OUT_EARPIECE, ToggleSONR.DEVICE_STATE_AVAILABLE, "");
+         /*setDeviceConnectionState(SonrService.DEVICE_IN_WIRED_HEADSET, SonrService.DEVICE_STATE_UNAVAILABLE, "");
+         setDeviceConnectionState(SonrService.DEVICE_OUT_WIRED_HEADSET, SonrService.DEVICE_STATE_UNAVAILABLE, "");
+         setDeviceConnectionState(SonrService.DEVICE_OUT_EARPIECE, SonrService.DEVICE_STATE_AVAILABLE, "");*/
+         
+         manager.setRouting(AudioManager.MODE_INVALID, 0, AudioManager.ROUTE_EARPIECE);
+
+         //certain HTC phones, trigger proper routing
+         /*int origMode = manager.getMode();
+         manager.setMode(AudioManager.MODE_IN_CALL);
+         manager.setMode(origMode);*/   
+         
+         
+        /*manager.setMode(AudioManager.MODE_NORMAL);
+         manager.adjustStreamVolume(AudioManager.STREAM_VOICE_CALL, AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
+         manager.setStreamMute(AudioManager.STREAM_VOICE_CALL, false);
+         //manager.setMicrophoneMute(false);
+         */
       }
    }
 
@@ -671,7 +708,7 @@ public class ToggleSONR
    private BroadcastReceiver speechRecognizerReceiver = new BroadcastReceiver() {
       @Override
       public void onReceive(Context context, Intent intent) {
-         if (intent != null && SONR.SPEECH_RECOGNIZER_ACTION.equals(intent.getAction())) {
+         if (intent != null && SonrActivity.SPEECH_RECOGNIZER_ACTION.equals(intent.getAction())) {
             SonrLog.d(TAG, "SPEECH RECOGNIZER COMMAND RECEIVED!");
 
             Message msg = mServiceHandler.obtainMessage();
@@ -679,7 +716,7 @@ public class ToggleSONR
             mServiceHandler.sendMessage(msg);
 
             // startVoiceRecognitionActivity();
-            Intent launchIntent = getPackageManager().getLaunchIntentForPackage(SONR.GOOGLE_VOICE_SEARCH_PACKAGE_NAME);
+            Intent launchIntent = getPackageManager().getLaunchIntentForPackage(SonrActivity.GOOGLE_VOICE_SEARCH_PACKAGE_NAME);
             context.startActivity(launchIntent);
          }
       }

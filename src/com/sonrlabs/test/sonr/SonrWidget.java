@@ -38,7 +38,7 @@ public class SonrWidget
          Log.d(TAG, "onUpdate");
          // do all updates within a service (we can keep alive to register
          // headset intents)
-         context.startService(new Intent(context, ToggleSONR.class));
+         context.startService(new Intent(context, SonrService.class));
       } catch (RuntimeException e) {
          e.printStackTrace();
          //ErrorReporter.getInstance().handleException(e);

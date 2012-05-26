@@ -226,7 +226,7 @@ class UserActionHandler {
             break;
          case SONR_HOME:
             Log.d(TAG, "SONR HOME");
-            Intent launchSonrHome = new Intent(appContext, SONR.class);
+            Intent launchSonrHome = new Intent(appContext, SonrActivity.class);
             launchSonrHome.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             Preferences.savePreference(appContext, appContext.getString(R.string.DEFAULT_PLAYER_SELECTED), false);
             appContext.startActivity(launchSonrHome);

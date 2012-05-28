@@ -670,7 +670,7 @@ public class SonrService extends Service {
          setDeviceConnectionState(SonrService.DEVICE_OUT_WIRED_HEADSET, SonrService.DEVICE_STATE_UNAVAILABLE, "");
          setDeviceConnectionState(SonrService.DEVICE_OUT_EARPIECE, SonrService.DEVICE_STATE_AVAILABLE, "");*/
          
-         manager.setRouting(AudioManager.MODE_INVALID, 0, AudioManager.ROUTE_EARPIECE);
+         manager.setRouting(AudioManager.MODE_INVALID, AudioManager.ROUTE_EARPIECE, AudioManager.ROUTE_EARPIECE);
 
          //certain HTC phones, trigger proper routing
          /*int origMode = manager.getMode();

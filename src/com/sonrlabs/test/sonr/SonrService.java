@@ -1,12 +1,10 @@
 package com.sonrlabs.test.sonr;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.SearchManager;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
 import android.content.BroadcastReceiver;
@@ -25,9 +23,6 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.PowerManager;
 import android.os.RemoteException;
-import android.speech.RecognizerIntent;
-import android.telephony.PhoneStateListener;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.RemoteViews;
@@ -158,32 +153,8 @@ public class SonrService extends Service {
       // Listen for speech recognition intents
       registerReceiver(speechRecognizerReceiver, new IntentFilter(SonrActivity.SPEECH_RECOGNIZER_ACTION));
 
-      // Get the telephony manager
-      TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-
       // Get the audio manager
       audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
-
-      // Create a new PhoneStateListener
-//      PhoneStateListener listener = new PhoneStateListener() {
-//         @Override
-//         public void onCallStateChanged(int state, String incomingNumber) {
-//            switch (state) {
-//               case TelephonyManager.CALL_STATE_IDLE:
-//                  audioManager.setMode(AudioManager.MODE_NORMAL);
-//                  break;
-//               case TelephonyManager.CALL_STATE_OFFHOOK:
-//                  audioManager.setMode(AudioManager.MODE_IN_CALL);
-//                  break;
-//               case TelephonyManager.CALL_STATE_RINGING:
-//                  audioManager.setMode(AudioManager.MODE_RINGTONE);
-//                  break;
-//            }
-//         }
-//      };
-//
-//      // Register the listener with the telephony manager
-//      telephonyManager.listen(listener, PhoneStateListener.LISTEN_CALL_STATE);
 
       if (!mSonrServiceCreated) {
          HandlerThread handlerThread = new HandlerThread("SONR_HandlerThread");
@@ -524,14 +495,10 @@ public class SonrService extends Service {
             Class<?> audioSystem = Class.forName("android.media.AudioSystem");
             Method getDeviceConnectionState = audioSystem.getMethod("getDeviceConnectionState", int.class, String.class);
 
-            //get the connection state, and save it so we can restore it later on mic unroute
             int retVal = (Integer) getDeviceConnectionState.invoke(audioSystem, AudioSystemConstants.DEVICE_IN_WIRED_HEADSET, "");
-            Preferences.savePreference(this, "deviceConnectionState", retVal);
-
 
             isRoutingHeadset = retVal == 1;
             SonrLog.d(TAG, "getDeviceConnectionState " + retVal);
-
 
             //another possibility since above code is using reflection...
             //deprecated but ok to use to check if headset was plugged in
@@ -685,12 +652,6 @@ public class SonrService extends Service {
          
          //JUST FOR A TEST
          setDeviceConnectionState(AudioSystemConstants.DEVICE_OUT_DEFAULT, AudioSystemConstants.DEVICE_STATE_AVAILABLE, "");
-
-         
-         
-         
-         
-         
          
          //manager.setRouting(AudioManager.MODE_INVALID, 0, AudioManager.ROUTE_EARPIECE);
 

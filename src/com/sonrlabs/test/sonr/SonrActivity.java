@@ -63,8 +63,10 @@ public class SonrActivity extends ListActivity {
       @Override
       public void handleMessage(Message msg) {
          progressDialog.dismiss();
-         Toast.makeText(getApplicationContext(), getString(R.string.DOCK_NOT_FOUND), Toast.LENGTH_SHORT).show();
-         Dialogs.quickPopoutDialog(SonrActivity.this, false, getString(R.string.DOCK_NOT_FOUND_TRY_AGAIN), getString(R.string.OK));
+         if (hasWindowFocus()) {
+            Toast.makeText(getApplicationContext(), getString(R.string.DOCK_NOT_FOUND), Toast.LENGTH_SHORT).show();
+            Dialogs.quickPopoutDialog(SonrActivity.this, false, getString(R.string.DOCK_NOT_FOUND_TRY_AGAIN), getString(R.string.OK));
+         }
       }
    }
    private final Messenger mMessenger = new Messenger(new IncomingHandler());

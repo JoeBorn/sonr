@@ -58,11 +58,11 @@ public class SonrService extends Service {
    private static final String TAG = SonrService.class.getSimpleName();
    private static final String INTENT_USER_TOGGLE_REQUEST = "INTENT_TOGGLE_HEADSET";
 
-   static final int DEVICE_IN_WIRED_HEADSET = 0x400000;
-   static final int DEVICE_OUT_EARPIECE = 0x1;
-   static final int DEVICE_OUT_WIRED_HEADSET = 0x4;
-   static final int DEVICE_STATE_UNAVAILABLE = 0;
-   static final int DEVICE_STATE_AVAILABLE = 1;
+   //   static final int DEVICE_IN_WIRED_HEADSET = 0x400000;
+   //   static final int DEVICE_OUT_EARPIECE = 0x1;
+   //   static final int DEVICE_OUT_WIRED_HEADSET = 0x4;
+   //   static final int DEVICE_STATE_UNAVAILABLE = 0;
+   //   static final int DEVICE_STATE_AVAILABLE = 1;
 
    private AudioManager audioManager = null;
 
@@ -165,25 +165,25 @@ public class SonrService extends Service {
       audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
 
       // Create a new PhoneStateListener
-      PhoneStateListener listener = new PhoneStateListener() {
-         @Override
-         public void onCallStateChanged(int state, String incomingNumber) {
-            switch (state) {
-               case TelephonyManager.CALL_STATE_IDLE:
-                  audioManager.setMode(AudioManager.MODE_NORMAL);
-                  break;
-               case TelephonyManager.CALL_STATE_OFFHOOK:
-                  audioManager.setMode(AudioManager.MODE_IN_CALL);
-                  break;
-               case TelephonyManager.CALL_STATE_RINGING:
-                  audioManager.setMode(AudioManager.MODE_RINGTONE);
-                  break;
-            }
-         }
-      };
-
-      // Register the listener with the telephony manager
-      telephonyManager.listen(listener, PhoneStateListener.LISTEN_CALL_STATE);
+//      PhoneStateListener listener = new PhoneStateListener() {
+//         @Override
+//         public void onCallStateChanged(int state, String incomingNumber) {
+//            switch (state) {
+//               case TelephonyManager.CALL_STATE_IDLE:
+//                  audioManager.setMode(AudioManager.MODE_NORMAL);
+//                  break;
+//               case TelephonyManager.CALL_STATE_OFFHOOK:
+//                  audioManager.setMode(AudioManager.MODE_IN_CALL);
+//                  break;
+//               case TelephonyManager.CALL_STATE_RINGING:
+//                  audioManager.setMode(AudioManager.MODE_RINGTONE);
+//                  break;
+//            }
+//         }
+//      };
+//
+//      // Register the listener with the telephony manager
+//      telephonyManager.listen(listener, PhoneStateListener.LISTEN_CALL_STATE);
 
       if (!mSonrServiceCreated) {
          HandlerThread handlerThread = new HandlerThread("SONR_HandlerThread");
@@ -524,7 +524,10 @@ public class SonrService extends Service {
             Class<?> audioSystem = Class.forName("android.media.AudioSystem");
             Method getDeviceConnectionState = audioSystem.getMethod("getDeviceConnectionState", int.class, String.class);
 
-            int retVal = (Integer) getDeviceConnectionState.invoke(audioSystem, DEVICE_IN_WIRED_HEADSET, "");
+            //get the connection state, and save it so we can restore it later on mic unroute
+            int retVal = (Integer) getDeviceConnectionState.invoke(audioSystem, AudioSystemConstants.DEVICE_IN_WIRED_HEADSET, "");
+            Preferences.savePreference(this, "deviceConnectionState", retVal);
+
 
             isRoutingHeadset = retVal == 1;
             SonrLog.d(TAG, "getDeviceConnectionState " + retVal);
@@ -642,15 +645,22 @@ public class SonrService extends Service {
           */
          manager.setRouting(AudioManager.MODE_INVALID, AudioManager.ROUTE_HEADSET, AudioManager.ROUTE_HEADSET);
       } else {
-         //******** THIS CAUSES MUTE BUG ISSUE IN LGP990X ON PHONE CALL RECEIVED
-         //setDeviceConnectionState(SonrService.DEVICE_IN_WIRED_HEADSET, SonrService.DEVICE_STATE_AVAILABLE, "");
-         //setDeviceConnectionState(SonrService.DEVICE_OUT_WIRED_HEADSET, SonrService.DEVICE_STATE_AVAILABLE, "");
+
+         //get current state
+         SonrLog.d(TAG, Integer.toBinaryString(getDeviceConnectionState(AudioSystemConstants.DEVICE_IN_WIRED_HEADSET)));
+         SonrLog.d(TAG, Integer.toBinaryString(getDeviceConnectionState(AudioSystemConstants.DEVICE_OUT_WIRED_HEADSET)));
+
+         setDeviceConnectionState(AudioSystemConstants.DEVICE_IN_WIRED_HEADSET, AudioSystemConstants.DEVICE_STATE_AVAILABLE, "");
+         setDeviceConnectionState(AudioSystemConstants.DEVICE_OUT_WIRED_HEADSET, AudioSystemConstants.DEVICE_STATE_AVAILABLE, "");
+         
+         SonrLog.d(TAG, Integer.toBinaryString(getDeviceConnectionState(AudioSystemConstants.DEVICE_IN_WIRED_HEADSET)));
+         SonrLog.d(TAG, Integer.toBinaryString(getDeviceConnectionState(AudioSystemConstants.DEVICE_OUT_WIRED_HEADSET)));
          
          //******** THIS CAUSES DOCK NOT DETECTED ON SOME PHONES
-         manager.setRouting(AudioManager.MODE_INVALID, AudioManager.ROUTE_HEADSET, AudioManager.ROUTE_HEADSET);     
+         //manager.setRouting(AudioManager.MODE_INVALID, AudioManager.ROUTE_HEADSET, AudioManager.ROUTE_HEADSET);     
       }
    }
-   
+
    static void unroute_headset(Context ctx) {
       SonrLog.d(TAG, "unroute headset");
       AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
@@ -666,23 +676,35 @@ public class SonrService extends Service {
           */
          manager.setRouting(AudioManager.MODE_INVALID, 0, AudioManager.ROUTE_HEADSET);
       } else {
-         /*setDeviceConnectionState(SonrService.DEVICE_IN_WIRED_HEADSET, SonrService.DEVICE_STATE_UNAVAILABLE, "");
-         setDeviceConnectionState(SonrService.DEVICE_OUT_WIRED_HEADSET, SonrService.DEVICE_STATE_UNAVAILABLE, "");
-         setDeviceConnectionState(SonrService.DEVICE_OUT_EARPIECE, SonrService.DEVICE_STATE_AVAILABLE, "");*/
          
-         manager.setRouting(AudioManager.MODE_INVALID, 0, AudioManager.ROUTE_EARPIECE);
+         //******** THIS CAUSES MUTE BUG ISSUE IN LGP990X ON PHONE CALL RECEIVED
+         
+         //int restoredDeviceState = Preferences.getPreference(ctx, "deviceConnectionState", AudioSystemConstants.DEVICE_STATE_UNAVAILABLE);
+         setDeviceConnectionState(AudioSystemConstants.DEVICE_IN_WIRED_HEADSET, AudioSystemConstants.DEVICE_STATE_UNAVAILABLE, "");
+         setDeviceConnectionState(AudioSystemConstants.DEVICE_OUT_WIRED_HEADSET, AudioSystemConstants.DEVICE_STATE_UNAVAILABLE, "");
+         
+         //JUST FOR A TEST
+         setDeviceConnectionState(AudioSystemConstants.DEVICE_OUT_DEFAULT, AudioSystemConstants.DEVICE_STATE_AVAILABLE, "");
+
+         
+         
+         
+         
+         
+         
+         //manager.setRouting(AudioManager.MODE_INVALID, 0, AudioManager.ROUTE_EARPIECE);
 
          //certain HTC phones, trigger proper routing
          /*int origMode = manager.getMode();
          manager.setMode(AudioManager.MODE_IN_CALL);
          manager.setMode(origMode);*/   
-         
-         
-        /*manager.setMode(AudioManager.MODE_NORMAL);
+
+
+         /*manager.setMode(AudioManager.MODE_NORMAL);
          manager.adjustStreamVolume(AudioManager.STREAM_VOICE_CALL, AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
          manager.setStreamMute(AudioManager.STREAM_VOICE_CALL, false);
          //manager.setMicrophoneMute(false);
-         */
+          */
       }
    }
 
@@ -703,6 +725,22 @@ public class SonrService extends Service {
       } catch (Exception e) {
          SonrLog.e(TAG, "setDeviceConnectionState failed: " + e);
       }
+   }
+
+   /**
+    * get device connection state through reflection for Android 2.1, 2.2, 2.3,
+    */
+   static int getDeviceConnectionState(final int device) {
+      int deviceState = -1; 
+      try {
+         Class<?> audioSystem = Class.forName("android.media.AudioSystem");
+         Method getDeviceConnectionState = audioSystem.getMethod("getDeviceConnectionState", int.class, String.class);
+
+         deviceState = (Integer) getDeviceConnectionState.invoke(audioSystem, device, "");
+      } catch (Exception e) {
+         SonrLog.e(TAG, "setDeviceConnectionState failed: " + e);
+      }
+      return deviceState;
    }
 
    private BroadcastReceiver speechRecognizerReceiver = new BroadcastReceiver() {

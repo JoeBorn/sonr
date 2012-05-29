@@ -389,7 +389,7 @@ extends Service {
       stopForeground(true);
       unroute_headset(SonrService.this);
 
-      toggleHeadset();
+      //toggleHeadset(); // FIXME: sometimes SONR thinks it isn't unplugged
 
       if (mWakeLock != null) {
          mWakeLock.release();

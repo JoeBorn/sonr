@@ -17,7 +17,7 @@
    <string name="WINAMP_PKG">market://details?id=com.nullsoft.winamp</string>
     <!-- PANDORA & WINAMP MARKET URIs -->
 	
-    <string name="app_name">SONR Beta v0.91</string>
+    <string name="app_name">SONR Beta</string>
     <string name="empty_list_msg">No Applications</string>
     <string name="notificationText">Show SONR Menu</string>
     <string name="tickerText">SONR Connected</string>

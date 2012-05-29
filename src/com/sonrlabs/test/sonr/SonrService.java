@@ -32,7 +32,7 @@ import android.widget.RemoteViews;
 import com.sonrlabs.prod.sonr.R;
 
 public class SonrService
-      extends Service {
+extends Service {
 
    // @formatter:off
    /**
@@ -68,7 +68,7 @@ public class SonrService
    private PowerManager.WakeLock mWakeLock;
 
    class ServiceHandler
-         extends Handler {
+   extends Handler {
       public ServiceHandler(Looper looper) {
          super(looper);
       }
@@ -238,7 +238,7 @@ public class SonrService
          SonrLog.d(TAG, String.format("Received action: %s", action));
 
          if (INTENT_USER_TOGGLE_REQUEST.equals(action)) {
-
+            toggleHeadset();
             Intent i = new Intent(this, SonrActivity.class);
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(i);
@@ -257,6 +257,16 @@ public class SonrService
                case 1: // 1 for plugged
                default:
                   msg.what = PLUGGED_IN;
+
+                  if (!isRoutingHeadset()) {
+                     /**
+                      * Only change the headset toggle if not currently routing
+                      * headset. If currently routing headset and the headset
+                      * was unplugged the OS takes care of this for us.
+                      */
+                     toggleHeadset();
+                  }
+
                   SonrLog.d(TAG, "Headset plug intent recieved, state " + state + " PLUGGED_IN");
                   if (!mSonrServiceStarted && !mSonrDiscoveryInProgress) {
                      mServiceHandler.sendMessage(msg);
@@ -379,6 +389,8 @@ public class SonrService
       stopForeground(true);
       unroute_headset(SonrService.this);
 
+      toggleHeadset();
+
       if (mWakeLock != null) {
          mWakeLock.release();
       }
@@ -476,20 +488,17 @@ public class SonrService
     * 
     * @return true if routing to headset, false if routing somewhere else
     */
-   private boolean isRoutingHeadset() {
+   public boolean isRoutingHeadset() {
       boolean isRoutingHeadset = false;
-
-      AudioManager manager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
       if (Build.VERSION.SDK_INT == Build.VERSION_CODES.DONUT) {
          /*
           * The code that works and is tested for Donut...
           */
-         // AudioManager manager = (AudioManager)
-         // getSystemService(Context.AUDIO_SERVICE);
+         AudioManager manager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
 
          int routing = manager.getRouting(AudioManager.MODE_NORMAL);
-         SonrLog.d(TAG, "getRouting returns " + routing);
+         Log.d(TAG, "getRouting returns " + routing);
          isRoutingHeadset = (routing & AudioManager.ROUTE_HEADSET) != 0;
       } else {
          /*
@@ -504,17 +513,11 @@ public class SonrService
 
             int retVal = (Integer) getDeviceConnectionState.invoke(audioSystem, AudioSystemConstants.DEVICE_IN_WIRED_HEADSET, "");
 
-            isRoutingHeadset = retVal == 1;
-            SonrLog.d(TAG, "getDeviceConnectionState " + retVal);
-
-            // another possibility since above code is using reflection...
-            // deprecated but ok to use to check if headset was plugged in
-            // isRoutingHeadset = manager.isWiredHeadsetOn();
-            // SonrLog.d(TAG, "AudioManager mode" +
-            // Integer.toHexString(manager.getMode()));
+            isRoutingHeadset = (retVal == 1);
+            Log.d(TAG, "getDeviceConnectionState " + retVal);
 
          } catch (Exception e) {
-            SonrLog.e(TAG, "Could not determine status in isRoutingHeadset(): " + e);
+            Log.e(TAG, "Could not determine status in isRoutingHeadset(): " + e);
          }
       }
       return isRoutingHeadset;
@@ -701,7 +704,7 @@ public class SonrService
    };
 
    class ToggleHeadsetPhoneStateListener
-         extends PhoneStateListener {
+   extends PhoneStateListener {
       @Override
       public void onCallStateChanged(int state, String incomingNumber) {
          Log.i(TAG, "Call state changed");

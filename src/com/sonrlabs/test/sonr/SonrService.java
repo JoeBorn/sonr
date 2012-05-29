@@ -382,6 +382,8 @@ extends Service {
       unroute_headset(SonrService.this);
 
       //toggleHeadset(); // FIXME: sometimes SONR thinks it isn't unplugged
+      AudioManager manager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
+      routeToEarpiece(manager);
 
       if (mWakeLock != null) {
          mWakeLock.release();
@@ -392,7 +394,6 @@ extends Service {
       cleanUpClient();
       mClient = new SONRClient(SonrService.this);
       mClient.createListener();
-
    }
 
    private void cleanUpClient() {

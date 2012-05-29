@@ -55,12 +55,6 @@ extends Service {
    private static final String TAG = SonrService.class.getSimpleName();
    private static final String INTENT_USER_TOGGLE_REQUEST = "INTENT_TOGGLE_HEADSET";
 
-   // static final int DEVICE_IN_WIRED_HEADSET = 0x400000;
-   // static final int DEVICE_OUT_EARPIECE = 0x1;
-   // static final int DEVICE_OUT_WIRED_HEADSET = 0x4;
-   // static final int DEVICE_STATE_UNAVAILABLE = 0;
-   // static final int DEVICE_STATE_AVAILABLE = 1;
-
    private AudioManager audioManager = null;
 
    private static HeadphoneReceiver headsetReceiver = null;
@@ -185,7 +179,7 @@ extends Service {
                   // throw new RuntimeException(e);
                }
 
-               boolean wasOff = mSonrServiceStarted == false;
+               //boolean wasOff = mSonrServiceStarted == false;
 
                Message msg = mServiceHandler.obtainMessage();
                msg.what = PLUGGED_IN;
@@ -351,8 +345,6 @@ extends Service {
 
          } else {
             SonrLog.d(TAG, getString(R.string.DOCK_NOT_FOUND));
-            // Toast.makeText(ToggleSONR.this,
-            // getString(R.string.DOCK_NOT_FOUND), Toast.LENGTH_LONG).show();
             cleanUpClient();
 
             updateIcon();
@@ -545,26 +537,6 @@ extends Service {
       manager.updateAppWidget(thisWidget, view);
    }
 
-   // public void updateIconOFF() {
-   // RemoteViews view = new RemoteViews(this.getPackageName(),
-   // R.layout.toggle_apwidget);
-   // view.setImageViewResource(R.id.Icon, R.drawable.sonr_off);
-   //
-   // // Create an Intent to launch toggle headset
-   // Intent toggleIntent = new Intent(this, ToggleSONR.class);
-   // toggleIntent.setAction(INTENT_USER_TOGGLE_REQUEST);
-   // PendingIntent pendingIntent = PendingIntent.getService(this, 0,
-   // toggleIntent, 0);
-   //
-   // // Get the layout for the App Widget and attach an on-click listener to
-   // // the icon
-   // view.setOnClickPendingIntent(R.id.Icon, pendingIntent);
-   //
-   // ComponentName thisWidget = new ComponentName(this, SonrWidget.class);
-   // AppWidgetManager manager = AppWidgetManager.getInstance(this);
-   // manager.updateAppWidget(thisWidget, view);
-   // }
-
    void updateIcon() {
       SonrLog.d(TAG, "updateIcon");
 
@@ -624,20 +596,11 @@ extends Service {
           */
          manager.setRouting(AudioManager.MODE_INVALID, AudioManager.ROUTE_HEADSET, AudioManager.ROUTE_HEADSET);
       } else {
-
-         // get current state
-         SonrLog.d(TAG, Integer.toBinaryString(getDeviceConnectionState(AudioSystemConstants.DEVICE_IN_WIRED_HEADSET)));
-         SonrLog.d(TAG, Integer.toBinaryString(getDeviceConnectionState(AudioSystemConstants.DEVICE_OUT_WIRED_HEADSET)));
-
          setDeviceConnectionState(AudioSystemConstants.DEVICE_IN_WIRED_HEADSET, AudioSystemConstants.DEVICE_STATE_AVAILABLE, "");
          setDeviceConnectionState(AudioSystemConstants.DEVICE_OUT_WIRED_HEADSET, AudioSystemConstants.DEVICE_STATE_AVAILABLE, "");
 
          SonrLog.d(TAG, Integer.toBinaryString(getDeviceConnectionState(AudioSystemConstants.DEVICE_IN_WIRED_HEADSET)));
          SonrLog.d(TAG, Integer.toBinaryString(getDeviceConnectionState(AudioSystemConstants.DEVICE_OUT_WIRED_HEADSET)));
-
-         // ******** THIS CAUSES DOCK NOT DETECTED ON SOME PHONES
-         // manager.setRouting(AudioManager.MODE_INVALID,
-         // AudioManager.ROUTE_HEADSET, AudioManager.ROUTE_HEADSET);
       }
    }
 

@@ -52,7 +52,7 @@ public class AudioSystemConstants {
    // device states, must match AudioSystem::device_connection_state
    public static final int DEVICE_STATE_UNAVAILABLE = 0;
    public static final int DEVICE_STATE_AVAILABLE = 1;
-   private static final int NUM_DEVICE_STATES = 1;
+   public static final int NUM_DEVICE_STATES = 1;
 
    // phone state, match audio_mode???
    public static final int PHONE_STATE_OFFCALL = 0;
@@ -70,7 +70,7 @@ public class AudioSystemConstants {
    public static final int FORCE_BT_DESK_DOCK = 7;
    public static final int FORCE_ANALOG_DOCK = 8;
    public static final int FORCE_DIGITAL_DOCK = 9;
-   private static final int NUM_FORCE_CONFIG = 10;
+   public static final int NUM_FORCE_CONFIG = 10;
    public static final int FORCE_DEFAULT = FORCE_NONE;
 
    // usage for setForceUse, must match AudioSystem::force_use
@@ -78,6 +78,6 @@ public class AudioSystemConstants {
    public static final int FOR_MEDIA = 1;
    public static final int FOR_RECORD = 2;
    public static final int FOR_DOCK = 3;
-   private static final int NUM_FORCE_USE = 4;
+   public static final int NUM_FORCE_USE = 4;
    // --- AudioSystem constants from android.media.AudioSystem
 }

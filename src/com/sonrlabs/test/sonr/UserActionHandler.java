@@ -26,27 +26,27 @@ class UserActionHandler {
    private static final String TAG = "SONR audio processor";
 
    // SONR commands ******************
-   private static final int PLAY_PAUSE = 0x1e;
-   private static final int FAST_FORWARD = -2;
-   private static final int REWIND = -3;
-   private static final int NEXT_TRACK = 0x1d;
-   private static final int PREVIOUS_TRACK = 0x21;
-   private static final int VOLUME_UP = 0x17;
-   private static final int VOLUME_DOWN = 0x18;
-   private static final int MUTE = 0x1b;
-   private static final int THUMBS_UP = 0x9;
-   private static final int THUMBS_DOWN = 0xa;
-   private static final int FAVORITE = 0x6;
-   private static final int UP = 0xc;
-   private static final int DOWN = 0xf;
-   private static final int LEFT = 0x11;
-   private static final int RIGHT = 0x12;
-   private static final int SELECT = 0x14;
-   private static final int POWER_ON = 0x1;
-   private static final int POWER_OFF = 0x5;
+   private static final int SONR_PLAY_PAUSE = 0x1e;
+   private static final int SONR_FAST_FORWARD = -2;
+   private static final int SONR_REWIND = -3;
+   private static final int SONR_NEXT_TRACK = 0x1d;
+   private static final int SONR_PREVIOUS_TRACK = 0x21;
+   private static final int SONR_VOLUME_UP = 0x17;
+   private static final int SONR_VOLUME_DOWN = 0x18;
+   private static final int SONR_MUTE = 0x1b;
+   private static final int SONR_THUMBS_UP = 0x9;
+   private static final int SONR_THUMBS_DOWN = 0xa;
+   private static final int SONR_FAVORITE = 0x6;
+   private static final int SONR_DPAD_UP = 0xc;
+   private static final int SONR_DPAD_DOWN = 0xf;
+   private static final int SONR_DPAD_LEFT = 0x11;
+   private static final int SONR_DPAD_RIGHT = 0x12;
+   private static final int SONR_DPAD_SELECT = 0x14;
+   private static final int SONR_POWER_ON = 0x1;
+   private static final int SONR_POWER_OFF = 0x5;
    private static final int SONR_HOME = 0x22;
-   private static final int SHARE = 0x28; // 0x2b;
-   private static final int SEARCH = 0x24;
+   private static final int SONR_SHARE = 0x28; // 0x2b;
+   private static final int SONR_SEARCH = 0x24;
    // end SONR commands
    // ****************************************************************************************************************
 
@@ -88,7 +88,7 @@ class UserActionHandler {
       int key = Integer.MIN_VALUE;
 
       switch (receivedByte) {
-         case PLAY_PAUSE:
+         case SONR_PLAY_PAUSE:
             if (lastPlayTime < SystemClock.elapsedRealtime() - REPEAT_TIME) {
                key = KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE;
                lastPlayTime = SystemClock.elapsedRealtime();
@@ -96,17 +96,17 @@ class UserActionHandler {
                // FlurryAgent.logEvent("PLAY_PRESSED");
             }
             break;
-         case FAST_FORWARD:
+         case SONR_FAST_FORWARD:
             key = KeyEvent.KEYCODE_MEDIA_FAST_FORWARD;
             Log.d(TAG, "FAST_FORWARD");
             // FlurryAgent.logEvent("FAST_FORWARD_PRESSED");
             break;
-         case REWIND:
+         case SONR_REWIND:
             key = KeyEvent.KEYCODE_MEDIA_REWIND;
             Log.d(TAG, "REWIND");
             // FlurryAgent.logEvent("REWIND_PRESSED");
             break;
-         case NEXT_TRACK:
+         case SONR_NEXT_TRACK:
             if (lastSkipTime < SystemClock.elapsedRealtime() - SKIP_TIME) {
                key = KeyEvent.KEYCODE_MEDIA_NEXT;
                lastSkipTime = SystemClock.elapsedRealtime();
@@ -114,7 +114,7 @@ class UserActionHandler {
                // FlurryAgent.logEvent("NEXT_TRACK_PRESSED");
             }
             break;
-         case PREVIOUS_TRACK:
+         case SONR_PREVIOUS_TRACK:
             if (lastBackTime < SystemClock.elapsedRealtime() - BACK_TIME) {
                key = KeyEvent.KEYCODE_MEDIA_PREVIOUS;
                lastBackTime = SystemClock.elapsedRealtime();
@@ -122,7 +122,7 @@ class UserActionHandler {
                // FlurryAgent.logEvent("PREVIOUS_TRACK_PRESSED");
             }
             break;
-         case VOLUME_UP:
+         case SONR_VOLUME_UP:
             if (lastVolumeTime < SystemClock.elapsedRealtime() - VOL_TIME) {
                manager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
                lastVolumeTime = SystemClock.elapsedRealtime();
@@ -130,7 +130,7 @@ class UserActionHandler {
                // FlurryAgent.logEvent("VOLUME_UP_PRESSED");
             }
             break;
-         case VOLUME_DOWN:
+         case SONR_VOLUME_DOWN:
             if (lastVolumeTime < SystemClock.elapsedRealtime() - VOL_TIME) {
                manager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
                lastVolumeTime = SystemClock.elapsedRealtime();
@@ -138,7 +138,7 @@ class UserActionHandler {
                // FlurryAgent.logEvent("VOLUME_DOWN_PRESSED");
             }
             break;
-         case MUTE:
+         case SONR_MUTE:
             if (lastMuteTime < SystemClock.elapsedRealtime() - REPEAT_TIME) {
                if (muted) {
                   int defaultLevel = manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 2;
@@ -169,59 +169,59 @@ class UserActionHandler {
                 Toast.makeText(appContext, "Voice Recognition Not Supported!", Toast.LENGTH_LONG).show();
             }*/                   
             break;
-         case THUMBS_UP:
+         case SONR_THUMBS_UP:
             Log.d(TAG, "THUMBS_UP");
-            key = THUMBS_UP;
+            key = SONR_THUMBS_UP;
             // FlurryAgent.logEvent("THUMBS_UP_PRESSED");
             break;
-         case THUMBS_DOWN:
+         case SONR_THUMBS_DOWN:
             Log.d(TAG, "THUMBS_DOWN");
-            key = THUMBS_DOWN;
+            key = SONR_THUMBS_DOWN;
             // FlurryAgent.logEvent("THUMBS_DOWN_PRESSED");
             break;
-         case FAVORITE:
+         case SONR_FAVORITE:
             Log.d(TAG, "FAVORITE");
-            key = FAVORITE;
+            key = SONR_FAVORITE;
             // FlurryAgent.logEvent("FAVORITE_PRESSED");
             break;
-         case UP:
+         case SONR_DPAD_UP:
             key = KeyEvent.KEYCODE_DPAD_UP;
             Log.d(TAG, "UP");
             instrumentKey(key);
             break;
-         case DOWN:
+         case SONR_DPAD_DOWN:
             key = KeyEvent.KEYCODE_DPAD_DOWN;
             Log.d(TAG, "DOWN");
             instrumentKey(key);
             break;
-         case LEFT:
+         case SONR_DPAD_LEFT:
             key = KeyEvent.KEYCODE_DPAD_LEFT;
             Log.d(TAG, "LEFT");
             instrumentKey(key);
             break;
-         case RIGHT:
+         case SONR_DPAD_RIGHT:
             key = KeyEvent.KEYCODE_DPAD_RIGHT;
             Log.d(TAG, "RIGHT");
             instrumentKey(key);
             break;
-         case SELECT:
+         case SONR_DPAD_SELECT:
             key = KeyEvent.KEYCODE_DPAD_CENTER;
             Log.d(TAG, "CENTER");
             instrumentKey(key);
             break;
-         case SHARE:
+         case SONR_SHARE:
             Log.d(TAG, "SHARE");
-            key = SHARE;
+            key = SONR_SHARE;
             // FlurryAgent.logEvent("SHARE_PRESSED");
             break;
-         case POWER_ON:
+         case SONR_POWER_ON:
             Log.d(TAG, "POWER_ON");
-            key = POWER_ON;
+            key = SONR_POWER_ON;
             // FlurryAgent.logEvent("POWER_ON_PRESSED");
             break;
-         case POWER_OFF:
+         case SONR_POWER_OFF:
             Log.d(TAG, "POWER_OFF");
-            key = POWER_OFF;
+            key = SONR_POWER_OFF;
             // FlurryAgent.logEvent("POWER_OFF_PRESSED");
             break;
          case SONR_HOME:
@@ -231,9 +231,9 @@ class UserActionHandler {
             Preferences.savePreference(appContext, appContext.getString(R.string.DEFAULT_PLAYER_SELECTED), false);
             appContext.startActivity(launchSonrHome);
             break;
-         case SEARCH:
+         case SONR_SEARCH:
             Log.d(TAG, "SEARCH");
-            key = SEARCH;
+            key = SONR_SEARCH;
 
             PackageManager pm = appContext.getPackageManager();
             List<ResolveInfo> activities = pm.queryIntentActivities(new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH), 0);
@@ -268,7 +268,7 @@ class UserActionHandler {
     * volume at 0.
     */
    private void checkAutoUnmute(int receivedByte) {
-      if (muted && receivedByte != MUTE) {
+      if (muted && receivedByte != SONR_MUTE) {
          volume = 0;
          muted = false;
       }

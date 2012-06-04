@@ -179,7 +179,7 @@ extends Service {
                   // throw new RuntimeException(e);
                }
 
-               //boolean wasOff = mSonrServiceStarted == false;
+               // boolean wasOff = mSonrServiceStarted == false;
 
                Message msg = mServiceHandler.obtainMessage();
                msg.what = PLUGGED_IN;
@@ -381,7 +381,7 @@ extends Service {
       stopForeground(true);
       unroute_headset(SonrService.this);
 
-      //toggleHeadset(); // FIXME: sometimes SONR thinks it isn't unplugged
+      // toggleHeadset(); // FIXME: sometimes SONR thinks it isn't unplugged
       AudioManager manager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
       routeToEarpiece(manager);
 

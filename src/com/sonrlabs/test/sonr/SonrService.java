@@ -108,7 +108,7 @@ extends Service {
       }
    }
 
-   private ServiceHandler mServiceHandler;
+   private static ServiceHandler mServiceHandler;
 
    private Messenger mMessenger;
    private Looper mServiceLooper;
@@ -614,6 +614,11 @@ extends Service {
       int savedNotificationVolume = Preferences.getPreference(ctx, ctx.getString(R.string.SAVED_NOTIFICATION_VOLUME), 10);
       manager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, savedNotificationVolume, AudioManager.FLAG_VIBRATE);
       routeToEarpiece(manager);
+      
+      Message msg = new Message();
+      msg.what = UN_PLUGGED;
+      mServiceHandler.sendMessage(msg);
+
    }
 
    /**

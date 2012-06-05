@@ -140,12 +140,13 @@ extends Service {
          headsetReceiver = new HeadphoneReceiver();
          IntentFilter plugIntentFilter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
          registerReceiver(headsetReceiver, plugIntentFilter);
-
+/*
          IntentFilter powerConnectedFilter = new IntentFilter(Intent.ACTION_POWER_CONNECTED);
          registerReceiver(headsetReceiver, powerConnectedFilter);
 
          IntentFilter powerDisconnectedFilter = new IntentFilter(Intent.ACTION_POWER_DISCONNECTED);
          registerReceiver(headsetReceiver, powerDisconnectedFilter);
+*/
       }
 
       // Listen for speech recognition intents

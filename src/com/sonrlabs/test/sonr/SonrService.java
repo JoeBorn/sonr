@@ -32,7 +32,7 @@ import android.widget.RemoteViews;
 import com.sonrlabs.prod.sonr.R;
 
 public class SonrService
-extends Service {
+      extends Service {
 
    // @formatter:off
    /**
@@ -62,7 +62,7 @@ extends Service {
    private PowerManager.WakeLock mWakeLock;
 
    class ServiceHandler
-   extends Handler {
+         extends Handler {
       public ServiceHandler(Looper looper) {
          super(looper);
       }
@@ -140,13 +140,16 @@ extends Service {
          headsetReceiver = new HeadphoneReceiver();
          IntentFilter plugIntentFilter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
          registerReceiver(headsetReceiver, plugIntentFilter);
-/*
-         IntentFilter powerConnectedFilter = new IntentFilter(Intent.ACTION_POWER_CONNECTED);
-         registerReceiver(headsetReceiver, powerConnectedFilter);
 
-         IntentFilter powerDisconnectedFilter = new IntentFilter(Intent.ACTION_POWER_DISCONNECTED);
-         registerReceiver(headsetReceiver, powerDisconnectedFilter);
-*/
+         /*
+          * IntentFilter powerConnectedFilter = new
+          * IntentFilter(Intent.ACTION_POWER_CONNECTED);
+          * registerReceiver(headsetReceiver, powerConnectedFilter);
+          * 
+          * IntentFilter powerDisconnectedFilter = new
+          * IntentFilter(Intent.ACTION_POWER_DISCONNECTED);
+          * registerReceiver(headsetReceiver, powerDisconnectedFilter);
+          */
       }
 
       // Listen for speech recognition intents
@@ -283,7 +286,7 @@ extends Service {
          }
       }
 
-      return Service.START_STICKY;
+      return Service.START_NOT_STICKY;
    }
 
    private synchronized void startSonrService() {
@@ -614,11 +617,10 @@ extends Service {
       int savedNotificationVolume = Preferences.getPreference(ctx, ctx.getString(R.string.SAVED_NOTIFICATION_VOLUME), 10);
       manager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, savedNotificationVolume, AudioManager.FLAG_VIBRATE);
       routeToEarpiece(manager);
-      
-      Message msg = new Message();
-      msg.what = UN_PLUGGED;
-      mServiceHandler.sendMessage(msg);
 
+      Log.d(TAG, "i want to kill everybody in the world!");
+      android.os.Process.killProcess(android.os.Process.myPid());
+      System.exit(0);
    }
 
    /**
@@ -674,7 +676,7 @@ extends Service {
    };
 
    class ToggleHeadsetPhoneStateListener
-   extends PhoneStateListener {
+         extends PhoneStateListener {
       @Override
       public void onCallStateChanged(int state, String incomingNumber) {
          Log.i(TAG, "Call state changed");

@@ -153,7 +153,7 @@ public class SonrService
       }
 
       // Listen for speech recognition intents
-      registerReceiver(speechRecognizerReceiver, new IntentFilter(SonrActivity.SPEECH_RECOGNIZER_ACTION));
+      //registerReceiver(speechRecognizerReceiver, new IntentFilter(SonrActivity.SPEECH_RECOGNIZER_ACTION));
 
       // Get the audio manager
       audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);

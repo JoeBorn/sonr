@@ -106,7 +106,6 @@ public class SonrActivity extends ListActivity {
             if (resultCode == Activity.RESULT_OK) {
                Preferences.savePreference(this, getString(R.string.DEFAULT_PLAYER_SELECTED), false);
                Preferences.savePreference(this, getString(R.string.FIRST_LAUNCH), false);
-               completeStartUp();
             }
             break;
          case GOOGLE_VOICE_SEARCH_REQUEST_CODE:
@@ -198,7 +197,6 @@ public class SonrActivity extends ListActivity {
             Preferences.savePreference(this, getString(R.string.APP_PACKAGE_NAME), ri.activityInfo.packageName);
             Preferences.savePreference(this, getString(R.string.APP_FULL_NAME), ri.activityInfo.name);
             Preferences.savePreference(this, getString(R.string.PLAYER_SELECTED), true);
-
 
             currentlySelectedApplicationInfoIndex = position;
             listView.invalidateViews();

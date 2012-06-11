@@ -34,7 +34,6 @@ import android.os.PowerManager;
 import android.os.RemoteException;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.RemoteViews;
 
@@ -66,7 +65,9 @@ public class SonrService
 
    private AudioManager audioManager = null;
 
-   private static HeadphoneReceiver headsetReceiver = null;
+   private HeadphoneReceiver headsetReceiver = null;
+   
+   private BroadcastReceiver speechRecognizerReceiver = null;
 
    private PowerManager.WakeLock mWakeLock;
 
@@ -136,7 +137,6 @@ public class SonrService
    @Override
    public IBinder onBind(Intent intent) {
       SonrLog.d(TAG, "onBind()");
-      sonrServiceInternalInit();
       return mMessenger.getBinder();
    }
 
@@ -147,22 +147,29 @@ public class SonrService
           * register and unregister the broadcast receiver in the service
           */
          headsetReceiver = new HeadphoneReceiver();
-         IntentFilter plugIntentFilter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
-         registerReceiver(headsetReceiver, plugIntentFilter);
-
-         /*
-          * IntentFilter powerConnectedFilter = new
-          * IntentFilter(Intent.ACTION_POWER_CONNECTED);
-          * registerReceiver(headsetReceiver, powerConnectedFilter);
-          * 
-          * IntentFilter powerDisconnectedFilter = new
-          * IntentFilter(Intent.ACTION_POWER_DISCONNECTED);
-          * registerReceiver(headsetReceiver, powerDisconnectedFilter);
-          */
+         registerReceiver(headsetReceiver, new IntentFilter(Intent.ACTION_HEADSET_PLUG));
       }
 
       // Listen for speech recognition intents
-      //registerReceiver(speechRecognizerReceiver, new IntentFilter(SonrActivity.SPEECH_RECOGNIZER_ACTION));
+      if (speechRecognizerReceiver == null) {
+         speechRecognizerReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+               if (intent != null && SonrActivity.SPEECH_RECOGNIZER_ACTION.equals(intent.getAction())) {
+                  SonrLog.d(TAG, "SPEECH RECOGNIZER COMMAND RECEIVED!");
+
+                  Message msg = mServiceHandler.obtainMessage();
+                  msg.what = UN_PLUGGED;
+                  mServiceHandler.sendMessage(msg);
+
+                  // startVoiceRecognitionActivity();
+                  Intent launchIntent = getPackageManager().getLaunchIntentForPackage(SonrActivity.GOOGLE_VOICE_SEARCH_PACKAGE_NAME);
+                  context.startActivity(launchIntent);
+               }
+            }
+         };
+         registerReceiver(speechRecognizerReceiver, new IntentFilter(SonrActivity.SPEECH_RECOGNIZER_ACTION));
+      }
 
       // Get the audio manager
       audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
@@ -183,22 +190,19 @@ public class SonrService
          public void onAudioFocusChange(int focusChange) {
             if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
                SonrLog.d(TAG, "audio focus gain");
-
                SonrLog.d(TAG, "Waiting");
                try {
                   Thread.sleep(5000);
                } catch (InterruptedException e) {
-                  // TODO Auto-generated catch block
-                  // throw new RuntimeException(e);
+                  SonrLog.e(TAG, e.toString());
                }
 
-               // boolean wasOff = mSonrServiceStarted == false;
-
+               //
                Message msg = mServiceHandler.obtainMessage();
                msg.what = PLUGGED_IN;
                mServiceHandler.sendMessage(msg);
 
-               if (!mSonrServiceStarted/* && wasOff */) {
+               if (!mSonrServiceStarted) {
                   int key = KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE;
                   Intent i = new Intent(Intent.ACTION_MEDIA_BUTTON);
                   // i.setPackage("com.pandora.android");
@@ -210,7 +214,7 @@ public class SonrService
                   sendOrderedBroadcast(i, null);
                }
             } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
-               Log.d("TAG", "audio focus loss");
+               SonrLog.d("TAG", "audio focus loss");
             }
          }
       };
@@ -249,7 +253,6 @@ public class SonrService
             Intent i = new Intent(this, SonrActivity.class);
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(i);
-
          } else if (Intent.ACTION_HEADSET_PLUG.equals(action)) {
 
             Message msg = mServiceHandler.obtainMessage();
@@ -257,13 +260,28 @@ public class SonrService
             int state = intent.getExtras().getInt("state");
             switch (state) {
                case 0: // 0 for unplugged
-                  msg.what = UN_PLUGGED;
-                  SonrLog.d(TAG, "Headset plug intent recieved, state " + state + " UN_PLUGGED");
-                  mServiceHandler.sendMessage(msg);
+                  if (mClient != null) { //client is allocated, stop whether it found/notfound signal
+                     msg.what = UN_PLUGGED;
+                     SonrLog.d(TAG, "Headset plug intent recieved, state " + state + " UN_PLUGGED");
+                     mServiceHandler.sendMessage(msg);
+                  }
                   break;
                case 1: // 1 for plugged
                default:
                   msg.what = PLUGGED_IN;
+                  
+//                  IBinder binder = mMessenger.getBinder();
+//                  boolean calleeAlive = binder.pingBinder();
+//                  if (calleeAlive)  {
+//                     SonrLog.d(TAG, "Callee is alive");
+                     
+                     SonrLog.d(TAG, "Headset plug intent recieved, state " + state + " PLUGGED_IN");
+                     if (!mSonrServiceStarted && !mSonrDiscoveryInProgress) {
+                        mServiceHandler.sendMessage(msg);
+                     }
+//                  } else {
+//                     SonrLog.d(TAG, "Callee is not alive");
+//                  }
 
                   if (!isRoutingHeadset()) {
                      /**
@@ -273,26 +291,9 @@ public class SonrService
                       */
                      toggleHeadset();
                   }
-
-                  SonrLog.d(TAG, "Headset plug intent recieved, state " + state + " PLUGGED_IN");
-                  if (!mSonrServiceStarted && !mSonrDiscoveryInProgress) {
-                     mServiceHandler.sendMessage(msg);
-                  }
                   break;
             }
-         } else if (Intent.ACTION_POWER_CONNECTED.equals(action)) {
-            /**
-             * Do nothing - but this intent should wake the service up and allow
-             * us to catch HEADSET_PLUG
-             */
-            SonrLog.d(TAG, "Caught POWER_CONNECTED_INTENT");
-         } else if (Intent.ACTION_POWER_CONNECTED.equals(action)) {
-            /**
-             * Do nothing - but this intent should wake the service up and allow
-             * us to refresh the icon if we were previously asleep
-             */
-            SonrLog.d(TAG, "Caught POWER_DISCONNECTED_INTENT");
-         }
+         } 
       }
 
       return Service.START_NOT_STICKY;
@@ -369,15 +370,19 @@ public class SonrService
    }
 
    private synchronized void stopSonrService() {
-      if (mSonrServiceStarted) {
+//      if (mSonrServiceStarted) {
          SonrLog.i(TAG, "Stopping SONR Service");
 
          mSonrServiceStarted = false;
 
-         resetSonrService();
-      } else {
-         SonrLog.d(TAG, "Trying to shut down but sonr service not started");
-      }
+         
+       //new requirement, stop service on unplug
+         stopService(new Intent(this, SonrService.class));
+         
+//         resetSonrService();
+//      } else {
+//         SonrLog.d(TAG, "Trying to shut down but sonr service not started");
+//      }
    }
 
    // when headset intent meant UNPLUGGED
@@ -394,11 +399,7 @@ public class SonrService
       stopForeground(true);
       unroute_headset(SonrService.this);
 
-      // toggleHeadset(); // FIXME: sometimes SONR thinks it isn't unplugged
-      AudioManager manager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
-      routeToEarpiece(manager);
-
-      if (mWakeLock != null) {
+      if (mWakeLock != null && mWakeLock.isHeld()) {
          mWakeLock.release();
       }
    }
@@ -423,25 +424,30 @@ public class SonrService
     */
    @Override
    public void onDestroy() {
+      SonrLog.i(TAG, "Shutting down SONR Service");
+      resetSonrService();
+      
       stopPhoneStateListener();
       mServiceLooper.quit();
 
-      SonrLog.i(TAG, "Shutting down SONR Service");
       cleanUpHeadsetReceiver();
 
       mSonrServiceCreated = false;
       mSonrServiceStarted = false;
-
-      resetSonrService();
    }
 
    private void cleanUpHeadsetReceiver() {
+      
+      if (speechRecognizerReceiver != null) {
+         SonrLog.d(TAG, "clean up speech receiver");
+         unregisterReceiver(speechRecognizerReceiver);
+         speechRecognizerReceiver = null;
+      }
+
       if (headsetReceiver != null) {
          unregisterReceiver(headsetReceiver);
-         unregisterReceiver(speechRecognizerReceiver);
          SonrLog.d(TAG, "unRegisterHeadsetReceiver()");
          headsetReceiver = null;
-         speechRecognizerReceiver = null;
       }
    }
 
@@ -451,11 +457,11 @@ public class SonrService
     */
    public void toggleHeadset() {
       AudioManager manager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
-      Log.d(TAG, "toggleHeadset");
+      SonrLog.d(TAG, "toggleHeadset");
       if (isRoutingHeadset()) {
          routeToEarpiece(manager);
       } else {
-         Log.d(TAG, "route to headset");
+         SonrLog.d(TAG, "route to headset");
          if (Build.VERSION.SDK_INT == Build.VERSION_CODES.DONUT) {
             /*
              * see AudioService.setRouting Use MODE_INVALID to force headset
@@ -475,7 +481,7 @@ public class SonrService
     * @param manager AudioManager instance.
     */
    private static void routeToEarpiece(AudioManager manager) {
-      Log.d(TAG, "route to earpiece");
+      SonrLog.d(TAG, "route to earpiece");
       if (Build.VERSION.SDK_INT == Build.VERSION_CODES.DONUT) {
          /*
           * see AudioService.setRouting Use MODE_INVALID to force headset
@@ -504,7 +510,7 @@ public class SonrService
          AudioManager manager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
 
          int routing = manager.getRouting(AudioManager.MODE_NORMAL);
-         Log.d(TAG, "getRouting returns " + routing);
+         SonrLog.d(TAG, "getRouting returns " + routing);
          isRoutingHeadset = (routing & AudioManager.ROUTE_HEADSET) != 0;
       } else {
          /*
@@ -520,10 +526,10 @@ public class SonrService
             int retVal = (Integer) getDeviceConnectionState.invoke(audioSystem, AudioSystemConstants.DEVICE_IN_WIRED_HEADSET, "");
 
             isRoutingHeadset = (retVal == 1);
-            Log.d(TAG, "getDeviceConnectionState " + retVal);
+            SonrLog.d(TAG, "getDeviceConnectionState " + retVal);
 
          } catch (Exception e) {
-            Log.e(TAG, "Could not determine status in isRoutingHeadset(): " + e);
+            SonrLog.e(TAG, "Could not determine status in isRoutingHeadset(): " + e);
          }
       }
       return isRoutingHeadset;
@@ -626,10 +632,6 @@ public class SonrService
       int savedNotificationVolume = Preferences.getPreference(ctx, ctx.getString(R.string.SAVED_NOTIFICATION_VOLUME), 10);
       manager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, savedNotificationVolume, AudioManager.FLAG_VIBRATE);
       routeToEarpiece(manager);
-
-      Log.d(TAG, "i want to kill everybody in the world!");
-      android.os.Process.killProcess(android.os.Process.myPid());
-      System.exit(0);
    }
 
    /**
@@ -667,32 +669,15 @@ public class SonrService
       return deviceState;
    }
 
-   private BroadcastReceiver speechRecognizerReceiver = new BroadcastReceiver() {
-      @Override
-      public void onReceive(Context context, Intent intent) {
-         if (intent != null && SonrActivity.SPEECH_RECOGNIZER_ACTION.equals(intent.getAction())) {
-            SonrLog.d(TAG, "SPEECH RECOGNIZER COMMAND RECEIVED!");
-
-            Message msg = mServiceHandler.obtainMessage();
-            msg.what = UN_PLUGGED;
-            mServiceHandler.sendMessage(msg);
-
-            // startVoiceRecognitionActivity();
-            Intent launchIntent = getPackageManager().getLaunchIntentForPackage(SonrActivity.GOOGLE_VOICE_SEARCH_PACKAGE_NAME);
-            context.startActivity(launchIntent);
-         }
-      }
-   };
-
    class ToggleHeadsetPhoneStateListener
          extends PhoneStateListener {
       @Override
       public void onCallStateChanged(int state, String incomingNumber) {
-         Log.i(TAG, "Call state changed");
+         SonrLog.d(TAG, "Call state changed");
          if (state == TelephonyManager.CALL_STATE_OFFHOOK) {
-            Log.i(TAG, "Call answered");
+            SonrLog.d(TAG, "Call answered");
             if (isRoutingHeadset()) {
-               Log.i(TAG, "Toggle to earpiece speaker to take call");
+               SonrLog.d(TAG, "Toggle to earpiece speaker to take call");
                toggleHeadset();
                updateIcon();
             }

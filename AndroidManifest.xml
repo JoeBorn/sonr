@@ -8,7 +8,6 @@
 	<uses-permission android:name="android.permission.RECORD_AUDIO" />
 	<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 	<uses-permission android:name="android.permission.INTERNET"></uses-permission>
 	<uses-permission android:name="android.permission.WAKE_LOCK" />
 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -60,11 +59,12 @@
 		<!-- android:process=":service" android:exported="false" -->
 		<service android:name="com.sonrlabs.test.sonr.SonrService" />
 		
-		<receiver android:name="com.sonrlabs.test.sonr.BootIntentReceiver">
+		<!-- Don't start on boot -->
+		<!-- <receiver android:name="com.sonrlabs.test.sonr.BootIntentReceiver">
 			<intent-filter>
 				<action android:name="android.intent.action.BOOT_COMPLETED"/>
 			</intent-filter>
-		</receiver>
+		</receiver> -->
 	     
 	    <activity android:name="com.sonrlabs.test.sonr.ConfigurationActivity"/>
 	     <activity android:name="com.sonrlabs.test.sonr.FeedbackActivity"/>

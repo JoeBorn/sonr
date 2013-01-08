@@ -503,34 +503,20 @@ public class SonrService
    public boolean isRoutingHeadset() {
       boolean isRoutingHeadset = false;
 
+      AudioManager manager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
       if (Build.VERSION.SDK_INT == Build.VERSION_CODES.DONUT) {
          /*
           * The code that works and is tested for Donut...
           */
-         AudioManager manager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
 
          int routing = manager.getRouting(AudioManager.MODE_NORMAL);
          SonrLog.d(TAG, "getRouting returns " + routing);
          isRoutingHeadset = (routing & AudioManager.ROUTE_HEADSET) != 0;
       } else {
-         /*
-          * Code for Android 2.1, 2.2, 2.3, maybe others... Thanks Adam King!
-          */
-         try {
-            /**
-             * Use reflection to get headset routing
-             */
-            Class<?> audioSystem = Class.forName("android.media.AudioSystem");
-            Method getDeviceConnectionState = audioSystem.getMethod("getDeviceConnectionState", int.class, String.class);
 
-            int retVal = (Integer) getDeviceConnectionState.invoke(audioSystem, AudioSystemConstants.DEVICE_IN_WIRED_HEADSET, "");
-
-            isRoutingHeadset = (retVal == 1);
-            SonrLog.d(TAG, "getDeviceConnectionState " + retVal);
-
-         } catch (Exception e) {
-            SonrLog.e(TAG, "Could not determine status in isRoutingHeadset(): " + e);
-         }
+         isRoutingHeadset = manager.isWiredHeadsetOn();
+            
+         SonrLog.d(TAG, "isWiredHeadsetOn() " + isRoutingHeadset);
       }
       return isRoutingHeadset;
    }

@@ -12,6 +12,7 @@ package com.sonrlabs.test.sonr;
 //import org.acra.ACRA;
 //import org.acra.ReportingInteractionMode;
 //import org.acra.annotation.ReportsCrashes;
+// <-- uses-permission android:name="android.permission.INJECT_EVENTS"/>
 
 import android.app.Application;
 

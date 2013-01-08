@@ -67,7 +67,7 @@ public class SonrActivity extends ListActivity {
 
    private boolean mBound;
    private Messenger mService;
-
+  
    class IncomingHandler extends Handler {
       @Override
       public void handleMessage(Message msg) {
@@ -75,6 +75,12 @@ public class SonrActivity extends ListActivity {
          if (hasWindowFocus()) {
             Toast.makeText(getApplicationContext(), getString(R.string.DOCK_NOT_FOUND), Toast.LENGTH_SHORT).show();
             Dialogs.quickPopoutDialog(SonrActivity.this, false, getString(R.string.DOCK_NOT_FOUND_TRY_AGAIN), getString(R.string.OK));
+            
+            // Register this device that something went wrong
+            SonrAppInformationLogger logger = new SonrAppInformationLogger();
+            //logger.uploadErrorAppInformation(getApplicationContext());
+            logger.uploadErrorAppInformationWithErrorString(getApplicationContext(),getString(R.string.DOCK_NOT_FOUND));
+
          }
       }
    }
@@ -84,7 +90,6 @@ public class SonrActivity extends ListActivity {
    protected void onCreate(Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
       setContentView(R.layout.music_select_main);
-
       registerForContextMenu(this.getListView());
 
       if (progressDialog == null) {
@@ -95,6 +100,13 @@ public class SonrActivity extends ListActivity {
       Preferences.savePreference(this, getString(R.string.PLAYER_SELECTED), false);
 
       currentlySelectedApplicationInfoIndex = -1;
+      
+      // Let HomeBase know about what we are running.
+      SonrAppInformationLogger logger = new SonrAppInformationLogger();
+      logger.uploadAppInformation(getApplicationContext());
+     
+     
+      
    }
 
    @Override
@@ -205,11 +217,12 @@ public class SonrActivity extends ListActivity {
                Message msg = Message.obtain();
                msg.arg1 = SonrService.START_SELECTED_PLAYER;
                msg.replyTo = mMessenger;
-
+               //if (logger != null) logger.uploadAppInformation(getApplicationContext(), true);
                try {
                   mService.send(msg);
                } catch (RemoteException e) {
                   SonrLog.e(TAG, e.toString());
+                  //if (logger != null) logger.uploadAppInformation(getApplicationContext(), false);
                }
             }
          }

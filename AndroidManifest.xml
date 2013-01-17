@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="com.sonrlabs.prod.sonr"
-      android:versionCode="94"
-      android:versionName="0.94-test.2">
+      android:versionCode="95"
+      android:versionName="0.95">
 
 	<uses-sdk android:minSdkVersion="8" />
 	<uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -15,7 +15,7 @@
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 		
 	
-    <application android:icon="@drawable/sonr_icon" android:label="@string/app_name" android:debuggable="true" android:name="com.sonrlabs.test.sonr.SONRApplication">
+    <application android:icon="@drawable/sonr_icon" android:label="@string/app_name" android:debuggable="false" android:name="com.sonrlabs.test.sonr.SONRApplication">
         <activity android:name="com.sonrlabs.test.sonr.SonrActivity"
                   android:label="@string/app_name">
                   

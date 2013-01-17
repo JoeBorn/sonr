@@ -74,6 +74,7 @@ class UserActionHandler {
    private long lastSkipTime = 0;
    private long lastVolumeTime = 0;
    private long lastBackTime = 0;
+   private int parsePlayPauseCount = 0;
    private int volume = -1;
    private boolean muted = false;
    
@@ -103,6 +104,7 @@ class UserActionHandler {
                lastPlayTime = SystemClock.elapsedRealtime();
                Log.d(TAG, "PLAY");
                // FlurryAgent.logEvent("PLAY_PRESSED");
+               notifyParsePlayPause();
             }
             break;
          case SONR_FAST_FORWARD:
@@ -283,6 +285,16 @@ class UserActionHandler {
       }
    }
 
+   private void notifyParsePlayPause()
+   {
+      if (++parsePlayPauseCount != 3) return;
+
+      Context applicationContext = appContext.getApplicationContext();
+      String playPause = appContext.getString(R.string.PLAY_PAUSE);
+      SonrAppInformationLogger logger = new SonrAppInformationLogger();
+      logger.uploadErrorAppInformationWithErrorString(applicationContext, playPause);
+   }
+   
    private void sendbroadcast(int keyEvent) {
       String playerPackage = Preferences.getPreference(appContext, appContext.getString(R.string.APP_PACKAGE_NAME), null);
       

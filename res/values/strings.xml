@@ -22,6 +22,7 @@
     <string name="notificationText">Show SONR Menu</string>
     <string name="tickerText">SONR Connected</string>
     <string name="DOCK_NOT_FOUND">DOCK NOT FOUND</string>
+    <string name="PLAY_PAUSE">Play-Pause</string>
     <string name="DOCK_FOUND">DOCK FOUND</string>
     <string name="DEFAULT_MEDIA_PLAYER_FOUND">DEFAULT MEDIA PLAYER FOUND</string>
     <string name="NO_DEFAULT_MEDIA_PLAYER">NO DEFAULT MEDIA PLAYER</string>

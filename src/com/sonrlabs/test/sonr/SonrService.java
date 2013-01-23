@@ -200,7 +200,12 @@ public class SonrService
                //
                Message msg = mServiceHandler.obtainMessage();
                msg.what = PLUGGED_IN;
-               mServiceHandler.sendMessage(msg);
+               try
+               {
+                  mServiceHandler.sendMessage(msg);
+               } catch (RuntimeException e) {
+                  SonrLog.e(TAG, e.toString());
+               }
 
                if (!mSonrServiceStarted) {
                   int key = KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE;

@@ -60,10 +60,10 @@ class UserActionHandler {
    // ****************************************************************************************************************
 
    // for button repeats, in milliseconds
-   private static final int REPEAT_TIME = 300;
-   private static final int SKIP_TIME = 300;
-   private static final int BACK_TIME = 300;
-   private static final int VOL_TIME = 100;
+   private static final int REPEAT_TIME = 200;
+   private static final int SKIP_TIME = 150;
+   private static final int BACK_TIME = 150;
+   private static final int VOL_TIME = 40;
    private static final String CURRENT_VOLUME = "CURRENT_VOLUME";
 
    private final AudioManager manager;
@@ -118,39 +118,40 @@ class UserActionHandler {
             // FlurryAgent.logEvent("REWIND_PRESSED");
             break;
          case SONR_NEXT_TRACK:
-            if (lastSkipTime < SystemClock.elapsedRealtime() - SKIP_TIME) {
+            if (lastSkipTime < elapsedTime - SKIP_TIME) {
+               lastSkipTime = elapsedTime;
                key = KeyEvent.KEYCODE_MEDIA_NEXT;
-               lastSkipTime = SystemClock.elapsedRealtime();
                Log.d(TAG, "NEXT_TRACK");
                // FlurryAgent.logEvent("NEXT_TRACK_PRESSED");
             }
             break;
          case SONR_PREVIOUS_TRACK:
-            if (lastBackTime < SystemClock.elapsedRealtime() - BACK_TIME) {
+            if (lastBackTime < elapsedTime - BACK_TIME) {
+               lastBackTime = elapsedTime;
                key = KeyEvent.KEYCODE_MEDIA_PREVIOUS;
-               lastBackTime = SystemClock.elapsedRealtime();
                Log.d(TAG, "PREVIOUS_TRACK");
                // FlurryAgent.logEvent("PREVIOUS_TRACK_PRESSED");
             }
             break;
          case SONR_VOLUME_UP:
-            if (lastVolumeTime < SystemClock.elapsedRealtime() - VOL_TIME) {
+            if (lastVolumeTime < elapsedTime - VOL_TIME) {
+               lastVolumeTime = elapsedTime;
                manager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
-               lastVolumeTime = SystemClock.elapsedRealtime();
                Log.d(TAG, "VOLUME_UP");
                // FlurryAgent.logEvent("VOLUME_UP_PRESSED");
             }
             break;
          case SONR_VOLUME_DOWN:
-            if (lastVolumeTime < SystemClock.elapsedRealtime() - VOL_TIME) {
+            if (lastVolumeTime < elapsedTime - VOL_TIME) {
+               lastVolumeTime = elapsedTime;
                manager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
-               lastVolumeTime = SystemClock.elapsedRealtime();
                Log.d(TAG, "VOLUME_DOWN");
                // FlurryAgent.logEvent("VOLUME_DOWN_PRESSED");
             }
             break;
          case SONR_MUTE:
-            if (lastMuteTime < SystemClock.elapsedRealtime() - REPEAT_TIME) {
+            if (lastMuteTime < elapsedTime - REPEAT_TIME) {
+               lastMuteTime = elapsedTime;
                if (muted) {
                   int defaultLevel = manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 2;
                   volume = Preferences.getPreference(appContext, CURRENT_VOLUME, defaultLevel); 
@@ -163,7 +164,6 @@ class UserActionHandler {
                   manager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, AudioManager.FLAG_SHOW_UI);
                   muted = true;
                }
-               lastMuteTime = SystemClock.elapsedRealtime();
                Log.d(TAG, "MUTE");
             }
             

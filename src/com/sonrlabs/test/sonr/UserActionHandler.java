@@ -60,7 +60,7 @@ class UserActionHandler {
    // ****************************************************************************************************************
 
    // for button repeats, in milliseconds
-   private static final int REPEAT_TIME = 500;
+   private static final int REPEAT_TIME = 300;
    private static final int SKIP_TIME = 300;
    private static final int BACK_TIME = 300;
    private static final int VOL_TIME = 100;
@@ -96,12 +96,12 @@ class UserActionHandler {
    private void processUserCommand(int receivedByte) {
       checkAutoUnmute(receivedByte);
       int key = Integer.MIN_VALUE;
-
+      long elapsedTime = SystemClock.elapsedRealtime();
       switch (receivedByte) {
          case SONR_PLAY_PAUSE:
-            if (lastPlayTime < SystemClock.elapsedRealtime() - REPEAT_TIME) {
+            if (lastPlayTime < elapsedTime - REPEAT_TIME) {
+               lastPlayTime = elapsedTime;
                key = KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE;
-               lastPlayTime = SystemClock.elapsedRealtime();
                Log.d(TAG, "PLAY");
                // FlurryAgent.logEvent("PLAY_PRESSED");
                notifyParsePlayPause();

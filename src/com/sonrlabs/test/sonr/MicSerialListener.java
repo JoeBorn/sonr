@@ -76,7 +76,7 @@ class MicSerialListener implements Runnable {
    }
    
    /**
-    * Reads in from mic and dispatches an audio rocessor to process the data
+    * Reads in from mic and dispatches an audio processor to process the data
     */
    @Override
    public void run() {

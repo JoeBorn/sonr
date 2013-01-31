@@ -17,6 +17,7 @@ import android.content.Intent;
  * This receiver intercepts non specific button events from other apps.
  * 
  * Fix for the Last person dialed and Play/Pause behavior on the Moto. Atrix.
+ * Phone would initiate calls, IIRC when plugged in to dock-- JB
  * 
  */
 public class MediaButtonReceiver extends BroadcastReceiver {

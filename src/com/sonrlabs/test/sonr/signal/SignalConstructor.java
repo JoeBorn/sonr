@@ -28,7 +28,7 @@ abstract class SignalConstructor
       implements AudioSupportConstants {
 
    // how many repetitions in the transmission required for valid data
-   private static final int MIN_MATCHES = 3;
+   private static final int MIN_MATCHES = 2;
    
    /**
     * Used as the threshold to detect phase changes. It's computed by
@@ -51,7 +51,7 @@ abstract class SignalConstructor
     * If found, send that matching value off to the processor.
     */
    void processSignalIfMatch() {
-      for (int i = 0; i <= signals.length-MIN_MATCHES; i++) {
+      for (int i = 0; i <= signals.length-MIN_MATCHES; i++) {//not clear why ends at signal.length-MIN_MATCHES
          int baseSignal = signals[i];
          if (baseSignal != 0 && baseSignal != BOUNDARY) {
             int matchCount = 1;

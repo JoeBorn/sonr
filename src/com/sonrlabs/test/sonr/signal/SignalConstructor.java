@@ -51,11 +51,11 @@ abstract class SignalConstructor
     * If found, send that matching value off to the processor.
     */
    void processSignalIfMatch() {
-      for (int i = 0; i <= signals.length-MIN_MATCHES; i++) {//not clear why ends at signal.length-MIN_MATCHES
+      for (int i = 0; i <= signals.length-MIN_MATCHES; i++) {
          int baseSignal = signals[i];
          if (baseSignal != 0 && baseSignal != BOUNDARY) {
             int matchCount = 1;
-            for (int j = i + 1; j < signals.length; j++) {
+            for (int j = i; j < signals.length-1; j++) {
                if (baseSignal == signals[j] && ++matchCount == MIN_MATCHES) {
                   AudioProcessorQueue.processAction(baseSignal);
                   return;
@@ -120,10 +120,12 @@ abstract class SignalConstructor
 
    void computeSignalMax(short[] samples, int startpos) {
       movingsum[0] = 0;
+      /* first you fill up the buffers? */
       for (int i = startpos; i < startpos + MOVING_SIZE; i++) {
          movingbuf[i - startpos] = samples[i];
          movingsum[0] += samples[i];
       }
+      /* then you move the buffers along the transmission? */
       signalMaxSum = 0;
       int index = 0;
       int endpos = startpos + PREAMBLE - BEGIN_OFFSET + SAMPLES_PER_BUFFER * (TRANSMISSION_LENGTH + BIT_OFFSET);

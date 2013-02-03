@@ -23,7 +23,9 @@ interface AudioSupportConstants {
     */
    static final byte BOUNDARY = 0x27;
    
-   /*is this the right name for this? what buffer has 3 samples? */
+   /*is this the right name for this? what buffer has 3 samples? 
+    * each keypress signal is repeated three times by the dock microprocessor
+    */
    static final int SAMPLES_PER_BUFFER = 3;
    static final short SERIAL_TRANSMITTER_BAUD = 2400;
    static final int SAMPLE_RATE = 44100; // In Hz

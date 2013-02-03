@@ -117,36 +117,47 @@ abstract class SignalConstructor
       }
       return numsampleloc;
    }
-
+/* I don't get it.  It seems to me like we should compute the amplitude of the signal 
+ * (which I presume is what we're doing here) By finding the two extreme points along the curve and getting the difference.
+ * What am I missing?
+ */
    void computeSignalMax(short[] samples, int startpos) {
-      movingsum[0] = 0;
+  /*    movingsum[0] = 0;*/
       /* first you fill up the buffers? */
-      for (int i = startpos; i < startpos + MOVING_SIZE; i++) {
+  /*    for (int i = startpos; i < startpos + MOVING_SIZE; i++) {
          movingbuf[i - startpos] = samples[i];
          movingsum[0] += samples[i];
       }
+  */
+      
       /* then you move the buffers along the transmission? */
       signalMaxSum = 0;
-      int index = 0;
+//      int index = 0;
       int endpos = startpos + PREAMBLE - BEGIN_OFFSET + SAMPLES_PER_BUFFER * (TRANSMISSION_LENGTH + BIT_OFFSET);
       for (int i = startpos + MOVING_SIZE; i < endpos; i++) {
-         movingsum[1] = movingsum[0] - movingbuf[index];
+ /*        movingsum[1] = movingsum[0] - movingbuf[index];
          movingsum[1] += samples[i];
          movingbuf[index] = samples[i];
          index++;
          if (index == MOVING_SIZE) {
-            index = 0;
+            index = 0;//really?  Is this right, just jumps back to 0?
          }
 
          int temp = Math.abs(movingsum[0] - movingsum[1]);
+         */
+         
+         int temp = Math.abs(samples[i-MOVING_SIZE]- samples[i]);
          if (temp > signalMaxSum) {
             signalMaxSum = temp;
          }
 
-         movingsum[0] = movingsum[1];
+//         movingsum[0] = movingsum[1];
       }
       
-      /* What is the significance of this magic number? */
+      /* What is the significance of this magic number? 
+       * my guess is that the phase shifts don't always occur at the max amplitude points and thus we want to 
+       * provide a bit of a cushion if the signal and phase shifts slip a bit out of phase
+      */
       signalMaxSum /= 1.375;
    }
 

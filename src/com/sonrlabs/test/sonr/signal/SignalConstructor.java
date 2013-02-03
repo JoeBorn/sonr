@@ -168,6 +168,7 @@ abstract class SignalConstructor
       /* What is the significance of this magic number? 
        * my guess is that the phase shifts don't always occur at the max amplitude points and thus we want to 
        * provide a bit of a cushion if the signal and phase shifts slip a bit out of phase
+       * who knows?  1.0 and 3.0 seem to work slightly worse on EVO 3D than 1.5
       */
       signalMaxSum /= 1.5;
    }

@@ -145,20 +145,31 @@ abstract class SignalConstructor
 
          int temp = Math.abs(movingsum[0] - movingsum[1]);
          */
-         
-         int temp = Math.abs(samples[i-MOVING_SIZE]- samples[i]);
+         int max = 0;
+         int min = 0;
+         if (samples[i] > max) {
+            max = samples[i];
+         }
+         if (samples[i] < min){
+            min = samples[i];
+         }
+         int temp = Math.abs(max - min);
          if (temp > signalMaxSum) {
             signalMaxSum = temp;
+         
+         
          }
 
 //         movingsum[0] = movingsum[1];
       }
+   
+  
       
       /* What is the significance of this magic number? 
        * my guess is that the phase shifts don't always occur at the max amplitude points and thus we want to 
        * provide a bit of a cushion if the signal and phase shifts slip a bit out of phase
       */
-      signalMaxSum /= 1.375;
+      signalMaxSum /= 1.5;
    }
 
    void constructSignal(short[] samples, int[] sampleStartIndices) {

@@ -40,4 +40,6 @@ interface AudioSupportConstants {
    static final int END_OFFSET = TRANSMISSION_LENGTH + BIT_OFFSET;
    // beginning of a sample
    static final int THRESHOLD = 4000;
+   /* divides signal amplitude to determine threshold jump for phase change */
+   static final double AMPLITUDE_THRESHOLD = 1.5;
 }

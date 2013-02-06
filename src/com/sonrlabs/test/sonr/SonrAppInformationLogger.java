@@ -97,7 +97,7 @@ public class SonrAppInformationLogger {
       Resources resources = context.getResources();
       String appKey = resources.getString(R.string.PARSE_APP_KEY);
       String clientKey = resources.getString(R.string.PARSE_CLIENT_KEY);
-      Parse.initialize(context, appKey, clientKey); 
+      Parse.initialize(context, clientKey, appKey); 
       ParseObject appInfo = new ParseObject(className);
       setSystemVersion(appInfo);
       setApplicationVersion(context,appInfo);

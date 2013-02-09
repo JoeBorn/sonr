@@ -56,7 +56,7 @@ abstract class SignalConstructor
          if (baseSignal != 0 && baseSignal != BOUNDARY) {
             int matchCount = 1;
             for (int j = i+1; j < signals.length; j++) {
-               if (baseSignal == signals[j] && ++matchCount == MIN_MATCHES) {
+               if (baseSignal == signals[j] && ++matchCount >= MIN_MATCHES) {
                   AudioProcessorQueue.processAction(baseSignal);
                   return;
                }

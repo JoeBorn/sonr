@@ -18,7 +18,7 @@ import com.sonrlabs.test.sonr.ISampleBuffer;
  * a section of signal designed to provide the time for the
  * phone's internal hardware gain control to get adjusted to the signal amplitude.
  * <p>
- * Transmission Structure: [Preamble] [Data] [Copy of data] [Second copy of data]
+ * Transmission Structure: [Preamble] [Data] [Copy of data] [Second copy of data][third copy of data]
  * <pre>
  * Data: start bit (phase shift), bit 0, bit 1, ... bit 8, end bit (phase shift)
  * Bit: 18 samples (44,100 Hz sample rate/2400 bps data rate=18 samples per bit)

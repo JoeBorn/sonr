@@ -20,15 +20,19 @@ interface AudioSupportConstants {
    /**
     * Don't know what this is either, looks like maybe a boundary marker of some
     * kind?
+    * This is the "heartbeat" code the app looks for to distinguish the dock from a headphone.
+    * The dock emits this twice a second.
     */
    static final byte BOUNDARY = 0x27;
    
    /*is this the right name for this? what buffer has 3 samples? 
-    * each keypress signal is repeated three times by the dock microprocessor
+    * each keypress signal is repeated three times by the dock microprocessor, ie 
+    * 3 copies of data per transmission
     */
    static final int SAMPLES_PER_BUFFER = 3;
    static final short SERIAL_TRANSMITTER_BAUD = 2400;
    static final int SAMPLE_RATE = 44100; // In Hz
+   /*are errors introduced by the fact that the real number is 2% more than the int? */
    static final int FRAMES_PER_BIT = SAMPLE_RATE / SERIAL_TRANSMITTER_BAUD;
    /*seems this is actually "byte length" */
    static final int TRANSMISSION_LENGTH = FRAMES_PER_BIT * 8;
@@ -39,6 +43,7 @@ interface AudioSupportConstants {
    static final int BEGIN_OFFSET = PREAMBLE - TRANSMISSION_LENGTH - BIT_OFFSET;
    static final int END_OFFSET = TRANSMISSION_LENGTH + BIT_OFFSET;
    // beginning of a sample
+   /* 500 to 4000 seem to work about the same on Photon Q */
    static final int THRESHOLD = 4000;
    /* divides signal amplitude to determine threshold jump for phase change */
    static final double AMPLITUDE_THRESHOLD = 1.5;

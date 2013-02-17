@@ -59,11 +59,11 @@ class UserActionHandler {
    // end SONR commands
    // ****************************************************************************************************************
 
-   // for button repeats, in milliseconds
-   private static final int REPEAT_TIME = 200;
-   private static final int SKIP_TIME = 150;
-   private static final int BACK_TIME = 150;
-   private static final int VOL_TIME = 40;
+   // for button repeats, in milliseconds, transmission length is ~40ms so anything less is probably meaningless
+   private static final int REPEAT_TIME = 40;
+   private static final int SKIP_TIME = 40;
+   private static final int BACK_TIME = 40;
+   private static final int VOL_TIME = 20;
    private static final String CURRENT_VOLUME = "CURRENT_VOLUME";
 
    private final AudioManager manager;

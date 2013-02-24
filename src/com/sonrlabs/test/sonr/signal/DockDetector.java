@@ -27,14 +27,14 @@ class DockDetector
    public boolean findDock(short[] samples, int count) {
 
       int startpos = SAMPLE_LENGTH;
-      int sampleStartIndices[] = new int[SAMPLES_PER_BUFFER];
+      int sampleStartIndices[] = new int[TRANSMISSIONS_PER_BUFFER];
       while (startpos < count - 1 && Math.abs(samples[startpos] - samples[startpos + 1]) < THRESHOLD) {
          //TODO: Log every sample, this should be commented out before production
          //Log.d("DockDetector", Integer.toHexString(samples[startpos]));
          startpos++;
       }
 
-      if (startpos < count - 1 && startpos >= SAMPLE_LENGTH && startpos < SAMPLE_LENGTH * (SAMPLES_PER_BUFFER-1)) {
+      if (startpos < count - 1 && startpos >= SAMPLE_LENGTH && startpos < SAMPLE_LENGTH * (TRANSMISSIONS_PER_BUFFER-1)) {
          startpos -= SAMPLE_LENGTH;
          while (Math.abs(samples[startpos] - samples[startpos + 1]) < THRESHOLD) {
             // && startpos < numSamples-1)

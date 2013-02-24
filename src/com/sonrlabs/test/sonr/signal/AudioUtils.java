@@ -53,7 +53,7 @@ public class AudioUtils implements AudioSupportConstants {
             String baseMessage = "rate" + SAMPLE_RATE + "Hz, bits: " + audioFormat + ", channel: " + channelConfig;
             String message = callingClassName + " Attempting " + baseMessage;
             SonrLog.d(TAG, message);
-            int bsize = SAMPLES_PER_BUFFER * AudioRecord.getMinBufferSize(SAMPLE_RATE, channelConfig, audioFormat);
+            int bsize = TRANSMISSIONS_PER_BUFFER * AudioRecord.getMinBufferSize(SAMPLE_RATE, channelConfig, audioFormat);
             if (bsize != AudioRecord.ERROR_BAD_VALUE) {
                AudioRecord audioRecorder;
                try {

@@ -25,11 +25,10 @@ interface AudioSupportConstants {
     */
    static final byte BOUNDARY = 0x27;
    
-   /*is this the right name for this? what buffer has 3 samples? 
-    * each keypress signal is repeated three times by the dock microprocessor, ie 
-    * 3 copies of data per transmission
+   /* each keypress signal is repeated three times by the dock microprocessor, ie 
+    * 3 copies of data per "transmissions"
     */
-   static final int SAMPLES_PER_BUFFER = 3;
+   static final int TRANSMISSIONS_PER_BUFFER = 3;
    static final short SERIAL_TRANSMITTER_BAUD = 2400;
    static final int SAMPLE_RATE = 44100; // In Hz
    /*are errors introduced by the fact that the real number is 2% more than the int? */
@@ -39,11 +38,13 @@ interface AudioSupportConstants {
    static final int BIT_OFFSET = FRAMES_PER_BIT * 2;
    /* allow phone's internal AGC to stabilize first */
    static final int PREAMBLE = 64 * FRAMES_PER_BIT;
-   static final int SAMPLE_LENGTH = PREAMBLE + SAMPLES_PER_BUFFER * (TRANSMISSION_LENGTH + BIT_OFFSET);
+   static final int SAMPLE_LENGTH = PREAMBLE + TRANSMISSIONS_PER_BUFFER * (TRANSMISSION_LENGTH + BIT_OFFSET);
    static final int BEGIN_OFFSET = PREAMBLE - TRANSMISSION_LENGTH - BIT_OFFSET;
    static final int END_OFFSET = TRANSMISSION_LENGTH + BIT_OFFSET;
    // beginning of a sample
-   /* 500 to 4000 seem to work about the same on Photon Q */
+   // 500 to 4000 seem to work about the same on Photon Q at >~4000 it fails
+   /* ideally this threshold should be calculated based on audio gain, here
+      it is hardcoded to around 10% of full 16-bit scale 0.25 * 65536 = 16384*/
    static final int THRESHOLD = 4000;
    /* divides signal amplitude to determine threshold jump for phase change */
    static final double AMPLITUDE_THRESHOLD = 1.5;

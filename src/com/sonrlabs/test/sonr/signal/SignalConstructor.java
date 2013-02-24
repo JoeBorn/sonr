@@ -44,7 +44,7 @@ abstract class SignalConstructor
     * Stores whatever signal was found in each sample.  The signal
     * value for a given index is computed by {@link #constructSignal(int index)}.
     */
-   private final int[] signals = new int[SAMPLES_PER_BUFFER];
+   private final int[] signals = new int[TRANSMISSIONS_PER_BUFFER];
    
    /**
     * Look for at least {@value #MIN_MATCHES} matches of the values in {@link #signals}.
@@ -55,11 +55,13 @@ abstract class SignalConstructor
          int baseSignal = signals[i];
          if (baseSignal != 0 && baseSignal != BOUNDARY) {
             int matchCount = 1;
-            for (int j = i+1; j < signals.length; j++) {
-               if (baseSignal == signals[j] && ++matchCount >= MIN_MATCHES) {
-                  AudioProcessorQueue.processAction(baseSignal);
-                  return;
-               }
+            for (int j = i+1; j < signals.length && matchCount < MIN_MATCHES; j++) {
+                if (baseSignal == signals[j]) ++matchCount;
+            }
+
+            if (matchCount >= MIN_MATCHES) {
+                AudioProcessorQueue.processAction(baseSignal);
+                return;
             }
          }
       }
@@ -101,7 +103,7 @@ abstract class SignalConstructor
 
          if (isPhaseChange(0)) {
             sampleStartIndices[numsampleloc++] = i - 5;
-            if (numsampleloc >= SAMPLES_PER_BUFFER) {
+            if (numsampleloc >= TRANSMISSIONS_PER_BUFFER) {
                break;
             }
             // next transmission
@@ -125,7 +127,7 @@ abstract class SignalConstructor
        
        signalMaxSum = 0;
 
-      int endpos = startpos + PREAMBLE - BEGIN_OFFSET + SAMPLES_PER_BUFFER * (TRANSMISSION_LENGTH + BIT_OFFSET);
+      int endpos = startpos + PREAMBLE - BEGIN_OFFSET + TRANSMISSIONS_PER_BUFFER * (TRANSMISSION_LENGTH + BIT_OFFSET);
       for (int i = startpos + MOVING_SIZE; i < endpos; i++) {
          int max = 0;
          int min = 0;
@@ -156,7 +158,7 @@ abstract class SignalConstructor
    }
 
    void constructSignal(short[] samples, int[] sampleStartIndices) {
-      for (int signalIndex = 0; signalIndex < SAMPLES_PER_BUFFER; signalIndex++) {
+      for (int signalIndex = 0; signalIndex < TRANSMISSIONS_PER_BUFFER; signalIndex++) {
          if (sampleStartIndices[signalIndex] != 0) {
             int index = 0;
             movingsum[0] = 0;

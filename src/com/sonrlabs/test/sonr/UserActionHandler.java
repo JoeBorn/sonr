@@ -35,14 +35,14 @@ class UserActionHandler {
    private static final String TAG = "SONR audio processor";
 
    // SONR commands ******************
-   private static final int SONR_PLAY_PAUSE = 0x1e;
+   private static final int SONR_PLAY_PAUSE = 0x85;
    private static final int SONR_FAST_FORWARD = -2;
    private static final int SONR_REWIND = -3;
-   private static final int SONR_NEXT_TRACK = 0x1d;
-   private static final int SONR_PREVIOUS_TRACK = 0x21;
-   private static final int SONR_VOLUME_UP = 0x17;
-   private static final int SONR_VOLUME_DOWN = 0x18;
-   private static final int SONR_MUTE = 0x1b;
+   private static final int SONR_NEXT_TRACK = 0x45;
+   private static final int SONR_PREVIOUS_TRACK = 0x79;
+   private static final int SONR_VOLUME_UP = 0x15;
+   private static final int SONR_VOLUME_DOWN = 0xe5;
+   private static final int SONR_MUTE = 0x25;
    private static final int SONR_THUMBS_UP = 0x9;
    private static final int SONR_THUMBS_DOWN = 0xa;
    private static final int SONR_FAVORITE = 0x6;
@@ -53,8 +53,8 @@ class UserActionHandler {
    private static final int SONR_DPAD_SELECT = 0x14;
    private static final int SONR_POWER_ON = 0x1;
    private static final int SONR_POWER_OFF = 0x5;
-   private static final int SONR_HOME = 0x22;
-   private static final int SONR_SHARE = 0x28; // 0x2b;
+   private static final int SONR_HOME = 0xb9;
+   private static final int SONR_SHARE = 0x28;
    private static final int SONR_SEARCH = 0x24;
    // end SONR commands
    // ****************************************************************************************************************

@@ -10,13 +10,19 @@
 
 package com.sonrlabs.test.sonr.signal;
 
-import com.sonrlabs.test.sonr.AudioProcessorQueue;
+import com.sonrlabs.test.sonr.SonrLog;
 
 /**
  * 
  * This class provides support for audio processing functionality that's
  * common to both the initial connection to the dock and the processing of
  * signals once that connection is established.
+ *
+ * signal format,
+ * [ 64 bit preamble ] + [ 3 copies of data ], where data is,
+ * [1 start bit ] + [ 8 data bits ] + [ 1 stop bit ] + [ 1 filler bit ]
+ * bitrate: 2400Hz
+ * carrier: 9600Hz
  * 
  * <p>
  *  Sonr uses differential phase shift keying for modulation and HDLC Framing.
@@ -26,183 +32,267 @@ import com.sonrlabs.test.sonr.AudioProcessorQueue;
  */
 abstract class SignalConstructor
       implements AudioSupportConstants {
+   private static final String TAG = SignalConstructor.class.getSimpleName();
 
-   // how many repetitions in the transmission required for valid data
-   private static final int MIN_MATCHES = 2;
-   
-   /**
-    * Used as the threshold to detect phase changes. It's computed by
-    * {@link #computeSignalMax()}.
-    */
-   private float signalMaxSum;
-   
-   // TODO: Document these
-   private final int[] movingbuf = new int[MOVING_SIZE];
-   private final int[] movingsum = new int[TRANSMISSION_LENGTH];
-   
-   /**
-    * Stores whatever signal was found in each sample.  The signal
-    * value for a given index is computed by {@link #constructSignal(int index)}.
-    */
-   private final int[] signals = new int[TRANSMISSIONS_PER_BUFFER];
-   
-   /**
-    * Look for at least {@value #MIN_MATCHES} matches of the values in {@link #signals}.
-    * If found, send that matching value off to the processor.
-    */
-   void processSignalIfMatch() {
-      for (int i = 0; i <= signals.length-MIN_MATCHES; i++) {
-         int baseSignal = signals[i];
-         if (baseSignal != 0 && baseSignal != BOUNDARY) {
-            int matchCount = 1;
-            for (int j = i+1; j < signals.length && matchCount < MIN_MATCHES; j++) {
-                if (baseSignal == signals[j]) ++matchCount;
-            }
+   private static final int PHASE_CHECK_WINDOW = (SAMPLES_PER_BIT / 2);
+   private static final int SUMBUF_SAMPLES = PHASE_CHECK_WINDOW * 2;
+   private short[] sumbuf = new short[SUMBUF_SAMPLES];
+   private static final int STATE_INIT      = 0;
+   private static final int STATE_PREAMBLE0 = 1;
+   private static final int STATE_PREAMBLE1 = 2;
+   private static final int STATE_PREAMBLE2 = 3;
+   private static final int STATE_PREAMBLE3 = 4;
+   private static final int STATE_START_BIT = 5;
+   private static final int STATE_DATA      = 6;
+   private static final int STATE_STOP_BIT  = 7;
+   private static final int STATE_SKIP_BIT  = 8;
+   private int state = STATE_INIT; //parser state machine
+   private int stage = 0; //phase shift window sample stage register
+   private int bit_samples = 0; //tracks number of samples processed for given bit
+   private int bits = 0; //tracks number of bits process for given data byte
+   private int prev_bit = 0; //toggles upon phase shifting
+   private int[] bytes = new int[TRANSMISSIONS_PER_BUFFER]; //signal data bytes buffer
+   private int cur_byte = 0; //current signal data byte
+   private int sum; //running sample delta SUM
+   private int threshold; //phase shifting detection threshold
+   private int max, min; //audio sample maximum and minimum amplitude
+   private int match; //running match counter
+   private short prev_sample = 0; //previous sample value
+   private int peak_out = 0; //peak output of SUM
+   private int index = 0; //bit index, to compensate division: samplerate/bitrate
+   private int offset = 0; //tracks offset from 1st threshold to peak position
 
-            if (matchCount >= MIN_MATCHES) {
-                AudioProcessorQueue.processAction(baseSignal);
-                return;
-            }
-         }
+   private static final int MAX_BUFFERED_SIGNALS = 4;
+   private int[] nextSignals = new int[MAX_BUFFERED_SIGNALS];
+   private int signalHEAD = 0;
+   private int signalTAIL = 0;
+
+   /*
+   private boolean lpf_init = false;
+   private double lpf_reg;
+   private static final double lpf_alpha = ((1.0/44100) / ((1.0/44100) + (1.0 / 2400)));
+   */
+   private void putSignal(int sig) {
+      int tail = signalTAIL;
+
+      tail++;
+      if (tail >= MAX_BUFFERED_SIGNALS) tail = 0;
+      if (tail == signalHEAD) {
+         SonrLog.w(TAG, "signal buffer overflow, signal lost.");
+      } else {
+         nextSignals[signalTAIL] = sig;
+         signalTAIL = tail;
       }
    }
 
-   int countBoundSignals() {
-      int matchCount = 0;
-      for (int value : signals) {
-         if (value == BOUNDARY) {
-            ++matchCount;
-         }
+   private void validateSignal() {
+      int sig = -1;
+      if ((bytes[0] == bytes[1]) || (bytes[0] == bytes[2])) sig = bytes[0];
+      else if (bytes[1] == bytes[2]) sig = bytes[1];
+      if (sig != -1 ) putSignal(sig);
+      else {
+         SonrLog.w(TAG, String.format("invalid signal: %x %x %x", bytes[0], bytes[1], bytes[2]));
       }
-      return matchCount;
    }
 
-   boolean isPhaseChange(int movingSumIndex) {
-      int sum1 = movingsum[movingSumIndex];
-      int sum2 = movingsum[movingSumIndex + 1];
-      return Math.abs(sum1 - sum2) > signalMaxSum;
+   /* LPF not helping that much
+   private int lpfilter(int val) {
+
+      if (lpf_init == false) {
+         lpf_init = true;
+         lpf_reg = val;
+      } else {
+         lpf_reg = lpf_reg + lpf_alpha * (val - lpf_reg);
+      }
+      //SonrLog.d(TAG, String.format("filter: %f %d/%d", lpf_reg, val, (int)lpf_reg));
+      return (int)lpf_reg;
+   }
+   */
+
+   //take care of the remainder from 44100 / 2400
+   private int samplesPerBit (int bit) {
+      int num = SAMPLES_PER_BIT;
+      switch (bit % 8) {
+         case 1 :
+         case 3 :
+         case 6 :
+            num++;
+         default : break;
+      }
+      return num;
    }
 
-   int findSample(int startpos, short[] samples, int numsampleloc, int[] sampleStartIndices) {
-      movingsum[0] = 0;
-      int start = startpos + MOVING_SIZE;
-      for (int i = startpos; i < start; i++) {
-         movingbuf[i - startpos] = samples[i];
-         movingsum[0] += samples[i];
+   int getSignal() {
+      int sig = -1;
+      if (signalHEAD != signalTAIL) {
+         sig = nextSignals[signalHEAD];
+         signalHEAD++;
+         if (signalHEAD >= MAX_BUFFERED_SIGNALS) signalHEAD = 0;
       }
-      int arraypos = 0;
-      int end = startpos + SAMPLE_LENGTH - BIT_OFFSET;
-      for (int i = start; i < end; i++) {
-         movingsum[1] = movingsum[0] - movingbuf[arraypos];
-         movingsum[1] += samples[i];
-         movingbuf[arraypos] = samples[i];
-         arraypos++;
-         if (arraypos == MOVING_SIZE) {
-            arraypos = 0;
-         }
-
-         if (isPhaseChange(0)) {
-            sampleStartIndices[numsampleloc++] = i - 5;
-            if (numsampleloc >= TRANSMISSIONS_PER_BUFFER) {
-               break;
-            }
-            // next transmission
-            i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1;
-            sampleStartIndices[numsampleloc++] = i;
-            // next transmission
-            i += TRANSMISSION_LENGTH + BIT_OFFSET + FRAMES_PER_BIT + 1;
-            sampleStartIndices[numsampleloc] = i;
-            break;
-         } else {
-            movingsum[0] = movingsum[1];
-         }
-      }
-      return numsampleloc;
+      return sig;
    }
-/* It seems to me we should compute the amplitude of the signal 
- * (which I presume is what we're doing here) By finding the two extreme points 
- * along the curve and getting the difference.
- */
-   void computeSignalMax(short[] samples, int startpos) {
-       
-       signalMaxSum = 0;
 
-      int endpos = startpos + PREAMBLE - BEGIN_OFFSET + TRANSMISSIONS_PER_BUFFER * (TRANSMISSION_LENGTH + BIT_OFFSET);
-      for (int i = startpos + MOVING_SIZE; i < endpos; i++) {
-         int max = 0;
-         int min = 0;
-         if (samples[i] > max) {
-            max = samples[i];
-         }
-         if (samples[i] < min){
-            min = samples[i];
-         }
-         int temp = Math.abs(max - min);
-         if (temp > signalMaxSum) {
-            signalMaxSum = temp;
-         
-         
+   void parseSignal(short[] samples, int count) {
+      int ii = 0;
+
+      if (count < SUMBUF_SAMPLES) {
+         SonrLog.w(TAG, String.format("unsupported: input buffer too small: %d", count));
+         return;
+      }
+
+      //prefill phase shift detection window buffer
+      if (state == STATE_INIT) {
+         int jj;
+
+         for (ii = 0; ii < SUMBUF_SAMPLES; ii++) {
+            sumbuf[ii] = samples[ii];
          }
 
+         sum = 0;
+         for (jj = 0; jj < PHASE_CHECK_WINDOW; jj++) {
+            sum += Math.abs(samples[jj + PHASE_CHECK_WINDOW] - samples[jj]);
+         }
+         stage = 0;
 
+         SonrLog.d(TAG, String.format("signal parser initialized: %d", count));
+         state = STATE_PREAMBLE0;
+         max = min = match = 0;
+         prev_sample = samples[ii];
       }
    
-  
-      
-      /* 
-       * My guess is that the phase shifts don't always occur at the max amplitude points and thus we want to 
-       * provide a bit of a cushion if the signal and phase shifts slip a bit out of phase
-       * who knows?  1.0 and 3.0 seem to work slightly worse on EVO 3D than 1.5 in terms of missed button presses.
-      */
-      signalMaxSum /= AMPLITUDE_THRESHOLD;
-   }
+      while (ii < count) {
+         int out;
 
-   void constructSignal(short[] samples, int[] sampleStartIndices) {
-      for (int signalIndex = 0; signalIndex < TRANSMISSIONS_PER_BUFFER; signalIndex++) {
-         if (sampleStartIndices[signalIndex] != 0) {
-            int index = 0;
-            movingsum[0] = 0;
-            for (int i = 0; i < MOVING_SIZE; i++) {
-               short value = samples[i + sampleStartIndices[signalIndex]];
-               movingbuf[i] = value;
-               movingsum[0] += value;
-            }
-            for (int i = MOVING_SIZE; i < TRANSMISSION_LENGTH; i++) {
-               movingsum[i] = movingsum[i - 1] - movingbuf[index];
-               short value = samples[i + sampleStartIndices[signalIndex]];
-               movingsum[i] += value;
-               movingbuf[index] = value;
-               index++;
-               if (index == MOVING_SIZE) {
-                  index = 0;
+         //running each sample through phase detection.
+         short tmp1 = sumbuf[stage];
+         short tmp2 = sumbuf[(stage + PHASE_CHECK_WINDOW) % SUMBUF_SAMPLES];
+
+         sumbuf[stage] = samples[ii];
+         sum += Math.abs(sumbuf[stage] - tmp2) - Math.abs(tmp2 - tmp1);
+
+         stage++;
+         if (stage >= SUMBUF_SAMPLES) stage = 0;
+
+         //out = lpfilter(sum);
+         out = sum;
+
+         //SonrLog.d(TAG, String.format("filter out[%04d]: %d", ii, out));
+         switch (state) {
+            case STATE_PREAMBLE0 : //always starts from silence
+               if (samples[ii] > 512) match = 0;
+               else match++;
+
+               // less than 2mili-seconds, but guaranteed silence
+               if (match > SAMPLES_PER_BIT * 4) {
+                  //SonrLog.d(TAG, "waiting for preamble");
+                  state = STATE_PREAMBLE1;
+                  max = min = match = 0;
                }
-            }
+               break;
 
-            constructSignal(signalIndex);
+            case STATE_PREAMBLE1 : //process preamble
+               if (Math.abs(samples[ii] - prev_sample) > PREAMBLE_DELTA && out < 100000) {
+                  match++;
+                  if (samples[ii] > max) max = samples[ii];
+                  else if (samples[ii] < min) min = samples[ii];
+               }
+
+               if (match > SAMPLES_PER_BIT * 48) { //64 bit preamble - headroom for rampup
+                  state = STATE_PREAMBLE2;
+                  match = 0;
+                  threshold = (PHASE_CHECK_WINDOW * (max - min)) / 4;
+                  //SonrLog.d(TAG, String.format("threshold set: %d %d", out, threshold));
+               }
+               break;
+
+            case STATE_PREAMBLE2 : //waiting for start bit
+               if (out < threshold) break;
+
+               state = STATE_PREAMBLE3;
+               bit_samples = 0;
+               peak_out = out;
+               offset = 0;
+               break;
+
+            case STATE_PREAMBLE3 : //searching for peak and locate the very first start bit
+               offset++;
+               if (offset > SAMPLES_PER_BIT) {
+                  SonrLog.w(TAG, "invalid preamble, restart");
+                  state = STATE_PREAMBLE0;
+               }
+               if (out > threshold) {
+                  if (out > peak_out) {
+                     peak_out = out;
+                     bit_samples = offset;
+                  }
+                  break;
+               }
+
+               //SonrLog.d(TAG, String.format("offset: %d", offset));
+               index = 0;
+               bits = 0;
+               prev_bit = 1;
+               cur_byte = 0;
+               bytes[0] = 0;
+
+               state = STATE_DATA;
+               //SonrLog.d(TAG, String.format("start bit: %d/%d", out, threshold));
+               break;
+
+            case STATE_START_BIT :
+               if (++bit_samples < samplesPerBit(index)) break;
+               bit_samples = 0;
+               index++;
+
+               state = STATE_DATA;
+               break;
+
+            case STATE_DATA :
+               if (++bit_samples < samplesPerBit(index)) break;
+               bit_samples = 0;
+               index++;
+
+               if (out > threshold) {
+                  prev_bit ^= 1;
+               }
+               bytes[cur_byte] <<= 1;
+               bytes[cur_byte] |= prev_bit;
+
+               bits++;
+               if (bits < 8) break;
+               //SonrLog.d(TAG, String.format("DATA[%d]: %x %d", cur_byte, bytes[cur_byte], threshold));
+
+               cur_byte++;
+               if (cur_byte < TRANSMISSIONS_PER_BUFFER) {
+                  bits = 0;
+                  prev_bit = 1;
+                  bytes[cur_byte] = 0;
+                  state = STATE_STOP_BIT;
+               } else {
+                  validateSignal();
+                  state = STATE_PREAMBLE0;
+               }
+               break;
+
+            case STATE_STOP_BIT :
+               if (++bit_samples < samplesPerBit(index)) break;
+               bit_samples = 0;
+               index++;
+
+               state = STATE_SKIP_BIT;
+               break;
+
+            case STATE_SKIP_BIT :
+               if (++bit_samples < samplesPerBit(index)) break;
+               bit_samples = 0;
+               index++;
+
+               state = STATE_START_BIT;
+               break;
          }
-      }
-   }
 
-   private void constructSignal(int signalIndex) {
-      /* we start out with a phase shift and 0 signal */
-      boolean inphase = true, switchphase = true;
-      signals[signalIndex] = 0;
-
-      for (int i = FRAMES_PER_BIT + 1, bitnum = 0; i < TRANSMISSION_LENGTH; i++) {
-         if (switchphase && isPhaseChange(i - 1)) {
-            inphase = !inphase;
-            switchphase = false;
-         }
-
-         boolean atFrameBoundary = i % FRAMES_PER_BIT == 0;
-         if (atFrameBoundary) {
-            if (!inphase) {
-               signals[signalIndex] |= 0x1 << bitnum;
-            }
-            bitnum++;
-            /* reached a bit, can now switch */
-            switchphase = true;
-         }
-      }
+         prev_sample = samples[ii];
+         ii++;
+      } //end of while (ii < count)
    }
 }

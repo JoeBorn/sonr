@@ -37,5 +37,4 @@ public interface IAudioProcessor {
     * @param buffers the buffers of audio data, to be processed in sequence.
     */
    public abstract void nextSamples(List<ISampleBuffer> buffers);
-
 }

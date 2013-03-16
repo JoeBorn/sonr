@@ -9,7 +9,7 @@
  **************************************************************************/
 
 package com.sonrlabs.test.sonr.signal;
-
+import com.sonrlabs.test.sonr.AudioProcessorQueue;
 import java.util.List;
 
 import com.sonrlabs.test.sonr.ISampleBuffer;
@@ -21,15 +21,23 @@ import com.sonrlabs.test.sonr.ISampleBuffer;
  * {@link com.sonrlabs.test.sonr.AudioProcessorQueue} singleton.
  */
 final class AudioProcessor
-      implements AudioSupportConstants, IAudioProcessor {
-   
-   private final TransmissionPreprocessor preprocessor = new TransmissionPreprocessor();
-   
+   extends SignalConstructor
+   implements IAudioProcessor {
+
    @Override
    public void nextSamples(List<ISampleBuffer> buffers) {
       for (ISampleBuffer buffer : buffers) {
          try {
-            preprocessor.nextSample(buffer);
+            int count = buffer.getCount();
+            short[] samples = buffer.getArray();
+
+            parseSignal(samples, count);
+
+            while (true) {
+               int sig = getSignal();
+               if (-1 == sig) break;
+               else AudioProcessorQueue.processAction(sig);
+            }
          } catch (RuntimeException e) {
             e.printStackTrace();
             //ErrorReporter.getInstance().handleException(e);

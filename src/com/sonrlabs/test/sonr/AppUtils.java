@@ -26,7 +26,7 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.provider.MediaStore;
 
-import com.sonrlabs.prod.sonr.R;
+import com.sonrlabs.v96.sonr.R;
 
 class AppUtils {
    

@@ -15,7 +15,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
-import com.sonrlabs.prod.sonr.R;
+import com.sonrlabs.v96.sonr.R;
 
 public class FeedbackActivity
       extends Activity {

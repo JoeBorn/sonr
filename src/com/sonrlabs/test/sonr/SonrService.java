@@ -37,7 +37,7 @@ import android.telephony.TelephonyManager;
 import android.view.KeyEvent;
 import android.widget.RemoteViews;
 
-import com.sonrlabs.prod.sonr.R;
+import com.sonrlabs.v96.sonr.R;
 
 public class SonrService
       extends Service {

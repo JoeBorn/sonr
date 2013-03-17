@@ -17,7 +17,7 @@ import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.TextView;
-import com.sonrlabs.prod.sonr.R;
+import com.sonrlabs.v96.sonr.R;
 
 public class TermsScreen extends Activity {
 

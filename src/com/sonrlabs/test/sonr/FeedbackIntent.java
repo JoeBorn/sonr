@@ -25,7 +25,7 @@ import android.os.Build;
 import android.widget.CheckBox;
 import android.widget.EditText;
 
-import com.sonrlabs.prod.sonr.R;
+import com.sonrlabs.v96.sonr.R;
 
 class FeedbackIntent
       extends Intent {

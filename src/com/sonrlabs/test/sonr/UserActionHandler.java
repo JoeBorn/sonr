@@ -28,7 +28,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.Toast;
 
-import com.sonrlabs.prod.sonr.R;
+import com.sonrlabs.v96.sonr.R;
 
 class UserActionHandler {
 

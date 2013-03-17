@@ -13,7 +13,7 @@ import android.os.Build;
 import com.parse.Parse;
 import com.parse.ParseObject;
 
-import com.sonrlabs.prod.sonr.R;
+import com.sonrlabs.v96.sonr.R;
 
 /**
  *  TODO: replace this junk with javadoc for this class.

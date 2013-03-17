@@ -23,7 +23,7 @@ import android.text.util.Linkify.TransformFilter;
 import android.view.View;
 import android.widget.TextView;
 
-import com.sonrlabs.prod.sonr.R;
+import com.sonrlabs.v96.sonr.R;
 
 public class IntroScreen extends Activity {
 

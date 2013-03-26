@@ -43,19 +43,19 @@ class UserActionHandler {
    private static final int SONR_VOLUME_UP = 0x15;
    private static final int SONR_VOLUME_DOWN = 0xe5;
    private static final int SONR_MUTE = 0x25;
-   private static final int SONR_THUMBS_UP = 0x9;
-   private static final int SONR_THUMBS_DOWN = 0xa;
-   private static final int SONR_FAVORITE = 0x6;
-   private static final int SONR_DPAD_UP = 0xc;
-   private static final int SONR_DPAD_DOWN = 0xf;
-   private static final int SONR_DPAD_LEFT = 0x11;
-   private static final int SONR_DPAD_RIGHT = 0x12;
-   private static final int SONR_DPAD_SELECT = 0x14;
-   private static final int SONR_POWER_ON = 0x1;
-   private static final int SONR_POWER_OFF = 0x5;
+   private static final int SONR_THUMBS_UP = 0x6d;
+   private static final int SONR_THUMBS_DOWN = 0xad;
+   private static final int SONR_FAVORITE = 0x9d;
+   private static final int SONR_DPAD_UP = 0xcd;
+   private static final int SONR_DPAD_DOWN = 0x0d;
+   private static final int SONR_DPAD_LEFT = 0x75;
+   private static final int SONR_DPAD_RIGHT = 0xb5;
+   private static final int SONR_DPAD_SELECT = 0xd5;
+   private static final int SONR_POWER_ON = 0x3d;
+   private static final int SONR_POWER_OFF = 0x5d;
    private static final int SONR_HOME = 0xb9;
-   private static final int SONR_SHARE = 0x28;
-   private static final int SONR_SEARCH = 0x24;
+   private static final int SONR_SHARE = 0xe9;
+   private static final int SONR_SEARCH = 0xd9;
    // end SONR commands
    // ****************************************************************************************************************
 

@@ -64,7 +64,7 @@ class SONRClient {
             if (singletonListener != null) {
                singletonListener.stopRunning();
             }
-            singletonListener = new MicSerialListener();
+            singletonListener = new MicSerialListener(applicationContext);
          }
       } catch (RuntimeException e) {
          e.printStackTrace();

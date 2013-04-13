@@ -12,6 +12,7 @@ package com.sonrlabs.test.sonr;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import android.content.Context;
 import android.media.AudioRecord;
 import android.os.SystemClock;
 import android.util.Log;
@@ -19,6 +20,7 @@ import android.util.Log;
 import com.sonrlabs.test.sonr.signal.AudioUtils;
 import com.sonrlabs.test.sonr.signal.Factory;
 import com.sonrlabs.test.sonr.signal.IDockDetector;
+import com.sonrlabs.v96.sonr.R;
 
 class MicSerialListener implements Runnable {
    
@@ -38,7 +40,7 @@ class MicSerialListener implements Runnable {
     * given time.  Is this safe?
     */
    private static final IDockDetector dockDetector = Factory.createDockDetector();
-
+   private Context appContext;
    private boolean running;
    private boolean foundDock;
    private int bufferSize;
@@ -46,7 +48,8 @@ class MicSerialListener implements Runnable {
    private SampleBufferPool bufferPool;
    private final Object searchLock = new Object();
 
-   MicSerialListener() {
+   MicSerialListener(Context context) {
+      this.appContext = context;
       init();
       if (inStream != null) {
          searchSignal();
@@ -155,7 +158,14 @@ class MicSerialListener implements Runnable {
                   errorCode = count;
                }
             }
-            
+            if (foundDock) {
+               //FIXME: reuse PLAY_PAUSE message, so processing of parse server
+               //       data does not need to change
+               Context applicationContext = appContext.getApplicationContext();
+               String playPause = appContext.getString(R.string.PLAY_PAUSE);
+               SonrAppInformationLogger logger = new SonrAppInformationLogger();
+               logger.uploadErrorAppInformationWithErrorString(applicationContext, playPause);
+            }
             /*for(int i = 0; i < bufferSize; i++)
             {
                Log.d("MicSerialListener", Integer.toHexString(samples[i]));
